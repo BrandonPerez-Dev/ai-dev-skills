@@ -1,6 +1,6 @@
 ---
 name: design
-description: Collaborative design phase — research the landscape, plan constraints and verticals, then transition to build. Lightweight orchestrator for non-trivial features. Invokes research, plan, architecture, and ui-ux-design as needed.
+description: Collaborative design phase — research the landscape, plan constraints and verticals, define test contracts, then transition to build. Lightweight orchestrator for non-trivial features. Invokes research, plan, architecture, test-planning, and ui-ux-design as needed.
 allowed-tools:
   - Read
   - Write
@@ -23,7 +23,11 @@ Do NOT write implementation code during design. The output is a plan, not code.
 </HARD-GATE>
 
 <HARD-GATE>
-Do NOT invoke build until at least one vertical has done criteria AND a test contract. Confirm with the user before transitioning.
+Do NOT invoke build until at least one vertical has done criteria AND a test contract validated by test-planning. Confirm with the user before transitioning.
+</HARD-GATE>
+
+<HARD-GATE>
+Do NOT skip test-planning. Every vertical needs user-validated integration test contracts with explicit mock boundaries before it is "ready." Verticals without test contracts are headlines, not ready verticals.
 </HARD-GATE>
 
 ## When to Use
@@ -71,7 +75,7 @@ Present findings as:
 
 Invoke the **plan** skill to produce the feature plan:
 - Discovers architectural constraints through conversation
-- Defines verticals with done criteria and test contracts
+- Defines verticals with done criteria
 - Saves to `specs/NNN-<topic>/plan.md`
 
 During planning, invoke utility skills as needed:
@@ -81,7 +85,28 @@ During planning, invoke utility skills as needed:
 
 Invoke these *during* the plan conversation only when a specific question needs deeper thinking. Do NOT run them as mandatory separate phases.
 
-### 3. Review (optional)
+### 3. Test Planning (mandatory)
+
+Invoke the **test-planning** skill after verticals are defined. This is NOT optional — verticals are not ready without validated test contracts.
+
+Test-planning will:
+- Define integration test contracts for each vertical (setup, action, input, expected output, side effects, error cases)
+- Establish mock boundaries (controlled deps = real, uncontrolled deps = mock at adapter)
+- Validate contracts with the user at checkpoints
+- Produce the test plan that feeds into **test-writer**
+
+A vertical without a user-validated test contract is a headline, not a ready vertical.
+
+### 4. Test Writing
+
+Invoke the **test-writer** skill to translate validated contracts into executable test code. test-writer will:
+- Write integration tests from each contract using AAA structure
+- Confirm every test fails for the right reason (red)
+- Commit tests as locked artifacts that build implements against
+
+Tests can be written per-vertical as contracts are validated — you don't need all contracts before starting.
+
+### 5. Review (optional)
 
 If the user wants teammate review:
 - Invoke **commit-and-pr** to push the plan and create a PR
@@ -89,7 +114,7 @@ If the user wants teammate review:
 
 For solo projects: skip to build.
 
-### 4. Transition to Build
+### 6. Transition to Build
 
 **You don't wait for the complete plan.** When the first verticals are ready:
 - Confirm with the user

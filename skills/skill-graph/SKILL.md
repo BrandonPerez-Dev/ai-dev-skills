@@ -35,12 +35,12 @@ Intuition about what "sounds right" for embeddings is unreliable — measure wit
 
 ## Key Paths
 
-- **Graph definition:** `~/dev-config/ai-workflow-config/skill-router/src/skill-graph.ts`
-- **Embedding code:** `~/dev-config/ai-workflow-config/skill-router/src/embed.ts`
-- **Build script:** `~/dev-config/ai-workflow-config/skill-router/src/build-graph.ts`
-- **Router:** `~/dev-config/ai-workflow-config/skill-router/src/router.ts`
-- **Built graph:** `~/dev-config/ai-workflow-config/skill-router/skill-graph.json`
-- **Skills directory:** `~/dev-config/ai-workflow-config/skills/`
+- **Graph definition:** `skill-router/src/skill-graph.ts` (relative to repo root)
+- **Embedding code:** `skill-router/src/embed.ts`
+- **Build script:** `skill-router/src/build-graph.ts`
+- **Router:** `skill-router/src/router.ts`
+- **Built graph:** `skill-router/skill-graph.json`
+- **Skills directory:** `skills/` (also available via `~/.claude/skills/`)
 
 ## Embedding Optimization Principles
 
@@ -153,7 +153,7 @@ Add edges:
 ### Step 4: Rebuild
 
 ```bash
-cd ~/dev-config/ai-workflow-config/skill-router
+cd "$(git rev-parse --show-toplevel)/skill-router"
 npm run build && npm run build-graph
 ```
 
@@ -164,7 +164,7 @@ npm run build && npm run build-graph
 Run the diagnostic script to verify the new skill routes correctly:
 
 ```bash
-cd ~/dev-config/ai-workflow-config/skill-router
+cd "$(git rev-parse --show-toplevel)/skill-router"
 node scripts/diagnose.js "query that should match" skill-id
 ```
 
@@ -194,7 +194,7 @@ What's happening?
 Score the problem query against the target skill AND its likely competitors:
 
 ```bash
-cd ~/dev-config/ai-workflow-config/skill-router
+cd "$(git rev-parse --show-toplevel)/skill-router"
 node -e "
 async function test() {
   const { readFileSync } = require('fs');
@@ -255,7 +255,7 @@ Apply the optimization principles:
 ### Step 3: Rebuild and Re-score
 
 ```bash
-cd ~/dev-config/ai-workflow-config/skill-router
+cd "$(git rev-parse --show-toplevel)/skill-router"
 npm run build && npm run build-graph
 ```
 

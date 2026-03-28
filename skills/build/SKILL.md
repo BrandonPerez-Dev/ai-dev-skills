@@ -1,6 +1,6 @@
 ---
 name: build
-description: Implements a plan one vertical at a time. Integration test first, build the slice, verify. Accepts complete plans, partial plans, or single verticals. Use after plan produces at least one ready vertical.
+description: Implements a plan one vertical at a time using the tdd skill for test-first execution. Accepts complete plans, partial plans, or single verticals. Use after design produces at least one ready vertical with a validated test contract.
 allowed-tools:
   - Read
   - Write
@@ -45,13 +45,18 @@ Identify which verticals are **ready** (have done criteria + test contract) vs *
 
 Before writing any code:
 - [ ] Dev environment works (build runs, tests pass, server starts if applicable)
-- [ ] At least one vertical has done criteria + test contract
+- [ ] At least one vertical has done criteria + a user-validated test contract (from test-planning)
 - [ ] Dependencies between verticals are clear
+- [ ] Test plan exists — if not, invoke **test-planning** before proceeding
 
 If pre-flight fails, fix it before writing feature code. Infrastructure problems compound.
 
 <HARD-GATE>
-Do NOT write feature code until pre-flight passes: build runs, tests pass, at least one vertical has done criteria + test contract.
+Do NOT write feature code until pre-flight passes: build runs, existing tests pass, at least one vertical has committed test files from test-writer. If no test files exist, stop — invoke test-planning then test-writer first.
+</HARD-GATE>
+
+<HARD-GATE>
+NEVER modify test files written by test-writer. Tests are locked contracts that define "done." If a test appears wrong, escalate to the user or back to test-writer — do not adjust assertions, expected values, or test logic to match your implementation. The structural separation between test authoring and implementation exists to prevent the #1 AI testing failure: changing tests to match buggy code.
 </HARD-GATE>
 
 ## Mode Selection
@@ -84,39 +89,21 @@ After the walking skeleton passes, report to the user: "Walking skeleton green �
 
 For each ready vertical in dependency order:
 
-#### 1. Integration Test (Red)
+#### 1. Implement Against Locked Tests
 
-Write the integration test from the plan's test contract. Use real controlled dependencies. Mock uncontrolled dependencies at the adapter boundary.
+The **test-writer** skill has already committed failing integration tests for this vertical. Your job is to make them pass — following TDD methodology (red-green-refactor):
 
-Example — if the plan says:
-> **Test:** Integration test hits API, asserts array of customers with required fields
+- Read the failing test to understand what "done" looks like
+- Implement the minimum code to make the test green
+- Add unit tests at each layer during implementation (route, service, adapter)
+- Refactor while keeping all tests green
+- Follow mock boundaries: controlled deps (your DB, server) = real, uncontrolled (third-party APIs) = mock at adapter
 
-Write:
-```typescript
-test('GET /customers returns customer records', async () => {
-  const res = await app.inject({ method: 'GET', url: '/customers' });
-  expect(res.statusCode).toBe(200);
-  const body = JSON.parse(res.payload);
-  expect(body.customers[0]).toHaveProperty('name');
-  expect(body.customers[0]).toHaveProperty('email');
-});
-```
+**The test is the source of truth, not the implementation.** If the test fails, debug the implementation. If you believe the test is wrong, escalate to the user — do not modify the test.
 
-Run it. It should fail with "route not found" or "not implemented" — not a test infrastructure error like "app is undefined" or "connection refused."
+#### 2. Verify — No Regressions
 
-#### 2. Build the Vertical
-
-Implement what's needed to make the integration test pass.
-
-Inner-loop TDD at each layer: failing unit test → make it pass → refactor.
-
-#### 3. Integration Test (Green)
-
-Run the integration test. When it passes, the vertical works end-to-end.
-
-#### 4. Verify — No Regressions
-
-Run the full suite:
+After tdd completes the vertical, run the full suite:
 - All integration tests pass (current + all previous verticals)
 - All unit tests pass
 - Type check passes
@@ -126,15 +113,15 @@ Run the full suite:
 Never advance to the next vertical with any test red. All integration tests (current + previous), unit tests, type check, and linter must pass.
 </HARD-GATE>
 
-#### 5. Commit + Status
+#### 3. Commit + Status
 
 Commit the vertical. Brief status to user: "V1 done — integration test green, 4 unit tests. Moving to V2."
 
-#### 6. Next Vertical
+#### 4. Next Vertical
 
 Move to the next ready vertical. If the next vertical is a **headline** (not detailed):
 - Pause and tell the user: "V4 needs done criteria and a test contract before I can build it"
-- Either the user details it now, invokes plan, or you skip to a different ready vertical
+- Either the user details it now (via test-planning → test-writer), or you skip to a different ready vertical
 
 ---
 
@@ -153,7 +140,8 @@ Fresh subagent per vertical + two-stage review. The controller (you) stays clean
 #### 1. Dispatch Implementer
 
 Provide the subagent with:
-- Full vertical description (done criteria + test contract)
+- Full vertical description (done criteria + test files committed by test-writer)
+- Instruction: implement against the locked tests — do NOT modify test files
 - Constraints from the plan
 - Context: what previous verticals built, architectural decisions
 - Working directory

@@ -6,7 +6,7 @@ Template for dispatching a code quality reviewer subagent.
 
 **Only dispatch after spec compliance review passes.**
 
-**Dispatch with:** `Task tool (superpowers:code-reviewer)`
+**Dispatch with:** `Agent tool (subagent_type: code-reviewer)`
 
 ## Prompt
 

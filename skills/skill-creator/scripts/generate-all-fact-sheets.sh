@@ -6,7 +6,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-SKILLS_DIR="${SKILLS_DIR:-/Users/W519982/Projects/ai-workflow-config/skills}"
+SKILLS_DIR="${SKILLS_DIR:-$(cd "$(dirname "$0")/../../.." && pwd)/skills}"
 
 if [ $# -gt 0 ]; then
   SKILLS=("$@")

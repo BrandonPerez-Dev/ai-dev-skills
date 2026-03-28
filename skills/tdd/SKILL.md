@@ -1,10 +1,11 @@
 ---
 name: tdd
 description: >-
-  Test-driven development execution — the red-green-refactor loop. Use during build phase
-  to implement features against an approved test plan. Writes integration tests first,
-  builds each vertical slice, verifies green. This is a "coloring" skill: the lines
-  (test contracts) are already drawn, the AI implements within them.
+  TDD methodology reference — the red-green-refactor philosophy, mock boundary
+  rules, and testing trophy principles. Referenced by test-writer (writes tests)
+  and build (implements against locked tests). Use when you need guidance on
+  TDD methodology, mock boundaries, or the testing trophy approach. For writing
+  tests, use test-writer. For implementing against tests, use build.
 allowed-tools:
   - Read
   - Write

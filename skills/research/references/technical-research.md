@@ -46,7 +46,7 @@ For questions about code, APIs, libraries, architecture, debugging, and system d
 
 ### Web research:
 
-**Use SearXNG (`mcp__searxng__search`) as your primary search tool.** It aggregates 70+ engines (Google, Brave, DuckDuckGo, Reddit, etc.), returns more results than WebSearch, and catches GitHub issues, Reddit dev discussions, and community solutions that single-engine search misses. Runs locally with no rate limits.
+**Use SearXNG (`mcp__searxng__searxng_web_search`) as your primary search tool.** It aggregates 70+ engines (Google, Brave, DuckDuckGo, Reddit, etc.), returns more results than WebSearch, and catches GitHub issues, Reddit dev discussions, and community solutions that single-engine search misses. Runs locally with no rate limits.
 
 **When to use which search tool:**
 - **SearXNG** — primary for all web research. Better coverage across engines, surfaces Reddit dev threads and GitHub discussions that WebSearch misses.

@@ -4,7 +4,6 @@
     "context7@claude-plugins-official": true,
     "github@claude-plugins-official": true,
     "atlassian@claude-plugins-official": true,
-    "superpowers@claude-plugins-official": true,
-    "superpowers-lab@superpowers-marketplace": true
+
   }
 }

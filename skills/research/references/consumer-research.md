@@ -49,7 +49,7 @@ If you don't know the specialist community for a domain, **search for it first**
 
 ### Step 2: Search Within Specialist Communities
 
-**Use SearXNG (`mcp__searxng__search_web`) as your primary search tool for consumer research.** It aggregates 70+ search engines including Reddit as a direct source, returns cleaner results than WebSearch, and runs locally with no rate limits. SearXNG supports time range filtering and language filtering. Use `mcp__searxng__fetch_url` to retrieve full page content from URLs found in search results.
+**Use SearXNG (`mcp__searxng__searxng_web_search`) as your primary search tool for consumer research.** It aggregates 70+ search engines including Reddit as a direct source, returns cleaner results than WebSearch, and runs locally with no rate limits. SearXNG supports time range filtering and language filtering. Use `mcp__searxng__web_url_read` to retrieve full page content from URLs found in search results.
 
 **When to use which search tool:**
 - **SearXNG** — primary tool for all consumer research. Better at surfacing forum/community content.

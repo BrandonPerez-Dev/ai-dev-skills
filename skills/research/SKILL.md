@@ -21,11 +21,10 @@ allowed-tools:
   - mcp__playwright__browser_snapshot
   - mcp__playwright__browser_click
   - mcp__playwright__browser_evaluate
-  - mcp__searxng__search_web
-  - mcp__searxng__search_images
-  - mcp__searxng__search_news
-  - mcp__searxng__search_videos
-  - mcp__searxng__fetch_url
+  - mcp__searxng__searxng_web_search
+  - mcp__searxng__web_url_read
+  # NOTE: mcp-searxng exposes one search tool (searxng_web_search) covering all categories,
+  # plus web_url_read for fetching page content. No separate image/news/video tools.
 ---
 
 # Research

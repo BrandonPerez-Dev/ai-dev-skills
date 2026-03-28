@@ -152,7 +152,7 @@ The walking skeleton proves infrastructure works. Every subsequent slice builds 
 
 ### 7. Compile the Test Plan
 
-Assemble everything into the output format. This becomes the input to the **tdd** skill during build phase.
+Assemble everything into the output format. This becomes the input to the **test-writer** skill, which translates these contracts into executable test code before build begins.
 
 ## Output Format
 
@@ -215,8 +215,8 @@ Follow the communication-protocol skill for all user-facing output and interacti
 ## Guidelines
 
 - **The user is the authority on correctness.** The AI knows testing methodology. The user knows how the system should behave. Combine both.
-- **Contracts first, code later.** The test plan is a design document. Don't write test code here — that's the tdd skill's job.
+- **Contracts first, code later.** The test plan is a design document. Don't write test code here — that's the **test-writer** skill's job.
 - **One contract at a time.** Don't dump all contracts on the user at once. Present, validate, move on. Communication-protocol's decision scaling applies — these are high-stakes decisions.
 - **Error cases are not optional.** Every contract needs failure scenarios. The happy path is the easy part.
 - **Walking skeleton for greenfield.** If there's no existing test infrastructure, prove it works before planning feature tests.
-- **This plan is the input to tdd.** When build phase starts, the tdd skill executes against these exact contracts. If the plan is wrong, the build is wrong.
+- **This plan is the input to test-writer.** The **test-writer** skill translates these contracts into executable test code, which build then implements against. If the plan is wrong, every downstream step is wrong.

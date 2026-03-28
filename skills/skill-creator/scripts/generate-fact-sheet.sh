@@ -8,7 +8,7 @@
 set -euo pipefail
 
 SKILL_NAME="${1:?Usage: $0 <skill-name> [skills-dir]}"
-SKILLS_DIR="${2:-/Users/W519982/Projects/ai-workflow-config/skills}"
+SKILLS_DIR="${2:-$(cd "$(dirname "$0")/../../.." && pwd)/skills}"
 SKILL_DIR="$SKILLS_DIR/$SKILL_NAME"
 FILE="$SKILL_DIR/SKILL.md"
 

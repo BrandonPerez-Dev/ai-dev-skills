@@ -21,25 +21,11 @@
       "marketplace": "claude-plugins-official",
       "description": "Jira and Confluence integration with skills"
     },
-    {
-      "name": "superpowers",
-      "marketplace": "claude-plugins-official",
-      "description": "Advanced workflow skills: TDD, debugging, code review, planning"
-    },
-    {
-      "name": "superpowers-lab",
-      "marketplace": "superpowers-marketplace",
-      "description": "Experimental skills: Slack, tmux, MCP CLI, duplicate finder"
-    }
   ],
   "marketplaces": [
     {
       "name": "claude-plugins-official",
       "url": "https://github.com/anthropics/claude-plugins-official"
-    },
-    {
-      "name": "superpowers-marketplace",
-      "url": "https://github.com/anthropics/superpowers-marketplace"
     }
   ]
 }
