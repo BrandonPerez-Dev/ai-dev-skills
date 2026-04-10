@@ -1,6 +1,6 @@
 ---
 name: design
-description: Collaborative design phase — research the landscape, plan constraints and verticals, define test contracts, then transition to build. Lightweight orchestrator for non-trivial features. Invokes research, plan, architecture, test-planning, and ui-ux-design as needed.
+description: Collaborative design phase — load project context (context/ + spec/), research the landscape, plan constraints and verticals, land contracts in spec/<capability>.md via test-planning, promote architectural decisions to context/. Lightweight orchestrator for non-trivial features.
 allowed-tools:
   - Read
   - Write
@@ -54,6 +54,31 @@ Default to **medium**. Escalate if you discover unexpected complexity.
 
 ## Flow
 
+### 0. Load Project Context
+
+Before anything else, load the two knowledge layers at the project root:
+
+**`context/` — architectural truth (hot memory, always loaded):**
+If `context/` exists, read all files. These are mutable, always-current documents covering technology choices, integration patterns, constraints, and rationale. They tell you *why* the system is built the way it is. Read these before `spec/` — they inform which capabilities matter and what constraints apply.
+
+Each `context/` file is a flat, topic-scoped markdown document. No timestamps, no status fields — just current truth. Git history is the changelog. Files are organized by concern (e.g., `proxy.md`, `model-strategy.md`, `testing.md`), not by feature or date. A finding that "applies beyond this feature" belongs in `context/`; a finding specific to one feature stays in `changes/`.
+
+**`spec/` — behavioral contracts (cold memory, loaded per-feature):**
+If `spec/` exists:
+1. Read `spec/README.md` for system intent and the capability index.
+2. On small projects (≤10 capabilities): scan all `spec/*.md` files for the full behavioral picture.
+3. On larger projects (>10 capabilities): read only the capability files likely to overlap with this feature. Use the README index to identify them. Load more selectively as the plan narrows scope.
+
+**Exit action** — by the end of this step, you have four pieces of information ready to hand to downstream skills:
+- **Architectural constraints** — from `context/` files. Pass to plan so it doesn't re-discover known decisions. Pass to test-planning so mock boundaries reflect existing infrastructure choices.
+- **In-scope capabilities** — which `spec/*.md` files will likely be touched (you'll refine this in plan). Pass this to plan so it can populate the "Modifies spec files" section accurately.
+- **Existing invariants to preserve** — rules from spec/ that this feature must not break. Pass to test-planning so it doesn't propose contracts that violate them.
+- **Related boundaries** — contracts already in spec/ that this feature extends or references. Pass to architecture so it doesn't re-design something already specified.
+
+Do NOT re-design boundaries that already exist in `spec/` without explicit user direction. If this feature touches an existing capability, the default is to extend, not replace.
+
+**If neither exists:** this is a greenfield project or feature 1. Skip this step. Test-planning will bootstrap `spec/` during its own Step 0. `context/` gets created as architectural decisions emerge during planning.
+
 ### 1. Research (if needed)
 
 Invoke the **research** skill when you need to understand:
@@ -71,12 +96,15 @@ Present findings as:
 
 **Check in:** "Here's what I found — does this change our approach?"
 
+**Promote to context/:** When research produces system-level architectural findings (not feature-specific details), promote validated findings to `context/` after user confirmation. Research writes to `changes/NNN/research-*.md` first (working area); design promotes the conclusions to `context/` when confirmed. Feature-specific details stay in `changes/`.
+
 ### 2. Plan
 
 Invoke the **plan** skill to produce the feature plan:
 - Discovers architectural constraints through conversation
 - Defines verticals with done criteria
-- Saves to `specs/NNN-<topic>/plan.md`
+- Declares which `spec/*.md` files this feature will modify (see plan's "Modifies spec files" section)
+- Saves to `changes/NNN-<topic>/plan.md`
 
 During planning, invoke utility skills as needed:
 - **architecture** — for complex structural decisions, API contracts, data flow
@@ -93,13 +121,15 @@ Test-planning will:
 - Define integration test contracts for each vertical (setup, action, input, expected output, side effects, error cases)
 - Establish mock boundaries (controlled deps = real, uncontrolled deps = mock at adapter)
 - Validate contracts with the user at checkpoints
-- Produce the test plan that feeds into **test-writer**
+- **Edit `spec/<capability>.md` in place** — contracts land permanently in the living spec, not duplicated in `changes/NNN-<topic>/plan.md`
+- Bootstrap `spec/` on greenfield (first feature creates the initial capability files)
 
-A vertical without a user-validated test contract is a headline, not a ready vertical.
+A vertical without a user-validated test contract (landed in `spec/`) is a headline, not a ready vertical.
 
 ### 4. Test Writing
 
 Invoke the **test-writer** skill to translate validated contracts into executable test code. test-writer will:
+- Read contracts directly from `spec/<capability>.md` (the current-state source of truth)
 - Write integration tests from each contract using AAA structure
 - Confirm every test fails for the right reason (red)
 - Commit tests as locked artifacts that build implements against
@@ -146,20 +176,32 @@ Include in every plan:
 | **Dumping research findings without interpretation** | Lead with the decision, not the data |
 | **Transitioning to build without user confirmation** | Always confirm before invoking build |
 
-## Example: Medium Feature (API Integration)
+## Example: Medium Feature (API Integration) — Feature 2+ Flow
 
 User: "Add Stripe payment processing to the checkout flow"
 
-1. **Research** (invoke research): Stripe API capabilities, existing payment patterns in codebase
+1. **Load project context** (Step 0):
+   - `context/` shows: payment provider not yet chosen, checkout uses server-side rendering, orders use Postgres.
+   - `spec/README.md` shows existing capabilities: `checkout`, `orders`, `users`. No `payments` capability yet.
+   - In-scope capabilities: likely a new `spec/payments.md`, plus updates to `spec/checkout.md` and `spec/orders.md` (order state machine will gain a "paid" status).
+   - Existing invariants to preserve: `spec/orders.md` says "orders transition forward only" — the new "paid" state must fit this rule.
+   - Related boundaries: `spec/checkout.md` has a `POST /api/checkout` endpoint the new flow will extend.
+
+2. **Research** (invoke research): Stripe API capabilities, existing payment patterns in codebase
    - Finding: Codebase uses repository pattern. Stripe Node SDK supports Payment Intents.
    - Check-in: "Stripe Payment Intents is the right fit — it handles SCA and 3DS. Sound right?"
 
-2. **Plan** (invoke plan): Constraints discovered, 4 verticals defined
-   - V0: Walking skeleton (Stripe SDK init + test mode charge)
+3. **Plan** (invoke plan): Constraints discovered, 4 verticals defined. Plan declares:
+   - **Modifies spec files:** `spec/payments.md` (new), `spec/checkout.md`, `spec/orders.md`
+   - V0: Walking skeleton (Stripe SDK init, typed stub response through a new payment intent boundary)
    - V1: Payment intent creation from cart
    - V2-V3: Headlines for webhook handling and refunds
 
-3. **Transition**: V0 and V1 have done criteria → invoke build
+4. **Test Planning** (invoke test-planning): lands contracts in `spec/payments.md` (new file, bootstrapped using the plan's Why/Constraints as seed), edits `spec/checkout.md` (adds payment intent endpoint), edits `spec/orders.md` (adds "paid" state to the order lifecycle invariant). User validates each edit at Checkpoint 2.
+
+5. **Test Writing** (invoke test-writer): reads the updated `spec/payments.md` + `spec/checkout.md` + `spec/orders.md`, generates integration tests, commits them red.
+
+6. **Transition**: V0 and V1 have contracts in `spec/` + committed red tests → invoke build.
 
 ## After Design
 

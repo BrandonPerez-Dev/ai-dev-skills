@@ -1,6 +1,6 @@
 ---
 name: build
-description: Implements a plan one vertical at a time using the tdd skill for test-first execution. Accepts complete plans, partial plans, or single verticals. Use after design produces at least one ready vertical with a validated test contract.
+description: Implements a plan one vertical at a time using the tdd skill for test-first execution. Reads context/ for architectural constraints, spec/<capability>.md for boundary contracts, and locked test files from test-writer. V0 splits into V0a (boundary scaffold from spec/) and V0b (walking skeleton). Accepts complete plans, partial plans, or single verticals.
 allowed-tools:
   - Read
   - Write
@@ -36,23 +36,26 @@ Build accepts three input modes:
 ### Reading the Plan
 
 1. If given a file path, read the plan
-2. If no path, search `specs/` for the most recently modified `plan.md`
+2. If no path, search `changes/` for the most recently modified `plan.md`
 3. If no plan exists, ask the user what to build
+4. If `context/` exists, read all files — these contain architectural commitments that constrain implementation (e.g., "all API calls go through a proxy" means you don't call external services directly). Without these, you risk implementing against assumptions the team has already resolved.
+5. Read the plan's "Modifies spec files" section and load the referenced `spec/<capability>.md` files. The spec is the source of truth for boundaries and contracts — the plan is a pointer to the change.
 
-Identify which verticals are **ready** (have done criteria + test contract) vs **headlines** (need more planning).
+Identify which verticals are **ready** (have done criteria + a contract landed in `spec/`) vs **headlines** (need more planning).
 
 ## Pre-Flight Check
 
 Before writing any code:
 - [ ] Dev environment works (build runs, tests pass, server starts if applicable)
-- [ ] At least one vertical has done criteria + a user-validated test contract (from test-planning)
+- [ ] `spec/` exists and contains the capability files this feature touches (bootstrapped by test-planning if greenfield)
+- [ ] At least one vertical has done criteria + a user-validated contract in `spec/<capability>.md`
 - [ ] Dependencies between verticals are clear
-- [ ] Test plan exists — if not, invoke **test-planning** before proceeding
+- [ ] Test files exist from test-writer — if not, invoke **test-planning** → **test-writer** before proceeding
 
 If pre-flight fails, fix it before writing feature code. Infrastructure problems compound.
 
 <HARD-GATE>
-Do NOT write feature code until pre-flight passes: build runs, existing tests pass, at least one vertical has committed test files from test-writer. If no test files exist, stop — invoke test-planning then test-writer first.
+Do NOT write feature code until pre-flight passes: build runs, existing tests pass, `spec/` contains the relevant capability files, and at least one vertical has committed test files from test-writer. If no spec files exist, stop — test-planning must bootstrap `spec/` first. If no test files exist, stop — test-writer must generate them first.
 </HARD-GATE>
 
 <HARD-GATE>
@@ -72,18 +75,45 @@ Recommend subagent mode when verticals have clear done criteria. Recommend inlin
 
 ## Inline Mode
 
-### Vertical 0: Walking Skeleton
+### Vertical 0: Boundaries + Walking Skeleton
 
-Always first. One request flows through every layer and returns a hardcoded response. No real logic.
+V0 is the foundational slice. It has **two phases**: scaffold the boundary types from the living spec, then walk a request through them end-to-end with typed stub responses. Both phases must be green before V1 starts.
 
-- Hardcode all return values (static data, no DB queries, no real API calls)
-- Prove the wiring works: request enters the system, passes through each layer, response comes back
-- Integration test asserts the hardcoded response is returned
+Why two phases and not one hardcoded skeleton: hardcoding magic literals lets the skeleton pass without the boundary types actually matching the spec. Splitting V0 means the walking skeleton walks *through* real typed boundaries derived from `spec/`, not around them. The spec and the code cannot drift because the boundary code IS the spec materialized.
+
+#### V0a: Boundary Scaffold (from spec/)
+
+Derive the boundary code from `spec/<capability>.md`. Type-check only — no execution yet.
+
+- Route handler signatures with typed inputs/outputs (no logic)
+- Adapter interfaces declared (no implementations)
+- Zod schemas / shared type definitions matching the spec's contracts
+- Event type unions
+- Database schema declared (migrations in place, no data)
+
+**Rules:**
+- Every type in V0a must trace to a contract or invariant in `spec/<capability>.md`. If you want a boundary that isn't in spec/, stop — that's a design question, not a build question. Escalate to test-planning or the user.
+- No business logic. Signatures and declarations only.
+- No hardcoded business values — types, not magic literals.
+- Type-check and linter must pass. No end-to-end execution yet.
+
+Commit V0a as its own step before starting V0b: `build(scope): V0a boundary scaffold from spec/`. Why a mid-vertical commit: V0a is a clean, reviewable "spec → code translation" artifact, independently valuable even if V0b later discovers a wiring problem. The commit boundary makes the scaffold diffable against `spec/` during review and gives you a safe rollback point if V0b uncovers a spec/scaffold mismatch. This is the only mid-vertical commit in the build flow — V1+ commit once per vertical at Step 3 of the Execution Loop.
+
+#### V0b: Walking Skeleton through Typed Boundaries
+
+Wire the boundaries from V0a together end-to-end with **typed stub responses** — not hardcoded literals. A request enters the system, flows through each scaffolded boundary, and returns a typed object that satisfies the contract's expected output shape.
+
+- Stub responses are typed objects matching the spec's output shape (e.g., `const stub: WorkflowResponse = { id: "stub-id", status: "queued", createdAt: new Date() }`)
+- Prove wiring works: request enters, passes through each boundary from V0a, response comes back
+- Integration test asserts the stub response matches the contract shape (the test-writer already committed this test before build started)
 - Deploy/run the skeleton before building features on it
 
-If this fails, you've found an infrastructure problem. Fix it now.
+If V0b fails, diagnose:
+- **Infrastructure problem** (DB won't connect, port busy, migrations broken) — fix the infrastructure
+- **Type mismatch between spec and scaffold** — go back to V0a, the scaffold wasn't faithful to spec/. Do not paper over with casts.
+- **Integration test doesn't match the contract** — go back to test-writer or test-planning. Do not modify the test.
 
-After the walking skeleton passes, report to the user: "Walking skeleton green — [describe what the path does]. Proceeding to V1 unless you want to inspect."
+After V0b passes, report to the user: "V0a boundary scaffold green (typed, no logic). V0b walking skeleton green — [describe the path]. Proceeding to V1 unless you want to inspect."
 
 ### Execution Loop (per vertical)
 
@@ -131,17 +161,46 @@ Fresh subagent per vertical + two-stage review. The controller (you) stays clean
 
 ### Setup
 
-1. Read the plan and extract ready verticals
-2. Create a task per vertical
-3. Note working directory, branch, and context subagents need
+1. Read the plan at `changes/NNN-<topic>/plan.md` and extract ready verticals
+2. If `context/` exists, read all files into your controller context — these get passed to every subagent
+3. Read the plan's "Modifies spec files" section and load the referenced `spec/<capability>.md` files into your controller context so you can pass them to subagents
+4. Create a task per vertical
+5. Note working directory, branch, and context subagents need
 
-### Per Vertical
+### V0: Two Subagent Dispatches
+
+V0 is the only vertical that dispatches twice, because V0a and V0b are separate commits with separate success criteria.
+
+#### V0a Dispatch — Boundary Scaffold
+
+Dispatch an implementer subagent with:
+- The relevant `spec/<capability>.md` file(s) — full content, not a reference
+- Instruction: "Scaffold boundary code from `spec/<capability>.md`. Signatures, type declarations, Zod schemas, adapter interfaces, migrations. No business logic. No hardcoded literals. Type-check must pass. See build skill V0a rules."
+- Working directory
+
+After V0a subagent reports green: commit `build(scope): V0a boundary scaffold from spec/`. Then dispatch V0b.
+
+#### V0b Dispatch — Walking Skeleton Wiring
+
+Dispatch a second implementer subagent with:
+- The relevant `spec/<capability>.md` file(s)
+- The committed V0a scaffold code paths (so the subagent knows what to wire, not build from scratch)
+- The locked walking-skeleton test file from test-writer
+- Instruction: "Wire the V0a boundaries together with typed stub responses matching the spec's expected output shape. Make the walking skeleton test green. Do NOT modify the test. Do NOT modify the V0a scaffold types."
+
+After V0b subagent reports green: proceed to Spec Compliance Review for V0.
+
+### V1+ Per-Vertical Dispatch
+
+For each ready vertical after V0:
 
 #### 1. Dispatch Implementer
 
 Provide the subagent with:
-- Full vertical description (done criteria + test files committed by test-writer)
-- Instruction: implement against the locked tests — do NOT modify test files
+- The vertical's done criteria from `changes/NNN-<topic>/plan.md`
+- The relevant contract(s) from `spec/<capability>.md` — the specific boundary sections this vertical implements, pasted in full
+- The locked test files committed by test-writer for this vertical
+- Instruction: "Implement against the locked tests. Do NOT modify test files. Do NOT modify the contracts in spec/. Your job is to make the tests green by implementing the business logic behind the V0a boundary types."
 - Constraints from the plan
 - Context: what previous verticals built, architectural decisions
 - Working directory
@@ -149,9 +208,10 @@ Provide the subagent with:
 #### 2. Spec Compliance Review
 
 Dispatch a reviewer subagent with:
-- The vertical's done criteria and test contract (from the plan)
+- The vertical's done criteria (from the plan at `changes/NNN-<topic>/plan.md`)
+- The relevant boundary contract(s) from `spec/<capability>.md` (pasted in full — the reviewer must see the authoritative source, not trust the implementer's summary)
 - The file paths changed by the implementer
-- Instruction: "Read the actual code at these paths. For each done criterion, state PASS or FAIL with evidence (file:line). Do NOT trust the implementer's summary."
+- Instruction: "Read the actual code at these paths. For each done criterion AND each field in the spec/ contract, state PASS or FAIL with evidence (file:line). Do NOT trust the implementer's summary. If the implementation deviates from spec/, that's a FAIL even if tests pass."
 
 - **All PASS** → proceed to code quality review
 - **Any FAIL** → resume implementer with the specific failures, then re-review
@@ -160,7 +220,8 @@ Dispatch a reviewer subagent with:
 
 Dispatch a subagent with the code-review skill. Provide:
 - The commit range for this vertical
-- The plan file path and vertical number
+- The plan file path and vertical number (`changes/NNN-<topic>/plan.md`)
+- The relevant `spec/<capability>.md` file path (so the reviewer can cross-check implementation against the contract)
 - The list of files changed
 
 - **Pass** → mark vertical complete
@@ -175,6 +236,8 @@ Update task. Status to user. Move to next ready vertical.
 - **Never** dispatch parallel implementer subagents for dependent verticals
 - **Never** skip spec review
 - **Never** start code quality review before spec compliance passes
+- **Never** dispatch V0a and V0b in parallel — V0b depends on V0a's committed scaffold
+- **Never** pass only file paths to subagents for `spec/<capability>.md` — paste the relevant sections in full. Subagents have fresh context and won't load spec/ unless you give it to them.
 - **If subagent fails** — dispatch a fix subagent, don't fix manually (context pollution)
 
 ---

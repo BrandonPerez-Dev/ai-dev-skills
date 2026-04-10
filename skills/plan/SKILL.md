@@ -1,6 +1,6 @@
 ---
 name: plan
-description: Lightweight iterative planning — discover constraints through conversation, define verticals with done criteria and test contracts. Use before build for any non-trivial feature, or let design invoke it.
+description: Lightweight iterative planning — discover constraints through conversation, define verticals with done criteria and sketch test assertions. Declares which spec/ and context/ files the feature will modify; full contracts land in spec/ during test-planning, architectural decisions land in context/. Use before build for any non-trivial feature, or let design invoke it.
 allowed-tools:
   - Read
   - Write
@@ -35,6 +35,7 @@ Read the codebase before planning. Never plan against an imagined architecture.
 ### 1. Ground in Reality (2 min)
 
 Read the relevant parts of the codebase:
+- `context/` files if they exist — architectural truth, technology choices, integration patterns. These are hot memory: always read before planning. They prevent re-discovering known constraints.
 - Project structure, tech stack, existing patterns
 - Files that will likely be touched
 - Existing tests for style and conventions
@@ -56,7 +57,9 @@ This is where the value lives. Surface architectural decisions as proposals, not
 
 > "For auth, QuickBooks requires OAuth 2.0 — no API key option. I'll use their Node SDK for the token flow. Sound right?"
 
-Each confirmed decision becomes a constraint line in the plan. Keep going until you've covered the decisions that matter for **this** feature:
+Each confirmed decision becomes a constraint line in the plan. **System-level decisions** (technology choices, integration patterns, infrastructure commitments that apply beyond this feature) should also be written to `context/` — create or update the relevant topic file. Feature-specific decisions stay in the plan only.
+
+Keep going until you've covered the decisions that matter for **this** feature:
 
 - **Transport & protocol** — HTTP, gRPC, stdio, SSE?
 - **Framework & patterns** — what matches existing codebase?
@@ -86,6 +89,10 @@ Break the work into ordered verticals. Each vertical has:
 
 **Vertical 0 is always the walking skeleton** — thinnest end-to-end path proving the infrastructure works.
 
+- On subsequent features: V0 derives its boundary scaffold from existing `spec/<capability>.md` files (test-planning has already landed contracts there).
+- On greenfield: test-planning bootstraps `spec/` **before** build starts. V0 then scaffolds boundaries from the freshly-created spec files, same as any other feature.
+- Build handles the V0a (boundary scaffold) / V0b (walking skeleton through typed boundaries) split internally — the plan just declares V0's scope. Do not plan V0a and V0b as separate verticals.
+
 **Detail the first 2-3 verticals fully.** Later verticals stay as headlines — they get detailed when you're closer to building them. This is the hierarchical breakdown: broad picture first, detail progressively.
 
 Example:
@@ -98,7 +105,7 @@ Example:
 - **Deps:** V0 (auth + config established)
 ```
 
-The "done when" + "test" lines ARE the test contract — write them as concrete assertions, specific enough that build can translate directly into test code without ambiguity.
+The "done when" + "test" lines are a **sketch** of the test contract — specific enough to name what the vertical proves, but not the full shape. Test-planning expands them into full contracts (setup, action, input, expected, side effects, error cases) and lands them in `spec/<capability>.md`. The plan stays terse; the living spec holds the detail.
 
 ### 4b. Suggest Build Skills
 
@@ -114,12 +121,13 @@ The user confirms. Record confirmed skills in each vertical's `Skills` field or 
 
 ### 5. Save the Plan
 
-Save to `specs/NNN-<topic>/plan.md` (or update an existing plan).
+Save to `changes/NNN-<topic>/plan.md` (or update an existing plan).
 
-**Spec directory protocol:**
-- Directory: `specs/` at project root (`mkdir -p specs` if needed)
+**Changes directory protocol:**
+- Directory: `changes/` at project root (`mkdir -p changes` if needed)
 - Find highest existing `NNN-*` prefix, increment by 1. Start at `001` if empty.
-- All artifacts for this feature go in the same directory.
+- All rationale/research/notes for this feature go in the same directory.
+- **The plan holds rationale, not contracts.** Test contracts live permanently in `spec/<capability>.md` (the living system specification), where they are edited during test-planning. The plan references which `spec/*.md` files this feature will modify — see the "Modifies" section in the plan format below.
 
 Get today's date for the plan header: !`date +%Y-%m-%d`
 
@@ -150,6 +158,16 @@ When the first verticals have done criteria + test contracts:
 
 ## What & Why
 [2-3 sentences: what are we building and why]
+
+## Modifies spec files
+- `spec/<capability>.md` — [what's changing: new boundaries, modified invariants, etc.]
+- [repeat per modified file; mark new capability files with "(new)"]
+- [on greenfield: "Bootstraps spec/ — test-planning will propose capability file names before creating them"]
+
+## Updates context files
+- `context/<topic>.md` — [what's changing or being added]
+- [mark new files with "(new)"]
+- [omit this section if no context/ changes needed]
 
 ## Constraints
 - [Decision: rationale]
@@ -203,11 +221,11 @@ If planning takes more than 20 minutes, the feature is too big — split it.
 
 | Anti-Pattern | Fix |
 |---|---|
-| **Writing prose specs** | Constraints are bullets, not paragraphs |
+| **Writing prose constraints** | Constraints are bullets, not paragraphs (note: "spec" in this skill refers to `spec/<capability>.md`, not feature specifications — the anti-pattern is about verbose prose, not about writing the living spec) |
 | **Detailing every vertical upfront** | Only detail the next 2-3. Headlines for the rest. |
 | **Planning without reading code** | Hard gate: read the codebase first |
 | **Skipping non-goals** | Non-goals prevent scope creep. Always include them. |
-| **Separate business and technical specs** | One plan document. Constraints cover both. |
+| **Separate business and technical constraints** | One plan document. Constraints cover both. |
 | **Template-filling** | Skip sections that don't apply to this feature |
 | **Planning for more than 20 minutes** | Feature is too big (split) or you're over-specifying |
 
