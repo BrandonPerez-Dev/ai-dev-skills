@@ -106,22 +106,25 @@ Move to the next slice in the test plan. Repeat from step 1.
 
 ## The Mock Boundary
 
-| Dependency Type | Mock? | Reasoning |
-|----------------|-------|-----------|
-| **Controlled** (your database, your file system, your message queue) | No — use real instances | You own it. Test against production-equivalent infrastructure. |
-| **Uncontrolled** (third-party APIs, payment processors, external services) | Yes — mock at the adapter boundary | You can't guarantee their behavior. Verify you send the right request. |
+**Default posture: live testing.** Prefer real systems over mocks whenever it's practical. Mocks are a fallback, not a default.
 
-**In integration tests:** use real controlled dependencies. Mock uncontrolled dependencies at the adapter boundary.
+| Dependency Type | Default | Reasoning |
+|----------------|---------|-----------|
+| **Controlled** (your DB, file system, message queue) | Real instance | You own it. Test against production-equivalent infrastructure. |
+| **Uncontrolled WITH a test environment** (Stripe test, GitHub sandbox, OAuth dev apps, cheap/test LLMs) | **Prefer real test environment** | Higher confidence. Catches upstream changes the day they happen. |
+| **Uncontrolled WITHOUT a test environment** (production-only, paid, destructive) | Mock at the HTTP client — pushed as far outward as practical | Your adapter code (request shaping, auth, retries) should still run. Mock the HTTP client the adapter calls, not the adapter the service calls. |
+
+**In integration tests:** use real controlled dependencies. For uncontrolled deps, prefer real test environments; mock only when necessary, and push the mock as far outward as practical.
 
 **In unit tests:** mock anything outside the unit under test.
 
-**Never use in-memory substitutes** (SQLite for Postgres). Test against the same type and version as production.
+**Never use in-memory substitutes** (SQLite for Postgres, fake Redis). Test against the same type and version as production.
 
 ## Three Test Layers
 
 | Layer | Mocks? | Speed | Confidence | When |
 |-------|--------|-------|------------|------|
-| **Integration** | Controlled: no. Uncontrolled: mock at adapter. | Slow | High | First — from test plan contract |
+| **Integration** | Controlled: real. Uncontrolled: real test env preferred, else mock at HTTP client. | Slow | High | First — from `spec/<capability>.md` contract |
 | **Unit** | Yes — isolate the component | Fast | Medium | During build, at each layer |
 | **E2E** | None | Very slow | Highest | Sparingly — critical user journeys only |
 
@@ -141,6 +144,6 @@ Follow the communication-protocol skill for all user-facing output and interacti
 - **Integration test is the source of truth.** If it passes, the slice works. If it fails, the slice is incomplete.
 - **Vertical over horizontal.** Complete one slice before starting another. Never build all routes, then all services, then all adapters.
 - **Test behavior, not implementation.** Refactoring shouldn't break tests. If it does, the test is testing the wrong thing.
-- **Mock at the boundary, not everywhere.** Real controlled deps. Mocked uncontrolled deps. No in-memory substitutes.
+- **Live testing is the default.** Real controlled deps. Real test environments for uncontrolled deps when available. Mocks are a fallback, pushed as far outward as practical (mock the HTTP client, not the adapter). No in-memory substitutes.
 - **Red means stop.** If any integration test is red, fix it before new work. Carrying red tests forward creates compounding debt.
 - **The test plan is the contract.** Don't deviate from approved contracts. If you discover the contract is wrong during implementation, go back to the user — don't silently adjust.
