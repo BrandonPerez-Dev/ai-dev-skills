@@ -274,6 +274,34 @@ export const SKILL_GRAPH_DEFINITION: Omit<SkillGraph, "version" | "model"> = {
       invoke: "business-case",
       keywords: ["business case", "revenue", "unit economics", "investment"],
     },
+    "startup-pitch": {
+      id: "startup-pitch",
+      type: "skill",
+      description:
+        "Create and refine startup pitch materials — elevator pitches, one-liners, " +
+        "positioning statements, cold email pitches, one-pagers, and full pitch decks. " +
+        "Builds from core narrative outward: nail the two-sentence pitch first, then " +
+        "expand into every format. Supports multiple deck frameworks (Kawasaki, Sequoia, " +
+        "YC, corporate innovation). Use when pitching a product to investors, preparing " +
+        "for demo day, explaining a startup in one sentence, writing a cold outreach " +
+        "email, creating an investor deck, building a one-pager, or pitching an internal " +
+        "initiative to executives.",
+      invoke: "startup-pitch",
+      keywords: [
+        "pitch my product",
+        "elevator pitch",
+        "pitch deck",
+        "how do I explain my startup",
+        "investor deck",
+        "demo day pitch",
+        "positioning statement",
+        "cold email pitch",
+        "one-pager",
+        "present to investors",
+        "internal innovation pitch",
+        "one-liner for my company",
+      ],
+    },
     "customer-discovery": {
       id: "customer-discovery",
       type: "skill",
@@ -622,6 +650,7 @@ export const SKILL_GRAPH_DEFINITION: Omit<SkillGraph, "version" | "model"> = {
     { from: "business", to: "customer-discovery", rel: "contains" },
     { from: "business", to: "experiment-design", rel: "contains" },
     { from: "business", to: "innovation-status", rel: "contains" },
+    { from: "business", to: "startup-pitch", rel: "contains" },
     { from: "business", to: "research", rel: "contains" },
 
     // ── ai-engineering contains ──
@@ -682,6 +711,9 @@ export const SKILL_GRAPH_DEFINITION: Omit<SkillGraph, "version" | "model"> = {
     { from: "opportunity-research", to: "opportunity-score", rel: "precedes" },
     { from: "opportunity-research", to: "market-analysis", rel: "precedes" },
     { from: "market-analysis", to: "business-case", rel: "precedes" },
+    { from: "product-definition", to: "startup-pitch", rel: "precedes" },
+    { from: "business-case", to: "startup-pitch", rel: "precedes" },
+    { from: "startup-pitch", to: "communication-protocol", rel: "references" },
     { from: "research", to: "skill-creator", rel: "precedes" },
     { from: "research", to: "design", rel: "precedes" },
 
