@@ -1,12 +1,13 @@
 ---
 name: test-writer
 description: >-
-  Write test code from approved test-planning contracts — integration tests
-  first, one vertical at a time. Translate each contract into executable test
-  code using AAA structure, confirm red (failing for the right reason), and
-  commit as locked artifacts. Use after test-planning produces validated
-  contracts, before build begins implementation. Tests committed by this skill
-  are immutable — build implements against them but cannot modify them.
+  Write test code from user-validated contracts in spec/<capability>.md —
+  integration tests first, one vertical at a time. Translate each contract
+  into executable test code using AAA structure, confirm red (failing for the
+  right reason), and commit as locked artifacts. Use after test-planning has
+  landed contracts in spec/, before build begins implementation. Tests
+  committed by this skill are immutable — build implements against them but
+  cannot modify them.
 allowed-tools:
   - Read
   - Write
@@ -31,11 +32,11 @@ prevents the #1 AI testing failure: modifying tests to match the code.
 </HARD-GATE>
 
 <HARD-GATE>
-Every test MUST trace to a user-validated contract from test-planning. Do NOT
-invent test scenarios, assertions, or expected values from your understanding
-of the code. If the test-planning contract doesn't specify an error case, ask
-— don't fill the gap yourself. The user validated the contracts because they
-know what "correct" means for their system. You don't.
+Every test MUST trace to a user-validated contract in `spec/<capability>.md`.
+Do NOT invent test scenarios, assertions, or expected values from your
+understanding of the code. If the spec doesn't specify an error case, ask —
+don't fill the gap yourself. The user validated the contracts in `spec/`
+because they know what "correct" means for their system. You don't.
 </HARD-GATE>
 
 <HARD-GATE>
@@ -78,20 +79,21 @@ Different contracts produce different test types. Integration tests are always t
 ### 0. Check Prerequisites
 
 Before writing any test code:
-- [ ] Test plan exists with user-validated contracts (from **test-planning**)
+- [ ] `spec/<capability>.md` exists and contains user-validated contracts for the vertical(s) you're writing tests for (from **test-planning**)
+- [ ] Feature plan at `changes/NNN-<topic>/plan.md` references which spec files are in scope
 - [ ] Test infrastructure is ready (database, test runner, any required mock servers)
 - [ ] Existing test patterns in the codebase have been read (match conventions)
-- [ ] If greenfield: a walking skeleton test exists and passes
+- [ ] Greenfield feature 1: you are WRITING the walking skeleton test for V0 (it will not exist yet — that's expected). Subsequent features: the walking skeleton test from the bootstrap feature is committed and passing.
 
 If prerequisites are missing, stop. Don't improvise — go back to test-planning.
 
 ### 1. Pick the Next Vertical
 
-Work one vertical at a time, in dependency order from the test plan. Do not write tests for multiple verticals in one pass. Report which vertical you're working on.
+Work one vertical at a time, in dependency order from the feature plan (`changes/NNN-<topic>/plan.md`). Do not write tests for multiple verticals in one pass. Report which vertical you're working on.
 
-### 2. Read the Contract
+### 2. Read the Contract from the Living Spec
 
-Read the test-planning contract for this vertical. Identify:
+Read the relevant `spec/<capability>.md` file for this vertical. Find the contract(s) for the boundary this vertical touches and identify:
 - **Setup** — what state must exist before the test
 - **Action** — the API call or operation
 - **Input** — request body, parameters, headers
@@ -99,7 +101,9 @@ Read the test-planning contract for this vertical. Identify:
 - **Side effects** — database changes, events emitted, external calls made
 - **Error cases** — what happens with bad input, missing deps, failure scenarios
 
-Each of these maps directly to a test.
+Each of these maps directly to a test. Also read the capability's **Invariants** section — any invariant relevant to this vertical should produce a test that enforces it.
+
+The `spec/` file is the authoritative source. Do not read contracts from the feature plan in `changes/` — those are pointers, the spec is the truth.
 
 ### 3. Read Existing Test Patterns
 
@@ -184,13 +188,19 @@ Move to the next vertical. Repeat from step 1.
 
 The mock boundary determines what is real and what is faked in tests. Getting this wrong is the most common source of false confidence.
 
-| Dependency | Mock? | WHY |
-|------------|-------|-----|
-| **Your database** | No — use real instance | Mocking your own DB hides the bugs that hurt most: schema mismatches, constraint violations, query errors |
-| **Your server/API** | No — use real instance | Testing through the real API catches routing, middleware, serialization bugs |
-| **Your file system** | No — use real (temp dirs) | File system bugs are real bugs |
-| **Third-party APIs** (OAuth providers, payment processors) | Yes — mock at adapter boundary | You can't control their uptime, rate limits, or response changes. Mock what you send, not what they do. |
-| **External services** (email, SMS, webhooks) | Yes — mock at adapter boundary | Prevent side effects. Verify you send the right request. |
+**Default posture: live testing.** Prefer real systems over mocks whenever it's practical. Mocks are a fallback, not a default.
+
+| Dependency | Default | WHY |
+|------------|---------|-----|
+| **Your database** | Real instance | Mocking your own DB hides schema mismatches, constraint violations, query errors |
+| **Your server/API** | Real instance | Testing through the real API catches routing, middleware, serialization bugs |
+| **Your file system** | Real (temp dirs) | File system bugs are real bugs |
+| **Third-party APIs with test mode** (Stripe test, GitHub sandbox, OAuth dev apps, cheap/test LLMs) | **Prefer real test environment** over mocking | Higher confidence. Catches breaking changes the day they happen. Test-mode APIs don't charge money, send real emails, or trigger real side effects. |
+| **Third-party APIs without test mode** (production-only, paid with no sandbox, destructive side effects) | Mock at the HTTP client layer — NOT at the adapter's public interface | Push the mock boundary as far outward as practical so the adapter's own logic (request shaping, auth, retries, error mapping) runs for real. Your adapter code is your code — it deserves to run in tests. |
+| **External services with sandboxes** (SendGrid sandbox, Twilio test credentials, webhook.site) | Prefer real sandbox | Same reason as test-mode APIs. |
+| **External services without sandboxes** (arbitrary outbound webhooks, legacy services) | Mock at the outbound HTTP client layer | Prevent side effects. Verify you send the right request body, headers, URL. |
+
+**Push the mock boundary outward.** Every layer inside the mock runs real; every layer outside runs stubbed. Mock the HTTP client the adapter calls — not the adapter the service calls. The further out the mock, the more real code is exercised.
 
 **Never use in-memory substitutes** for production infrastructure. Don't use SQLite for Postgres. Don't use a fake Redis. Test against the same type and version as production.
 
@@ -253,7 +263,7 @@ Every test must be independent. No test should depend on state from another test
 | Anti-Pattern | What Happens | This Skill Prevents It By |
 |--------------|-------------|--------------------------|
 | **Modify test to pass** | AI changes assertions to match buggy code | Structural separation — test-writer commits before build starts |
-| **Improvised contracts** | Tests validate assumed behavior, not specified behavior | Hard gate — every test traces to test-planning contract |
+| **Improvised contracts** | Tests validate assumed behavior, not specified behavior | Hard gate — every test traces to a contract in `spec/<capability>.md` |
 | **Happy path only** | Error cases untested, failures crash production | Error cases are first-class in the process, not optional |
 | **Over-mocking** | Mock internal systems, tests pass but code is broken | Mock boundary table — only uncontrolled deps get mocked |
 | **Implementation mocks** | Assert on internal function calls, tests break on refactor | Three mock types guide — avoid mocks in assert phase on internal code |
@@ -269,5 +279,5 @@ Follow the communication-protocol skill for all user-facing output and interacti
 - **Error paths are first-class.** They catch the bugs that wake people up at night. Not optional, not "if time allows."
 - **Match the codebase.** Read existing tests before writing new ones. Consistency in style, naming, and patterns makes the test suite maintainable.
 - **AAA is non-negotiable.** Every test: Arrange (set up state), Act (do the thing), Assert (check the result). No exceptions.
-- **Mock at the boundary, nowhere else.** Your database is not the enemy. Third-party APIs are.
+- **Live testing is the default; mocks are a fallback.** Real controlled deps. Real test environments for uncontrolled deps when they exist. When you must mock, mock the HTTP client the adapter calls — not the adapter the service calls. Push the mock as far outward as practical so the most real code runs.
 - **One vertical at a time.** Write, confirm red, commit. Then next. Don't batch.

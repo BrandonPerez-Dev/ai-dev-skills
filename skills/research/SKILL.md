@@ -148,6 +148,11 @@ Compile into a structured summary. Every finding gets a source reference. Lead w
 
 ## Open Questions
 [What's still unclear. What would need a deeper investigation.]
+
+## Promote to context/
+[System-level findings that should become architectural truth — technology decisions,
+integration patterns, infrastructure constraints. These get written to context/<topic>.md
+by the invoking skill (design, plan, or test-planning). Omit if no system-level findings.]
 ```
 
 ## Parallel Exploration Patterns
