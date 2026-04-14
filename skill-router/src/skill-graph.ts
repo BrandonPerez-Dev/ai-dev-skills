@@ -798,6 +798,69 @@ export const SKILL_GRAPH_DEFINITION: Omit<SkillGraph, "version" | "model"> = {
       ],
     },
 
+    // Career sub-skills
+    "resume-builder": {
+      id: "resume-builder",
+      type: "skill",
+      description:
+        "Build, update, and optimize resumes for tech and AI/ML engineering jobs. " +
+        "Use when someone says 'update my resume', 'help me apply for jobs', " +
+        "'tailor my resume for this role', 'write a cover letter', " +
+        "'optimize my resume for ATS', 'what should I put on my resume', " +
+        "'review my resume', 'I am job hunting', or 'prepare me for my next job'. " +
+        "Generates ATS-optimized LaTeX resumes, analyzes job descriptions for keyword gaps, " +
+        "writes quantified achievement bullets, and builds job search strategy.",
+      invoke: "resume-builder",
+      keywords: [
+        "update my resume",
+        "help me apply for jobs",
+        "tailor resume for this job",
+        "write a cover letter",
+        "optimize resume for ATS",
+        "what should I put on my resume",
+        "review my resume",
+        "job hunting",
+        "prepare for next job",
+        "resume bullet points",
+        "job application",
+        "job search strategy",
+        "get a job",
+        "career",
+      ],
+    },
+
+    "job-search": {
+      id: "job-search",
+      type: "skill",
+      description:
+        "Plan and execute a tech job search campaign — intake, market research, " +
+        "discourse mining of interview experiences, job listings discovery, " +
+        "interview prep, and application tracking. Use when someone says " +
+        "'help me find a job', 'what companies should I target', " +
+        "'what's the market like for my role', 'research this company', " +
+        "'prepare me for an interview at X', 'what should I do next in my search', " +
+        "'show me listings', or 'update my job search tracker'. " +
+        "Orchestrates the full search lifecycle and hands off to resume-builder for documents.",
+      invoke: "job-search",
+      keywords: [
+        "find a job",
+        "job search",
+        "job hunt",
+        "target companies",
+        "market research",
+        "interview prep",
+        "company research",
+        "job listings",
+        "application tracker",
+        "what companies are hiring",
+        "prepare for interview",
+        "job search strategy",
+        "career search",
+        "who is hiring",
+        "job market",
+      ],
+    },
+
     // ── Cross-Cutting Reference Skills ──────────────────────────────
     // These are not matched by user prompts. They are loaded as active
     // guidance when a referencing skill is invoked.
@@ -927,7 +990,9 @@ export const SKILL_GRAPH_DEFINITION: Omit<SkillGraph, "version" | "model"> = {
     { from: "meta", to: "skill-graph", rel: "contains" },
 
     // ── delivery contains ──
-    { from: "delivery", to: "git-ops", rel: "contains" },
+    // git-ops added below at the agile-delivery block; here we add job-search routing
+    { from: "delivery", to: "resume-builder", rel: "contains" },
+    { from: "delivery", to: "job-search", rel: "contains" },
     { from: "delivery", to: "commit-and-pr", rel: "contains" },
     { from: "delivery", to: "parallel-agents", rel: "contains" },
     { from: "delivery", to: "sp-kanban", rel: "contains" },
@@ -942,6 +1007,26 @@ export const SKILL_GRAPH_DEFINITION: Omit<SkillGraph, "version" | "model"> = {
 
     // simplify belongs in software-design (post-build polish)
     { from: "software-design", to: "refactor", rel: "contains" },
+
+    // ── product contains ── (agile planning)
+    { from: "product", to: "backlog-refinement", rel: "contains" },
+    { from: "product", to: "roadmap-planning", rel: "contains" },
+    { from: "product", to: "okr-setting", rel: "contains" },
+
+    // ── delivery contains ── (agile delivery process)
+    { from: "delivery", to: "sprint-planning", rel: "contains" },
+    { from: "delivery", to: "retrospective", rel: "contains" },
+    { from: "delivery", to: "git-ops", rel: "contains" },
+
+    // ── business contains ── (metrics & measurement)
+    { from: "business", to: "metrics-review", rel: "contains" },
+
+    // ── infrastructure contains ── (CLI tooling)
+    { from: "infrastructure", to: "cli-builder", rel: "contains" },
+
+    // ── quality contains ── (test writing)
+    { from: "quality", to: "test-writer", rel: "contains" },
+    { from: "software-design", to: "test-writer", rel: "contains" },
 
     // ── Ordering: precedes ──
     { from: "design", to: "build", rel: "precedes" },
@@ -972,6 +1057,7 @@ export const SKILL_GRAPH_DEFINITION: Omit<SkillGraph, "version" | "model"> = {
     // ── Cross-cutting: references ──
     // coding-standards: any skill that writes or evaluates code
     { from: "build", to: "coding-standards", rel: "references" },
+    { from: "build", to: "rust-quality", rel: "references" },
     { from: "tdd", to: "coding-standards", rel: "references" },
     { from: "code-review", to: "coding-standards", rel: "references" },
     { from: "systematic-debugging", to: "coding-standards", rel: "references" },
@@ -997,5 +1083,8 @@ export const SKILL_GRAPH_DEFINITION: Omit<SkillGraph, "version" | "model"> = {
     { from: "plan", to: "communication-protocol", rel: "references" },
     { from: "opportunity-research", to: "communication-protocol", rel: "references" },
     { from: "customer-discovery", to: "communication-protocol", rel: "references" },
+    { from: "resume-builder", to: "communication-protocol", rel: "references" },
+    { from: "job-search", to: "communication-protocol", rel: "references" },
+    { from: "job-search", to: "resume-builder", rel: "shares" },
   ],
 };
