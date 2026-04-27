@@ -122,9 +122,21 @@ export const SKILL_GRAPH_DEFINITION: Omit<SkillGraph, "version" | "model"> = {
       id: "tdd",
       type: "skill",
       description:
-        "Test-driven development — red-green-refactor loop. Writes integration tests first, builds each vertical slice, verifies green.",
+        "Write code using test-driven development — the red-green-refactor cycle. " +
+        "Use when someone says 'use TDD', 'write tests first then implement', " +
+        "'red green refactor', 'test-driven', or 'build this with TDD'. " +
+        "Writes a failing test, implements just enough to pass, then refactors. One vertical at a time.",
       invoke: "tdd",
-      keywords: ["test", "TDD", "red green", "test first"],
+      keywords: [
+        "use TDD",
+        "test-driven development",
+        "write tests first",
+        "red green refactor",
+        "build with TDD",
+        "test-first approach",
+        "failing test then implement",
+        "TDD cycle",
+      ],
     },
     "test-planning": {
       id: "test-planning",
@@ -197,6 +209,26 @@ export const SKILL_GRAPH_DEFINITION: Omit<SkillGraph, "version" | "model"> = {
       keywords: ["frontend", "interface", "web app", "page", "component"],
     },
 
+    // Test pipeline sub-skills
+    "test-writer": {
+      id: "test-writer",
+      type: "skill",
+      description:
+        "Write test code from approved test-planning contracts — integration tests first, one vertical at a time. " +
+        "Use after test-planning produces contracts and before build begins. " +
+        "Translates contracts into executable AAA-structured tests, confirms red, and commits as locked artifacts.",
+      invoke: "test-writer",
+      keywords: [
+        "write the tests",
+        "create test files",
+        "implement test contracts",
+        "write integration tests",
+        "test code from plan",
+        "red tests first",
+        "locked test artifacts",
+      ],
+    },
+
     // Quality sub-skills
     "systematic-debugging": {
       id: "systematic-debugging",
@@ -232,6 +264,112 @@ export const SKILL_GRAPH_DEFINITION: Omit<SkillGraph, "version" | "model"> = {
     },
 
     // Product sub-skills
+    "backlog-refinement": {
+      id: "backlog-refinement",
+      type: "skill",
+      description:
+        "Refine product backlog stories to make them sprint-ready. " +
+        "Use when someone says 'refine the backlog', 'groom these stories', " +
+        "'split this epic', 'write acceptance criteria', 'are these stories ready', " +
+        "or 'clean up the backlog'. Covers story splitting, acceptance criteria, " +
+        "and backlog health checks.",
+      invoke: "backlog-refinement",
+      keywords: [
+        "refine the backlog",
+        "groom stories",
+        "write acceptance criteria",
+        "split this epic",
+        "is this story ready",
+        "backlog health",
+        "user stories",
+        "story splitting",
+        "sprint-ready",
+        "backlog cleanup",
+      ],
+    },
+    "sprint-planning": {
+      id: "sprint-planning",
+      type: "skill",
+      description:
+        "Plan a sprint — set a sprint goal, calculate team capacity, and select stories that fit. " +
+        "Use when someone says 'plan the sprint', 'what fits in this sprint', " +
+        "'start a new sprint', 'do capacity planning', or 'handle sprint carryovers'. " +
+        "Selects and commits stories for a sprint iteration.",
+      invoke: "sprint-planning",
+      keywords: [
+        "plan the sprint",
+        "sprint goal",
+        "what fits in this sprint",
+        "capacity planning",
+        "start a new sprint",
+        "sprint carryover",
+        "how much can the team take on",
+        "scope the sprint",
+      ],
+    },
+    "roadmap-planning": {
+      id: "roadmap-planning",
+      type: "skill",
+      description:
+        "Create and maintain product roadmaps — connect vision to execution with Now/Next/Later or outcome-based planning. " +
+        "Use when someone says 'build a roadmap', 'what should we build next', " +
+        "'run quarterly planning', 'update the roadmap', or 'prioritize initiatives'. " +
+        "Plans which initiatives to pursue and when.",
+      invoke: "roadmap-planning",
+      keywords: [
+        "build a roadmap",
+        "what should we build next",
+        "quarterly planning",
+        "update the roadmap",
+        "prioritize initiatives",
+        "product roadmap",
+        "Now Next Later",
+        "strategic planning",
+      ],
+    },
+    "retrospective": {
+      id: "retrospective",
+      type: "skill",
+      description:
+        "Run retrospectives and post-incident reviews that produce real action items. " +
+        "Use when someone says 'run a retro', 'what went well', 'what should we improve', " +
+        "'post-mortem', 'lessons learned', or 'start stop continue'. " +
+        "Covers sprint retros, project retros, team health checks, and pre-mortems.",
+      invoke: "retrospective",
+      keywords: [
+        "run a retro",
+        "sprint retrospective",
+        "what went well",
+        "what should we improve",
+        "post-mortem",
+        "lessons learned",
+        "start stop continue",
+        "team health check",
+        "after-action review",
+        "blameless review",
+      ],
+    },
+    "okr-setting": {
+      id: "okr-setting",
+      type: "skill",
+      description:
+        "Create and manage OKRs — translate strategy into measurable quarterly objectives and key results. " +
+        "Use when someone says 'set OKRs', 'write objectives', 'score key results', " +
+        "'run an OKR check-in', 'define success criteria for the quarter', or 'set team goals'. " +
+        "Measures and tracks goals, not deciding what to build.",
+      invoke: "okr-setting",
+      keywords: [
+        "set OKRs",
+        "write objectives",
+        "key results",
+        "score OKRs",
+        "OKR check-in",
+        "quarterly goals",
+        "team goals",
+        "define success criteria",
+        "track progress against objectives",
+      ],
+    },
     "product-definition": {
       id: "product-definition",
       type: "skill",
@@ -242,6 +380,28 @@ export const SKILL_GRAPH_DEFINITION: Omit<SkillGraph, "version" | "model"> = {
     },
 
     // Business sub-skills
+    "metrics-review": {
+      id: "metrics-review",
+      type: "skill",
+      description:
+        "Run product metrics reviews — weekly business reviews, monthly performance, and diagnostic investigations. " +
+        "Use when someone says 'review the metrics', 'why did this metric drop', " +
+        "'run a weekly business review', 'analyze the funnel', 'churn spiked', " +
+        "or 'what happened to signups'. Analyzes data and trends.",
+      invoke: "metrics-review",
+      keywords: [
+        "review the metrics",
+        "why did this metric drop",
+        "weekly business review",
+        "monthly performance review",
+        "funnel analysis",
+        "churn spiked",
+        "retention declining",
+        "signups are down",
+        "KPI review",
+        "product analytics",
+      ],
+    },
     "opportunity-research": {
       id: "opportunity-research",
       type: "skill",
@@ -359,6 +519,56 @@ export const SKILL_GRAPH_DEFINITION: Omit<SkillGraph, "version" | "model"> = {
         "Build an MCP server to wrap an API, local app, or service so Claude Code can use it as a tool. Use when someone says 'create an MCP server', 'wrap this API', or 'make this service available to Claude'.",
       invoke: "mcp-builder",
       keywords: ["build MCP server", "create MCP", "wrap API as MCP", "new MCP server"],
+    },
+
+    // Software Design additions
+    "cli-builder": {
+      id: "cli-builder",
+      type: "skill",
+      description:
+        "Create a CLI tool or command-line application from scratch. " +
+        "Use when someone says 'create a CLI', 'make a CLI tool', 'I need a command-line tool', " +
+        "'add CLI subcommands and flags', 'build a CLI app', or 'convert this to a CLI'. " +
+        "Handles CLI-specific concerns: subcommand trees, flag and argument parsing with clap or commander, " +
+        "help text generation, exit codes, JSON and table output modes, and agent-friendly structured output.",
+      invoke: "cli-builder",
+      keywords: [
+        "create a CLI tool",
+        "make a CLI app",
+        "command-line tool",
+        "CLI subcommands and flags",
+        "argument parsing clap commander",
+        "new CLI application",
+        "CLI for agents",
+        "command-line interface",
+        "convert to CLI",
+        "CLI exit codes",
+        "I need a CLI",
+      ],
+    },
+
+    // Delivery additions
+    "git-ops": {
+      id: "git-ops",
+      type: "skill",
+      description:
+        "Git operations beyond commits and PRs — push, rebase, merge, conflict resolution, branch management, and recovery. " +
+        "Use when someone says 'rebase this', 'merge branches', 'resolve conflicts', " +
+        "'fix detached HEAD', 'recover from bad git state', 'push this branch', " +
+        "or when git feels broken. Not for staging or commit messages.",
+      invoke: "git-ops",
+      keywords: [
+        "rebase",
+        "merge branches",
+        "resolve conflicts",
+        "fix detached HEAD",
+        "push this branch",
+        "git is broken",
+        "recover git state",
+        "force push",
+        "branch management",
+        "set up remote",
+      ],
     },
 
     // Infrastructure sub-skills
@@ -587,6 +797,14 @@ export const SKILL_GRAPH_DEFINITION: Omit<SkillGraph, "version" | "model"> = {
       invoke: "coding-standards",
       keywords: [],
     },
+    "rust-quality": {
+      id: "rust-quality",
+      type: "reference",
+      description:
+        "Rust code quality rules for AI build context. Prevents common AI-generated Rust mistakes — ownership band-aids, unwrap abuse, async deadlocks, non-idiomatic APIs. Referenced by build skills when implementing Rust verticals, not invoked directly by users.",
+      invoke: "rust-quality",
+      keywords: [],
+    },
     "communication-protocol": {
       id: "communication-protocol",
       type: "reference",
@@ -637,12 +855,18 @@ export const SKILL_GRAPH_DEFINITION: Omit<SkillGraph, "version" | "model"> = {
 
     // ── product contains ──
     { from: "product", to: "product-definition", rel: "contains" },
+    { from: "product", to: "backlog-refinement", rel: "contains" },
+    { from: "product", to: "sprint-planning", rel: "contains" },
+    { from: "product", to: "roadmap-planning", rel: "contains" },
+    { from: "product", to: "retrospective", rel: "contains" },
+    { from: "product", to: "okr-setting", rel: "contains" },
     { from: "product", to: "research", rel: "contains" },
 
     // naming in product (naming is a product/brand decision)
     { from: "product", to: "naming", rel: "contains" },
 
     // ── business contains ──
+    { from: "business", to: "metrics-review", rel: "contains" },
     { from: "business", to: "opportunity-research", rel: "contains" },
     { from: "business", to: "opportunity-score", rel: "contains" },
     { from: "business", to: "market-analysis", rel: "contains" },
@@ -667,6 +891,10 @@ export const SKILL_GRAPH_DEFINITION: Omit<SkillGraph, "version" | "model"> = {
     { from: "infrastructure", to: "git-worktrees", rel: "contains" },
     { from: "infrastructure", to: "research", rel: "contains" },
 
+    // cli-builder, test-writer in software-design
+    { from: "software-design", to: "cli-builder", rel: "contains" },
+    { from: "software-design", to: "test-writer", rel: "contains" },
+
     // data-modeling in software-design, ml-experiment in ai-engineering
     { from: "software-design", to: "data-modeling", rel: "contains" },
     { from: "ai-engineering", to: "ml-experiment", rel: "contains" },
@@ -686,6 +914,7 @@ export const SKILL_GRAPH_DEFINITION: Omit<SkillGraph, "version" | "model"> = {
     { from: "meta", to: "skill-graph", rel: "contains" },
 
     // ── delivery contains ──
+    { from: "delivery", to: "git-ops", rel: "contains" },
     { from: "delivery", to: "commit-and-pr", rel: "contains" },
     { from: "delivery", to: "parallel-agents", rel: "contains" },
     { from: "delivery", to: "sp-kanban", rel: "contains" },
@@ -707,7 +936,11 @@ export const SKILL_GRAPH_DEFINITION: Omit<SkillGraph, "version" | "model"> = {
     { from: "build", to: "ship", rel: "precedes" },
     { from: "ship", to: "commit-and-pr", rel: "precedes" },
     { from: "plan", to: "build", rel: "precedes" },
+    { from: "test-planning", to: "test-writer", rel: "precedes" },
+    { from: "test-writer", to: "build", rel: "precedes" },
     { from: "test-planning", to: "tdd", rel: "precedes" },
+    { from: "roadmap-planning", to: "backlog-refinement", rel: "precedes" },
+    { from: "backlog-refinement", to: "sprint-planning", rel: "precedes" },
     { from: "opportunity-research", to: "opportunity-score", rel: "precedes" },
     { from: "opportunity-research", to: "market-analysis", rel: "precedes" },
     { from: "market-analysis", to: "business-case", rel: "precedes" },
@@ -733,6 +966,9 @@ export const SKILL_GRAPH_DEFINITION: Omit<SkillGraph, "version" | "model"> = {
     { from: "mcp-builder", to: "coding-standards", rel: "references" },
     { from: "receiving-code-review", to: "coding-standards", rel: "references" },
     { from: "simplify", to: "coding-standards", rel: "references" },
+    { from: "cli-builder", to: "coding-standards", rel: "references" },
+    { from: "test-writer", to: "coding-standards", rel: "references" },
+    { from: "build", to: "rust-quality", rel: "references" },
 
     // parallel-agents & ai-agent-building: build uses subagents for parallel execution
     { from: "build", to: "parallel-agents", rel: "references" },
