@@ -434,9 +434,16 @@ export const SKILL_GRAPH_DEFINITION: Omit<SkillGraph, "version" | "model"> = {
       id: "commit-and-pr",
       type: "skill",
       description:
-        "Stage changes, create commits, push, and create pull requests. Surgical staging and meaningful commit messages.",
+        "Create a git commit and open a pull request. Use only when the user literally asks for a commit or PR — 'git commit', 'commit this', 'open a PR', 'create a pull request', 'git push and open PR'.",
       invoke: "commit-and-pr",
-      keywords: ["commit", "PR", "pull request", "push", "stage", "git"],
+      keywords: [
+        "git commit",
+        "commit this",
+        "open a PR",
+        "open a pull request",
+        "create a pull request",
+        "git push and open PR",
+      ],
     },
     "parallel-agents": {
       id: "parallel-agents",
@@ -480,13 +487,19 @@ export const SKILL_GRAPH_DEFINITION: Omit<SkillGraph, "version" | "model"> = {
       invoke: "architecture-diagram",
       keywords: ["diagram", "visualize", "architecture diagram", "system diagram", "show components", "draw"],
     },
-    "simplify": {
-      id: "simplify",
+    "refactor": {
+      id: "refactor",
       type: "skill",
       description:
-        "Review changed code for reuse opportunities, quality issues, and efficiency improvements, then fix them. Use when code works but could be cleaner, or after a build phase to polish.",
-      invoke: "simplify",
-      keywords: ["simplify", "clean up", "refactor", "reduce complexity", "DRY", "polish code"],
+        "Refactor code. Use only when the user literally asks to refactor — 'refactor this', 'refactor this function', 'refactor src/foo.ts', 'let's refactor this code'.",
+      invoke: "refactor",
+      keywords: [
+        "refactor this",
+        "refactor this function",
+        "refactor this file",
+        "refactor this code",
+        "refactor this module",
+      ],
     },
     "pdf": {
       id: "pdf",
@@ -699,12 +712,13 @@ export const SKILL_GRAPH_DEFINITION: Omit<SkillGraph, "version" | "model"> = {
     { from: "delivery", to: "architecture-diagram", rel: "contains" },
 
     // simplify belongs in software-design (post-build polish)
-    { from: "software-design", to: "simplify", rel: "contains" },
-    { from: "build", to: "simplify", rel: "precedes" },
+    { from: "software-design", to: "refactor", rel: "contains" },
 
     // ── Ordering: precedes ──
     { from: "design", to: "build", rel: "precedes" },
-    { from: "build", to: "ship", rel: "precedes" },
+    // build invokes simplify after each vertical commit, then simplify precedes ship for final pass
+    { from: "build", to: "refactor", rel: "precedes" },
+    { from: "refactor", to: "ship", rel: "precedes" },
     { from: "ship", to: "commit-and-pr", rel: "precedes" },
     { from: "plan", to: "build", rel: "precedes" },
     { from: "test-planning", to: "tdd", rel: "precedes" },
@@ -732,7 +746,7 @@ export const SKILL_GRAPH_DEFINITION: Omit<SkillGraph, "version" | "model"> = {
     { from: "frontend-design", to: "coding-standards", rel: "references" },
     { from: "mcp-builder", to: "coding-standards", rel: "references" },
     { from: "receiving-code-review", to: "coding-standards", rel: "references" },
-    { from: "simplify", to: "coding-standards", rel: "references" },
+    { from: "refactor", to: "coding-standards", rel: "references" },
 
     // parallel-agents & ai-agent-building: build uses subagents for parallel execution
     { from: "build", to: "parallel-agents", rel: "references" },
