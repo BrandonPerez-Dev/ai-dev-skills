@@ -1,3 +1,4 @@
+
 ---
 name: frontend-build
 description: Implement UI designs with visual verification. Takes ui-ux-design output and produces working, visually-verified frontend components. Uses MCP servers for design context (Figma, shadcn/ui) and screenshot-based iteration (Chrome DevTools, Playwright). Constraints over adjectives, verification over hope.
@@ -373,8 +374,6 @@ See `mcp-setup.md` for installation and configuration of recommended MCP servers
 3. **Minimal setup** (Playwright only): Adequate — visual verification without design system context
 4. **No MCP**: Baseline — code review only, warn user that visual verification is skipped
 
-Follow the communication-protocol skill for all user-facing output and interaction.
-
 ## Guidelines
 
 - **Tokens, not adjectives.** Every visual choice references a concrete value.
@@ -383,4 +382,3 @@ Follow the communication-protocol skill for all user-facing output and interacti
 - **Query before guessing.** If an MCP server can tell you the actual prop signature, use it. Don't hallucinate APIs.
 - **5 iterations max.** If the visual loop isn't converging, stop and show the user. Something structural is wrong.
 - **Degrade gracefully.** Use whatever tools are available. More tools = better quality, but the skill works at every level.
-- **Mobile first.** Build for 375px, enhance for larger screens. Don't bolt on responsiveness after the fact.

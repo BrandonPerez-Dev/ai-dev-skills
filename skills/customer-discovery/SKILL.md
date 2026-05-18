@@ -1,3 +1,4 @@
+
 ---
 name: customer-discovery
 description: Synthesize customer research — interview transcripts, surveys, support tickets — into structured insights using JTBD, empathy mapping, and opportunity solution trees. Use when you have customer data to analyze or need to prepare for interviews.
@@ -242,8 +243,6 @@ After saving, present Layer 1 and ask:
 | 2 — Pattern | Multiple sources independently confirm | 4-7 data points, 40%+ consistency |
 | 3 — Validated | Strong signal across segments | 8+ data points, 60%+ consistency, quantified impact |
 
-Follow the communication-protocol skill for all user-facing output and interaction.
-
 ## Guidelines
 
 - **Cite everything.** Every finding traces back to a specific source.
@@ -253,4 +252,3 @@ Follow the communication-protocol skill for all user-facing output and interacti
 - **Segment differences matter.** A 3-person shop and a 50-person shop may have completely different problems.
 - **Check in before finalizing.** The user was in the room for interviews — they have context the transcript doesn't capture.
 - **Always identify gaps.** The most valuable output is often "here's what we still need to learn."
-- **Interview guides are actionable.** Not generic questions — specific to the gaps identified in THIS research.

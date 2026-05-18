@@ -1,3 +1,4 @@
+
 ---
 name: ml-experiment
 description: >-
@@ -202,8 +203,6 @@ Abandoning ML is a valid outcome, not a failure. A rules-based system that's mai
 | **Complexity ratchet** | Each iteration adds complexity but never removes it | Periodically retrain from scratch with best feature set |
 | **Ship and forget** | Model deployed with no monitoring; performance degrades silently | Define monitoring before deployment: drift detection, metric alerts |
 
-Follow the communication-protocol skill for all user-facing output and interaction.
-
 ## MCP Tools
 
 Use `ToolSearch` to discover available ML/notebook MCP tools at the start of any experiment.
@@ -221,4 +220,3 @@ If neither is available, use Bash to run Python scripts directly and track exper
 - **Simple models are features, not bugs.** Logistic regression with good features often matches gradient boosting. Ship the simpler model when performance is comparable.
 - **Error analysis over metric chasing.** Understanding WHY the model is wrong is more valuable than nudging the metric up 0.5%.
 - **Data quality over model quality.** An hour spent cleaning data is usually worth more than an hour tuning hyperparameters.
-- **Define success before experimenting.** If you don't know what "good enough" looks like, you'll never know when to stop.

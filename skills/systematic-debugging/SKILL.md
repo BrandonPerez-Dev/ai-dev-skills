@@ -1,3 +1,4 @@
+
 ---
 name: systematic-debugging
 description: Use when encountering any bug, test failure, unexpected behavior, or performance problem — before proposing fixes. Root cause first, always.
@@ -271,8 +272,6 @@ Available in this directory:
 | **3. Hypothesize & Test** | Form theory, test minimally, verify | Confirmed root cause |
 | **4. Fix & Verify** | Failing test, single fix, verify | Bug resolved, tests pass, no regressions |
 
-Follow the communication-protocol skill for all user-facing output and interaction.
-
 ## Guidelines
 
 - **Root cause first, always.** Symptom fixes are failure.
@@ -281,4 +280,3 @@ Follow the communication-protocol skill for all user-facing output and interacti
 - **Reduce before deep-diving.** A minimal reproduction is worth more than hours of code reading.
 - **Manage your cognitive load.** 10-minute rule. Rubber duck. Step back. Debugging is mentally expensive.
 - **3 strikes = architectural problem.** Don't keep patching. Question the design.
-- **Evidence over intuition.** Add instrumentation. Read logs. Measure. Don't guess.

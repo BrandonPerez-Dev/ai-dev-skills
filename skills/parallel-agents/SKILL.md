@@ -1,3 +1,4 @@
+
 ---
 name: parallel-agents
 description: Dispatching multiple agents for independent problems. Use when facing 2+ independent tasks that can be worked on without shared state or sequential dependencies.
@@ -272,8 +273,6 @@ Agent 4 (sonnet): "Search the web for [specific library] best practices
 and known issues. Return: key findings with source links."
 ```
 
-Follow the communication-protocol skill for all user-facing output and interaction.
-
 ## Guidelines
 
 - **Independence test is non-negotiable.** If tasks aren't independent, parallelism creates more problems than it solves.
@@ -281,4 +280,3 @@ Follow the communication-protocol skill for all user-facing output and interacti
 - **3-5 agents is the sweet spot.** More agents = more synthesis overhead. Only go higher for trivially independent tasks.
 - **Synthesis is work.** Don't just concatenate results. Check for conflicts, contradictions, and gaps.
 - **Use the right model.** Haiku for exploration, Sonnet for analysis, Opus for complex implementation. Don't burn tokens on read-only agents.
-- **Partial failure is normal.** Integrate successes, re-dispatch failures. Don't block everything because one agent had trouble.

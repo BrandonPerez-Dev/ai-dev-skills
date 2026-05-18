@@ -1,3 +1,4 @@
+
 ---
 name: market-analysis
 description: Rigorous market sizing (TAM/SAM/SOM) combined with competitive landscape analysis. Use when you need to answer "how big is this?" and "who's already doing it?" Produces confidence-ranged estimates, not false precision.
@@ -239,8 +240,6 @@ After saving, present Layer 1 and ask:
 | **Directional** | Range is meaningful but wide | Top-down + bottom-up attempted, some reconciliation |
 | **Validated** | Narrow range, defensible | Multiple sources agree, customer pricing data, bottom-up verified |
 
-Follow the communication-protocol skill for all user-facing output and interaction.
-
 ## Guidelines
 
 - **Ranges, not points.** "$50-150M" not "$97.3M". False precision destroys credibility.
@@ -249,4 +248,3 @@ Follow the communication-protocol skill for all user-facing output and interacti
 - **The gap between top-down and bottom-up is informative.** Don't hide it — explain it.
 - **"Current solution" is a competitor.** Spreadsheets, phone calls, and gut feel are often the real competition.
 - **Check in before finalizing.** The user may know things about the market that web research doesn't capture.
-- **Positioning maps need white space.** If there's no gap, there's no opportunity.

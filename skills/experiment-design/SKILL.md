@@ -1,3 +1,4 @@
+
 ---
 name: experiment-design
 description: Design experiments to test the riskiest assumptions behind an opportunity. Maps assumptions, formulates hypotheses, and creates experiment cards with pre-committed success criteria. Use when you need to validate before building.
@@ -265,8 +266,6 @@ After saving, present Layer 1 and ask:
 (c) Run customer-discovery to execute the interview experiments?
 (d) Move on?"
 
-Follow the communication-protocol skill for all user-facing output and interaction.
-
 ## Guidelines
 
 - **Test the assumption that could kill you first.** Not the one that's easiest to test.
@@ -275,4 +274,3 @@ Follow the communication-protocol skill for all user-facing output and interacti
 - **One assumption per experiment.** Testing 3 things at once means learning nothing clearly.
 - **Kill criteria are mandatory.** If you can't define what would make you stop, you're not being honest about risks.
 - **Evidence accumulates.** Update the evidence log after every experiment. Confidence builds over time.
-- **Mixed signals mean iterate, not ignore.** If 4/8 people like it and 4/8 don't, find out what's different about the two groups.

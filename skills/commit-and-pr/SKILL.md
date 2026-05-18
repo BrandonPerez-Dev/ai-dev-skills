@@ -1,3 +1,4 @@
+
 ---
 name: commit-and-pr
 description: >-
@@ -227,8 +228,6 @@ Always show the user the PR URL when done so they can review it in the browser.
 | "fix stuff" messages | Future you can't understand the history | Explain WHY in the message body |
 | Force push to shared branch | Overwrites teammates' work | Only force push your own feature branches after rebase |
 
-Follow the communication-protocol skill for all user-facing output and interaction.
-
 ## Guidelines
 
 - **Read the diff first.** The hard gate is non-negotiable. Understand what you're committing before you commit it.
@@ -237,4 +236,3 @@ Follow the communication-protocol skill for all user-facing output and interacti
 - **Stage surgically.** Name the files. Review the diff. Don't blanket-add.
 - **Never skip hooks.** Pre-commit hooks exist to catch problems. Fix the problem, don't bypass the check.
 - **PRs are for reviewers.** Write the description for the person reviewing, not for yourself. What should they look at? What decisions did you make?
-- **Ask when unsure.** Target branch, reviewers, whether to split — these are user decisions, not AI decisions.

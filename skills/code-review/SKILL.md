@@ -1,3 +1,4 @@
+
 ---
 name: code-review
 description: >-
@@ -186,8 +187,6 @@ These MCP servers enhance code review when available. None are required.
 
 **When to use:** For deep reviews and security-sensitive code, run Semgrep alongside manual review. For complexity concerns, use CodeScene to identify hotspots before reading code. For PR reviews, GitHub MCP provides structured diff access.
 
-Follow the communication-protocol skill for all user-facing output and interaction.
-
 ## Guidelines
 
 - **Context before critique.** Understand what the change does and why before finding fault. Wrong context → wrong feedback.
@@ -196,4 +195,3 @@ Follow the communication-protocol skill for all user-facing output and interacti
 - **Severity determines action.** Blocking issues get "request changes." Suggestions get "approve with comments." Don't block on preferences.
 - **Be specific, be concrete.** Every issue needs a file:line reference and a suggested fix. "This is bad" helps nobody.
 - **Don't invent issues.** If the code is good, say so. An empty "Suggestions" section is better than manufactured nitpicks.
-- **Agent code needs agent review.** Tool descriptions, prompt structure, and token efficiency are first-class review concerns for agent systems. Don't review MCP code like CRUD code.

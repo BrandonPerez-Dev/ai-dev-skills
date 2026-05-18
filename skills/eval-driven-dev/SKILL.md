@@ -1,3 +1,4 @@
+
 ---
 name: eval-driven-dev
 description: >-
@@ -191,8 +192,6 @@ Evals are living artifacts. Update them as the product evolves:
 | **Eval suite as afterthought** | Written after the agent, biased toward current behavior | Write evals before building the agent |
 | **Only happy-path tasks** | Agent looks great until it hits an edge case | Include hard tasks and known failure cases |
 
-Follow the communication-protocol skill for all user-facing output and interaction.
-
 ## Guidelines
 
 - **Evals before building.** Define what "good" looks like before writing agent code. Otherwise you're fitting evals to behavior, not behavior to evals.
@@ -200,4 +199,3 @@ Follow the communication-protocol skill for all user-facing output and interacti
 - **Code-based first.** Every eval should start with code-based graders. Add model-based only for subjective quality.
 - **Transcripts reveal truth.** Automated evals catch outcomes. Transcript review catches process failures. Do both.
 - **pass@k measures capability, pass^k measures reliability.** You need both. An unreliable agent that can occasionally succeed is not shippable.
-- **Evals evolve.** Update them. Add production failures as new tasks. Retire stale ones. A static eval suite is a decaying eval suite.

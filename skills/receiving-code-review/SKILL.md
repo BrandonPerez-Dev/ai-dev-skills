@@ -1,3 +1,4 @@
+
 ---
 name: receiving-code-review
 description: Handling code review feedback with technical rigor. Use when receiving review feedback — requires verification before implementing, not performative agreement or blind compliance.
@@ -217,8 +218,6 @@ When responding to review feedback, state what you checked:
 
 The reviewer can then say "please also check production config" if needed. Explicit gaps are better than assumed completeness.
 
-Follow the communication-protocol skill for all user-facing output and interaction.
-
 ## Guidelines
 
 - **Verify before implementing.** Every time. Feedback is a hypothesis until you've traced the code.
@@ -227,4 +226,3 @@ Follow the communication-protocol skill for all user-facing output and interacti
 - **Push back with evidence.** "This breaks X" with a file:line reference, not "I disagree."
 - **Scope creep is real.** If feedback changes the PR's purpose, flag it and suggest a follow-up.
 - **State what you checked and what you didn't.** Explicit gaps earn trust. Assumed completeness erodes it.
-- **Design doc wins by default.** If feedback contradicts the design, escalate before implementing.

@@ -1,3 +1,4 @@
+
 ---
 name: skill-eval
 description: >-
@@ -257,8 +258,6 @@ skill-eval-workspace/
 | Skipping baseline | No way to know if the skill actually adds value | Always compare against without-skill or old version |
 | Changing test prompts between iterations | Can't compare across iterations | Keep prompts stable; add new ones, don't replace |
 
-Follow the communication-protocol skill for all user-facing output and interaction.
-
 ## Guidelines
 
 - **Run it, don't read it.** The only way to know if a skill works is to test it against realistic prompts. Reading the SKILL.md tells you what it claims, not what it does.
@@ -266,4 +265,3 @@ Follow the communication-protocol skill for all user-facing output and interacti
 - **Test prompts are the foundation.** Bad prompts produce meaningless results. Invest time in designing prompts that would challenge the skill.
 - **Assertions check outcomes, not process.** "The output identifies the root cause" is a good assertion. "The output follows the 5-step methodology" is a bad one — you care about results, not compliance.
 - **Keep prompts stable across iterations.** If you change the prompts, you can't compare results. Add new prompts if coverage is insufficient, but don't replace existing ones.
-- **Three iterations max.** If a skill isn't working after three rounds of eval-improve-eval, the approach is wrong, not the details. Step back and reconsider the skill design.

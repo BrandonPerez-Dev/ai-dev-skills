@@ -1,3 +1,4 @@
+
 ---
 name: tool-discovery
 description: >-
@@ -212,8 +213,6 @@ Don't silently add tools. Tool installation affects the user's environment — a
 | **Sunk cost** | Don't recommend building a wrapper when an existing MCP server does 80% of what's needed. |
 | **Tool hoarding** | More tools != better. Only recommend tools that solve a real capability gap. Agents degrade above ~15 tools. |
 
-Follow the communication-protocol skill for all user-facing output and interaction.
-
 ## Guidelines
 
 - **Layer 3 is the differentiator.** Anyone can search npm for MCP servers. Finding software worth adopting for its API — that's the creative leap that gives you capabilities nobody else has.
@@ -221,4 +220,3 @@ Follow the communication-protocol skill for all user-facing output and interacti
 - **Local > cloud for MCP.** Local APIs have no latency, no cost, no auth complexity. Prefer self-hosted and local tools when they exist.
 - **Always audit first.** Suggesting a tool the user already has wastes credibility and time.
 - **Confirm before installing.** Tool installation changes the user's environment. Present options, let the user choose.
-- **Route to mcp-builder.** This skill discovers. The mcp-builder skill builds. Don't try to do both inline.

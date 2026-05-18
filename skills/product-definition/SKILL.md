@@ -1,3 +1,4 @@
+
 ---
 name: product-definition
 description: Bridge the gap between a validated business case and an engineering-ready product spec. Defines personas, user stories, user flows, feature prioritization, and MVP scope. Use when an opportunity is approved and needs to be scoped for engineering.
@@ -250,8 +251,6 @@ After saving, present Layer 1 and ask:
 
 If the user chooses (c), invoke: `Skill: write-spec` with `Args: <path-to-product-def>`
 
-Follow the communication-protocol skill for all user-facing output and interaction.
-
 ## Guidelines
 
 - **Customer perspective, not technical.** "User sees a map of technicians" not "React component renders MapBox tiles."
@@ -260,4 +259,3 @@ Follow the communication-protocol skill for all user-facing output and interacti
 - **One primary metric.** If you can't pick one, you don't understand what success looks like.
 - **Edge cases are identified, not solved.** Name them for write-spec. Don't design solutions here.
 - **Acceptance criteria are testable.** "Works well" is not a criterion. "Shows location within 30 seconds" is.
-- **Check in on scope.** The user needs to agree on MVP boundary before engineering starts.

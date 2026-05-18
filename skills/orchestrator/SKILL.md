@@ -1,3 +1,4 @@
+
 ---
 name: orchestrator
 description: Skill routing and workflow guidance. Invoke when unsure which skill to use, or for detailed guidance on skill sequencing, tiers, and red flags.
@@ -150,12 +151,9 @@ When multiple skills could apply, process skills run first:
 
 **Orchestrating** (design, build): These invoke other skills internally. Let them manage the sub-skill sequencing.
 
-Follow the communication-protocol skill for all user-facing output and interaction.
-
 ## Guidelines
 
 - **Route, don't guess.** Use the routing table above. If unsure, invoke this skill.
 - **Process skills are mandatory.** They prevent wasted work. Invoke them even when the task seems simple.
 - **Let orchestrating skills manage sub-skills.** Design invokes research and architecture internally — you don't need to invoke them separately when using design.
 - **Verify before claiming done.** Every time. No exceptions.
-- **Skills evolve.** Always invoke the skill (don't rely on memory of what it says). The current version may have changed.

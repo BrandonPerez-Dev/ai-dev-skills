@@ -1,3 +1,4 @@
+
 ---
 name: data-modeling
 description: >-
@@ -164,8 +165,6 @@ Check for:
 | **Stringly-typed enums** | `status TEXT` with no validation; typos create phantom states | Use CHECK constraints or Postgres ENUMs for small, stable sets; text + app validation for evolving sets |
 | **Missing migration strategy** | Schema works today, no path to evolve | Design for additive changes; avoid painting yourself into corners |
 
-Follow the communication-protocol skill for all user-facing output and interaction.
-
 ## MCP Tools
 
 Use `ToolSearch` to discover available database MCP tools at the start of any data modeling session.
@@ -183,4 +182,3 @@ If neither is available, fall back to Bash with `psql` commands or reading Drizz
 - **Normalize, then denormalize.** Start with 3NF. Denormalize only with evidence (slow query, known read pattern). Document why each denormalization exists.
 - **Graph patterns are common.** Hierarchies, DAGs, prerequisite chains, org charts — recognize these early. An edge table + recursive CTEs is the default pattern.
 - **Validate with EXPLAIN ANALYZE.** Theory is not performance. Run your queries against realistic data before shipping the schema.
-- **Design for evolution.** The first schema is never the last. Prefer additive migrations (ADD COLUMN, ADD TABLE) over destructive ones.

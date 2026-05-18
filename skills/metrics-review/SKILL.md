@@ -1,3 +1,4 @@
+
 ---
 name: metrics-review
 description: Run recurring and ad-hoc product metrics reviews — weekly business reviews, monthly performance reviews, and diagnostic investigations when a metric moves unexpectedly. Use when you need a metrics review, dashboard review, weekly business review, monthly review, KPI review, product analytics, business performance, funnel analysis, or when a specific metric dropped, retention is declining, churn spiked, signups are down, or you want to know why a metric moved. This skill analyzes DATA and TRENDS — use innovation-status for portfolio progress snapshots, use okr-setting to score or set OKRs rather than investigate underlying metric data.
@@ -225,5 +226,3 @@ For AI/agent-specific metrics (hallucination rate, task completion, trust signal
 - **Counter-metrics prevent Goodhart's Law.** When optimizing activation rate, track support load. When optimizing engagement, track churn. One metric in isolation lies.
 - **Time-box investigations.** "We need more data" gets a deadline. Investigations without deadlines become permanent excuses to avoid deciding.
 - **Clean reviews are valid.** If nothing moved, say "nothing moved" and move on. Not every review produces a crisis.
-
-Follow the communication-protocol skill for all user-facing output and interaction.

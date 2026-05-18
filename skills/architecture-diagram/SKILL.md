@@ -1,3 +1,4 @@
+
 ---
 name: architecture-diagram
 description: >-
@@ -176,5 +177,3 @@ Each iteration produces:
 - **Color means something.** Every color maps to a node type. Don't use color decoratively.
 - **Screenshot is truth.** The code might look right but render wrong. Trust the screenshot, not the code.
 - **Iterate fast.** Edit the HTML file and reload for all changes. Don't rewrite the whole file to tweak a position.
-
-Follow the communication-protocol skill for all user-facing output and interaction.

@@ -1,3 +1,4 @@
+
 ---
 name: ui-ux-design
 description: Modern UI/UX design principles for AI applications. Use when making visual design decisions, choosing interaction patterns, or defining the look and feel of a frontend. Focuses on cutting-edge design trends and agentic UX patterns. Design theory, not code generation.
@@ -152,8 +153,6 @@ Study these for current visual language:
 - [Reduced motion handling, contrast ratios, keyboard nav]
 ```
 
-Follow the communication-protocol skill for all user-facing output and interaction.
-
 ## Guidelines
 
 - **Research before recommending.** Web search for what's current. Trends shift fast.
@@ -162,4 +161,3 @@ Follow the communication-protocol skill for all user-facing output and interacti
 - **Dark mode first.** Light mode as secondary.
 - **Performance matters.** CSS transforms over layout changes. GPU-composited animations. No jank.
 - **Accessibility always.** `prefers-reduced-motion`, WCAG contrast ratios, keyboard nav, screen reader support.
-- **Restraint over decoration.** Every visual element needs a reason. If it's just "pretty," cut it.

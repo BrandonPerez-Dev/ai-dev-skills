@@ -1,3 +1,4 @@
+
 ---
 name: app-security
 description: >-
@@ -214,8 +215,6 @@ Compile findings into a structured report.
 | **Severity inflation** | Everything marked critical to get attention; creates alert fatigue | Use consistent severity criteria; critical = exploitable + high impact |
 | **Security theater** | Adding headers and CSP but ignoring broken auth | Focus on impact, not compliance checkboxes |
 
-Follow the communication-protocol skill for all user-facing output and interaction.
-
 ## MCP Tools
 
 Use `ToolSearch` to discover available security MCP tools at the start of any audit.
@@ -232,4 +231,3 @@ If neither is available, fall back to Bash with CLI tools (semgrep, npm audit, g
 - **Automate the boring parts.** Dependency checks and pattern-based SAST are mechanical — automate them. Save human attention for logic flaws and design issues.
 - **Agent security is application security.** MCP servers are APIs. Prompt injection is input validation. Tool permissions are access control. Apply the same principles with agent-specific awareness.
 - **Fix the root cause, not the symptom.** If you find SQL injection, the fix isn't escaping that one query — it's ensuring all queries use parameterized statements.
-- **Report for action, not for archives.** Every finding needs a clear fix. A 50-page report nobody reads is worse than a 2-page report that gets everything patched.

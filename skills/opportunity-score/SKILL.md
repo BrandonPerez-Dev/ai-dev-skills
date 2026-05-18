@@ -1,3 +1,4 @@
+
 ---
 name: opportunity-score
 description: Score an opportunity against a standardized framework (Desirability/Viability/Feasibility/Adaptability) and compare it to other opportunities in the portfolio. Use when deciding what to pursue, kill, or prioritize.
@@ -206,8 +207,6 @@ After saving, present Layer 1 and ask:
 (d) Run product-definition if this is a GO?
 (e) Move on?"
 
-Follow the communication-protocol skill for all user-facing output and interaction.
-
 ## Guidelines
 
 - **Evidence, not opinion.** A score of 0 for "no evidence" is MORE useful than a score of 2 based on "I think customers would like it."
@@ -215,4 +214,3 @@ Follow the communication-protocol skill for all user-facing output and interacti
 - **Portfolio balance matters.** Five H1 opportunities and zero H3 means we're not taking enough risk. All H3 means we're being reckless.
 - **Re-score periodically.** Scores should improve as evidence accumulates. If they don't, ask why.
 - **Kill criteria are pre-agreed.** Don't move the goalposts when a favorite project scores low.
-- **Compare apples to apples.** Only compare opportunities at similar stages. A fully-validated H1 will always outscore a new H3 — that's expected.

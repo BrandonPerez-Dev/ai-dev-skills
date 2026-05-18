@@ -1,3 +1,4 @@
+
 ---
 name: architecture
 description: Technical design — components, data flow, API contracts, integration points, orchestration patterns. Use when defining how a system is built, choosing patterns, designing interfaces between components, or making technology decisions. Reads context/ for existing architectural truth. Contracts first, implementation second.
@@ -195,8 +196,6 @@ Architecture produces a design artifact that feeds three destinations:
 [Migrations if any]
 ```
 
-Follow the communication-protocol skill for all user-facing output and interaction.
-
 ## Guidelines
 
 - **Contract first.** Define interfaces and schemas before implementing anything. Frontend and backend can build in parallel against the contract.
@@ -205,4 +204,3 @@ Follow the communication-protocol skill for all user-facing output and interacti
 - **Minimum viable architecture.** Simplest thing that works. Every abstraction must justify its existence. YAGNI ruthlessly — don't design for hypothetical future requirements.
 - **Flag unknowns.** Ask rather than guess. Uncertainty is cheaper to resolve through conversation than through code.
 - **Design for failure.** Every API call can fail. Every connection can drop. Every external service can be slow. Define error paths explicitly, not as afterthoughts.
-- **Record why.** Decisions without rationale are impossible to evaluate later. ADR format: context → decision → consequences.

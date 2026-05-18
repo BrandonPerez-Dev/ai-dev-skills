@@ -1,3 +1,4 @@
+
 ---
 name: infra-security
 description: >-
@@ -267,8 +268,6 @@ sudo systemctl enable --now dnf-automatic-install.timer
 | **All findings equal** | 50 findings with no priority; nothing gets fixed | Use priority framework; fix P0 before worrying about P3 |
 | **Security through obscurity** | Non-standard ports, hidden services as sole defense | Obscurity is a layer, not a strategy. Fix the underlying issue |
 
-Follow the communication-protocol skill for all user-facing output and interaction.
-
 ## MCP Tools
 
 Use `ToolSearch` to discover available security MCP tools at the start of any assessment.
@@ -284,4 +283,3 @@ If not available, fall back to Bash with CLI tools (nmap, lynis, testssl.sh, fir
 - **Fix and verify.** Every remediation must be tested — both that the vulnerability is gone AND that the service still works. Locking yourself out of SSH is not a security improvement.
 - **Automate recurring checks.** A one-time audit is better than nothing, but scheduled scans catch drift. New devices, new services, configuration changes — the network evolves.
 - **Layer defenses.** No single control is sufficient. Firewall + service hardening + monitoring + updates. Each layer catches what the others miss.
-- **Prioritize by exposure.** An internet-facing service with default credentials is more urgent than a missing audit log. Fix what's exploitable first.

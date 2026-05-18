@@ -1,3 +1,4 @@
+
 ---
 name: ai-agent-building
 description: >-
@@ -167,8 +168,6 @@ For implementation details, see the reference files in this directory:
 - **`references/claude-agent-sdk.md`** — Claude Agent SDK API reference (TypeScript + Python). Verified signatures for `query()`, hooks, MCP servers, subagents, session resume. Read this when writing SDK code.
 - **`references/model-selection.md`** — Current model IDs, pricing, and selection heuristics. Read this when choosing models for agent tiers.
 
-Follow the communication-protocol skill for all user-facing output and interaction.
-
 ## Guidelines
 
 - **One agent first.** Multi-agent systems are harder to debug, test, and reason about. Start simple. Add orchestration only when the single agent demonstrably fails — not when it feels like it should fail.
@@ -176,4 +175,3 @@ Follow the communication-protocol skill for all user-facing output and interacti
 - **Evals before shipping.** Non-deterministic systems need statistical evidence. "It worked when I tried it" is anecdote, not data. 3-5 trials minimum per eval case.
 - **Transcripts reveal truth.** Automated evals catch outcomes. Transcript review catches process failures — agents that pass evals with bad reasoning are fragile. Read transcripts regularly.
 - **Diagnose before fixing.** When an agent underperforms, identify which component is failing (prompt, tools, architecture, context) before changing anything. The diagnosis table prevents wasted iteration.
-- **Context is finite.** Token usage explains 80% of performance variance in complex systems. Every tool description, system prompt section, and reference document competes for attention budget. Load less, positioned well.

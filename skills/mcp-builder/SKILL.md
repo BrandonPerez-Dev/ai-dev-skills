@@ -1,3 +1,4 @@
+
 ---
 name: mcp-builder
 description: >-
@@ -225,8 +226,6 @@ Run this checklist on every tool before shipping. Tool descriptions are the #1 l
 **When available:**
 - **GitHub MCP** — PR workflow for MCP server repos
 
-Follow the communication-protocol skill for all user-facing output and interaction.
-
 ## Guidelines
 
 - **Check existing before building.** The hard gate is not optional. tool-discovery runs first.
@@ -235,4 +234,3 @@ Follow the communication-protocol skill for all user-facing output and interacti
 - **Mock first, live second.** For production servers, the mock adapter is your dev environment, your demo environment, and your test fixture. Build it first.
 - **Thin tool handlers.** Validate args, call provider, format response. That's it. Business logic lives in the provider.
 - **Domain error codes.** The agent understands `CAMPAIGN_NOT_FOUND`. It doesn't understand `AxiosError: Request failed with status code 404`.
-- **5-10 tools max.** If you need more, you're probably building two servers. Split by domain.

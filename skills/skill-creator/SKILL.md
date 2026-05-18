@@ -1,3 +1,4 @@
+
 ---
 name: skill-creator
 description: >-
@@ -350,8 +351,6 @@ Follow this skeleton, adapting to the skill type:
 ## Anti-Patterns
 [What this skill exists to prevent]
 
-Follow the communication-protocol skill for all user-facing output and interaction.
-
 ## Guidelines
 [Opinionated principles — not generic advice, but specific defended positions]
 ```
@@ -443,8 +442,6 @@ Score each dimension 0-2. A skill should score 8+ to ship.
 | **The Sycophant** | "You are an expert X" followed by basic tips | Skip the flattery. Teach the methodology. |
 | **Missing Triggers** | "When to Use" section in the body but vague description | All trigger logic in the frontmatter description |
 
-Follow the communication-protocol skill for all user-facing output and interaction.
-
 ## Guidelines
 
 - **Methodology over checklist.** A checklist says "check X." A methodology says "here's how to think about X, here's how to choose your approach, here's how to know when you're done, and here's how to catch yourself when you're wrong."
@@ -453,4 +450,3 @@ Follow the communication-protocol skill for all user-facing output and interacti
 - **Write for the reader, not the author.** The audience is a future Claude instance executing a task. Cut everything that doesn't help that instance do the job better.
 - **Score before shipping.** Run the quality rubric. If it's below 8, improve it. If it can't reach 8, question whether it should exist.
 - **Think like an agent builder.** Skills are agents. Consider all five dimensions: prompt design, tool selection, context engineering, orchestration, and evaluation. They're interconnected — improving one often reveals what's missing in another.
-- **Steal from the best.** The research, systematic-debugging, and verification skills are the gold standard. Study their structure when creating methodology skills.
