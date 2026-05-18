@@ -1,3 +1,4 @@
+
 ---
 name: backlog-refinement
 description: Refine and maintain product backlogs — make stories sprint-ready through acceptance criteria, vertical splitting, and backlog hygiene. Produces refined stories with testable criteria, split epics, and backlog health assessments. Use when asked to refine the backlog, groom stories, split an epic, write acceptance criteria, define or write user stories, prioritize or order the backlog, check backlog health, assess if stories are sprint-ready, clean up the backlog, or prepare stories for sprint planning. This skill PREPARES stories to be sprint-ready — use sprint-planning to SELECT which ready stories go into a sprint. Use decompose-tasks to break technical designs into implementation tasks. Use write-spec to formalize requirements into a PM-reviewable specification document.
@@ -243,5 +244,3 @@ When running a standalone health check:
 - **Estimation's value is the discussion.** Whether you use points or t-shirts, the conversation about complexity matters more than the number.
 - **Pruning is healthy.** Deleting items is not losing ideas — it's maintaining focus. If an item matters, it'll resurface.
 - **Refine just in time.** Deep refinement for the next 2-3 sprints. Light refinement for the pipeline. No refinement for items 6+ sprints out.
-
-Follow the communication-protocol skill for all user-facing output and interaction.

@@ -1,9 +1,9 @@
 ---
 name: coding-standards
 description: >-
-  Universal coding rubric — the quality bar for all code written or reviewed.
-  Referenced by build, code-review, simplify, tdd, and any skill that writes or
-  evaluates code. Not invoked directly by users.
+  Coding rubric — the quality bar for all code written or reviewed. Referenced
+  by build, code-review, refactor, tdd, and any skill that writes or evaluates
+  code. Type examples use TypeScript. Not invoked directly by users.
 user-invocable: false
 ---
 

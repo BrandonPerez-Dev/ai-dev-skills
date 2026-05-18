@@ -1,3 +1,4 @@
+
 ---
 name: startup-pitch
 description: >-
@@ -285,8 +286,6 @@ The arc choice affects tone, sequencing, and which elements get emphasis. A "Wor
 | One-and-done | Draft once, never iterate | Testing phase with structured validation methods |
 | Narrative inconsistency | Ask doesn't match milestones; milestones don't match team | Backward-consistency test after every long-form draft |
 
-Follow the communication-protocol skill for all user-facing output and interaction.
-
 ## Guidelines
 
 - **Inside-out is non-negotiable.** The 2-sentence pitch forces clarity that no amount of slide design can substitute for. Start there every time.
@@ -295,4 +294,3 @@ Follow the communication-protocol skill for all user-facing output and interacti
 - **Shorter is harder.** The tagline and one-liner take more iteration than the full deck. Budget time accordingly.
 - **Corporate ≠ startup.** Internal innovation pitches have different failure modes (corporate antibodies, no executive sponsor, innovation theater). Don't apply VC frameworks to corporate contexts.
 - **Test > polish.** A clear pitch with ugly slides beats a beautiful deck with a confusing narrative. Always prioritize narrative clarity over presentation design.
-- **Save everything.** Every approved draft goes into the artifacts file. The user will iterate across sessions — make it easy to pick up where they left off.

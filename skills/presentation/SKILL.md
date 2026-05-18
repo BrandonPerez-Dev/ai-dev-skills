@@ -1,3 +1,4 @@
+
 ---
 name: presentation
 description: >-
@@ -182,5 +183,3 @@ The presentation skill designs the page. Other skills produce components:
 - **One idea per section.** If you're explaining two things, make two sections.
 - **Diagrams are first-class.** Don't treat them as decoration. Each diagram should teach the audience something specific.
 - **The presenter carries the detail.** The page shows the structure; the human fills in the nuance. Don't try to put everything on screen.
-
-Follow the communication-protocol skill for all user-facing output and interaction.

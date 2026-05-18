@@ -1,6 +1,15 @@
 ---
 name: build
-description: Implements a plan one vertical at a time using the tdd skill for test-first execution. Reads context/ for architectural constraints, spec/<capability>.md for boundary contracts, and locked test files from test-writer. V0 splits into V0a (boundary scaffold from spec/) and V0b (walking skeleton). Accepts complete plans, partial plans, or single verticals.
+description: >-
+  Implements slice specs one at a time using TDD against locked tests. Reads
+  context/ for architectural constraints, spec/<name>.md for the slice's
+  integration test contract and done criteria, and the locked test file from
+  test-writer. For the first slice in a greenfield project, splits the slice
+  into boundary scaffold (V0a) and walking-skeleton wiring (V0b) phases.
+when_to_use: >-
+  Use after test-planning has landed an integration test contract in at least
+  one spec/<name>.md file and test-writer has committed the corresponding red
+  test. Also accepts a single spec passed directly for parallel-session work.
 allowed-tools:
   - Read
   - Write
@@ -13,305 +22,314 @@ allowed-tools:
 
 # Build
 
-Execute verticals from a plan. One at a time, integration-test first, working software after every vertical.
+Execute slice specs from the plan. One at a time, integration-test first, working software after every slice.
+
+## The Model
+
+Three persistent layers at the project root:
+
+- **`context/`** — architectural truth. Always loaded before any code is written.
+- **`spec/`** — behavioral specs. Each file describes one slice with its integration test contract in plain text + done criteria + status frontmatter.
+- **`changes/NNN-<topic>/plan.md`** — narrative for this change; declares which specs are in scope and in what order.
+
+Build reads the plan to know which specs are in scope for *this* change, then implements each spec until its locked integration test is green, marks the spec's status `built`, and moves to the next.
 
 ## When to Use
 
-- After the plan skill defines at least one ready vertical (with done criteria + test contract)
-- When handed a single vertical to build in a parallel session
+- After test-planning has landed an integration test contract in at least one `spec/<name>.md` and test-writer has committed the corresponding red test
+- When handed a single spec to build in a parallel session
 - After design transitions to build
 
-**You don't need a complete plan.** You need at least one vertical with done criteria and a test contract.
+**You don't need every spec finalized.** You need at least one slice spec with a validated integration test contract and a committed red test.
 
 ## Input
 
-Build accepts three input modes:
-
 | Mode | Input | When |
 |---|---|---|
-| **Full plan** | Path to plan.md with all verticals detailed | Plan is complete, build sequentially |
-| **Partial plan** | Path to plan.md, some verticals detailed, some headlines | Build ready verticals; pause at headlines |
-| **Single vertical** | Vertical description passed directly | Parallel session — this session builds one vertical |
+| **Full plan** | Path to `changes/NNN/plan.md` with all in-scope specs ready | Build sequentially through them |
+| **Partial plan** | Plan with some specs ready, others still in test-planning | Build ready specs; pause when you hit one that's still being detailed |
+| **Single spec** | Path to one `spec/<name>.md` | Parallel session — this build pass implements one slice |
 
-### Reading the Plan
+### Reading State
 
-1. If given a file path, read the plan
-2. If no path, search `changes/` for the most recently modified `plan.md`
-3. If no plan exists, ask the user what to build
-4. If `context/` exists, read all files — these contain architectural commitments that constrain implementation (e.g., "all API calls go through a proxy" means you don't call external services directly). Without these, you risk implementing against assumptions the team has already resolved.
-5. Read the plan's "Modifies spec files" section and load the referenced `spec/<capability>.md` files. The spec is the source of truth for boundaries and contracts — the plan is a pointer to the change.
+1. If given a plan path, read it. Otherwise search `changes/` for the most recently modified `plan.md`.
+2. Read all files in `context/` — architectural commitments that constrain implementation.
+3. Read the in-scope `spec/<name>.md` files (from the plan's "Spec changes" section).
+4. Filter by status — `planned` or `in-progress` specs are buildable; `built` are done; `superseded` are skipped.
 
-Identify which verticals are **ready** (have done criteria + a contract landed in `spec/`) vs **headlines** (need more planning).
+<HARD-GATE>
+Read `context/` and the in-scope `spec/` files in full before writing any feature code. Architectural commitments and slice contracts compound — implementing against an imagined spec produces cascading failures harder to debug than the original issue.
+</HARD-GATE>
 
 ## Pre-Flight Check
 
 Before writing any code:
-- [ ] Dev environment works (build runs, tests pass, server starts if applicable)
-- [ ] `spec/` exists and contains the capability files this feature touches (bootstrapped by test-planning if greenfield)
-- [ ] At least one vertical has done criteria + a user-validated contract in `spec/<capability>.md`
-- [ ] Dependencies between verticals are clear
-- [ ] Test files exist from test-writer — if not, invoke **test-planning** → **test-writer** before proceeding
+- Dev environment works — build runs, existing tests pass, server starts if applicable
+- Each in-scope slice spec contains an integration test contract (setup, action, input, expected output, side effects, error cases)
+- Each in-scope slice spec has a corresponding locked test file from test-writer
+- Dependencies between specs are clear (each spec's `depends_on` frontmatter or content)
 
-If pre-flight fails, fix it before writing feature code. Infrastructure problems compound.
-
-<HARD-GATE>
-Do NOT write feature code until pre-flight passes: build runs, existing tests pass, `spec/` contains the relevant capability files, and at least one vertical has committed test files from test-writer. If no spec files exist, stop — test-planning must bootstrap `spec/` first. If no test files exist, stop — test-writer must generate them first.
-</HARD-GATE>
+If pre-flight fails, fix it before writing feature code. If a spec has no test contract, escalate to test-planning. If a contract has no committed red test, escalate to test-writer.
 
 <HARD-GATE>
-NEVER modify test files written by test-writer. Tests are locked contracts that define "done." If a test appears wrong, escalate to the user or back to test-writer — do not adjust assertions, expected values, or test logic to match your implementation. The structural separation between test authoring and implementation exists to prevent the #1 AI testing failure: changing tests to match buggy code.
+Never modify test files written by test-writer. Tests are locked contracts that define "done." If a test appears wrong, escalate to the user or back to test-writer — do not adjust assertions, expected values, or test logic to match your implementation. The structural separation between test authoring and implementation exists because AI agents will otherwise adjust tests to match buggy code — this is the #1 documented failure mode.
 </HARD-GATE>
 
 ## Mode Selection
 
 | Mode | When | How |
 |---|---|---|
-| **Inline** | Exploratory work, tight iteration, or user wants to stay in conversation | Execute verticals directly in this conversation |
-| **Subagent** (recommended) | Verticals are well-defined with clear done criteria | Dispatch each vertical to a fresh subagent |
+| **Inline** | Exploratory work, tight iteration, or user wants to stay in conversation | Execute slices directly in this conversation |
+| **Subagent** (recommended) | Slice specs are well-defined with clear done criteria | Dispatch each slice to a fresh subagent |
 
-Recommend subagent mode when verticals have clear done criteria. Recommend inline for exploratory work. State your recommendation and let the user override.
+Recommend subagent mode when specs have clear done criteria. Recommend inline for exploratory work. State your recommendation and let the user override.
+
+## The First Slice in a Greenfield Project: V0a + V0b
+
+When this is the **first slice** in a project (no existing skill graph of working code, no existing boundary types), the slice gets implemented in two phases. Subsequent slices skip this split — they implement against the boundary types established here.
+
+Why two phases: hardcoded magic literals can pass an integration test without the boundary types matching the spec. Splitting V0 means the walking skeleton walks *through* real typed boundaries derived from the spec, not around them. The spec and the code cannot drift because the boundary code IS the spec materialized.
+
+### V0a: Boundary Scaffold (from spec/)
+
+Derive the boundary code from the slice spec. Type-check only — no execution yet.
+
+- Route handler signatures with typed inputs/outputs (no logic)
+- Adapter interfaces declared (no implementations)
+- Zod schemas / shared type definitions matching the spec's contract
+- Event type unions
+- Database schema declared (migrations in place, no data)
+
+Rules:
+- Every type in V0a traces to a field in the slice spec's integration test contract. If you want a boundary that isn't in the spec, stop — that's a design question. Escalate to test-planning or the user.
+- No business logic. Signatures and declarations only.
+- No hardcoded business values — types, not magic literals.
+- Type-check and linter must pass.
+
+Commit V0a as its own step: `build(scope): V0a boundary scaffold from spec/`. The scaffold is a clean, reviewable spec→code translation, diffable against the spec during review. This is the only mid-slice commit in the build flow — all other slices commit once at Step 3 of the execution loop.
+
+### V0b: Walking Skeleton through Typed Boundaries
+
+Wire the V0a boundaries together end-to-end with typed stub responses. A request enters the system, flows through each scaffolded boundary, returns a typed object that satisfies the contract's expected output shape.
+
+- Stub responses are typed objects matching the spec's output shape (e.g., `const stub: WorkflowResponse = { id: "stub-id", status: "queued", createdAt: new Date() }`)
+- Integration test asserts the stub response matches the contract (test-writer committed this test before build started)
+- Deploy/run the skeleton before building features on it
+
+If V0b fails:
+- **Infrastructure** (DB won't connect, port busy, migrations broken) → fix the infrastructure
+- **Type mismatch between spec and scaffold** → back to V0a; the scaffold wasn't faithful to the spec. Do not paper over with casts.
+- **Integration test doesn't match the contract** → back to test-writer or test-planning. Do not modify the test.
+
+After V0b passes, mark the slice spec's `status: built`, report to the user, and move to the next slice (no more V0a/V0b — those phases only apply to the first slice).
 
 ---
 
 ## Inline Mode
 
-### Vertical 0: Boundaries + Walking Skeleton
+### Execution Loop (per slice spec)
 
-V0 is the foundational slice. It has **two phases**: scaffold the boundary types from the living spec, then walk a request through them end-to-end with typed stub responses. Both phases must be green before V1 starts.
-
-Why two phases and not one hardcoded skeleton: hardcoding magic literals lets the skeleton pass without the boundary types actually matching the spec. Splitting V0 means the walking skeleton walks *through* real typed boundaries derived from `spec/`, not around them. The spec and the code cannot drift because the boundary code IS the spec materialized.
-
-#### V0a: Boundary Scaffold (from spec/)
-
-Derive the boundary code from `spec/<capability>.md`. Type-check only — no execution yet.
-
-- Route handler signatures with typed inputs/outputs (no logic)
-- Adapter interfaces declared (no implementations)
-- Zod schemas / shared type definitions matching the spec's contracts
-- Event type unions
-- Database schema declared (migrations in place, no data)
-
-**Rules:**
-- Every type in V0a must trace to a contract or invariant in `spec/<capability>.md`. If you want a boundary that isn't in spec/, stop — that's a design question, not a build question. Escalate to test-planning or the user.
-- No business logic. Signatures and declarations only.
-- No hardcoded business values — types, not magic literals.
-- Type-check and linter must pass. No end-to-end execution yet.
-
-Commit V0a as its own step before starting V0b: `build(scope): V0a boundary scaffold from spec/`. Why a mid-vertical commit: V0a is a clean, reviewable "spec → code translation" artifact, independently valuable even if V0b later discovers a wiring problem. The commit boundary makes the scaffold diffable against `spec/` during review and gives you a safe rollback point if V0b uncovers a spec/scaffold mismatch. This is the only mid-vertical commit in the build flow — V1+ commit once per vertical at Step 3 of the Execution Loop.
-
-#### V0b: Walking Skeleton through Typed Boundaries
-
-Wire the boundaries from V0a together end-to-end with **typed stub responses** — not hardcoded literals. A request enters the system, flows through each scaffolded boundary, and returns a typed object that satisfies the contract's expected output shape.
-
-- Stub responses are typed objects matching the spec's output shape (e.g., `const stub: WorkflowResponse = { id: "stub-id", status: "queued", createdAt: new Date() }`)
-- Prove wiring works: request enters, passes through each boundary from V0a, response comes back
-- Integration test asserts the stub response matches the contract shape (the test-writer already committed this test before build started)
-- Deploy/run the skeleton before building features on it
-
-If V0b fails, diagnose:
-- **Infrastructure problem** (DB won't connect, port busy, migrations broken) — fix the infrastructure
-- **Type mismatch between spec and scaffold** — go back to V0a, the scaffold wasn't faithful to spec/. Do not paper over with casts.
-- **Integration test doesn't match the contract** — go back to test-writer or test-planning. Do not modify the test.
-
-After V0b passes, report to the user: "V0a boundary scaffold green (typed, no logic). V0b walking skeleton green — [describe the path]. Proceeding to V1 unless you want to inspect."
-
-### Execution Loop (per vertical)
-
-For each ready vertical in dependency order:
+For each `planned` or `in-progress` slice spec in dependency order:
 
 #### 1. Implement Against Locked Tests
 
-The **test-writer** skill has already committed failing integration tests for this vertical. Your job is to make them pass — following TDD methodology (red-green-refactor):
+test-writer has already committed failing integration tests for this slice. Your job is to make them pass — red-green-refactor:
 
 - Read the failing test to understand what "done" looks like
 - Implement the minimum code to make the test green
 - Add unit tests at each layer during implementation (route, service, adapter)
 - Refactor while keeping all tests green
-- Follow mock boundaries: controlled deps (your DB, server) = real, uncontrolled (third-party APIs) = mock at adapter
+- Follow mock boundaries from the spec: controlled deps (your DB, server) real, uncontrolled (third-party APIs without test environments) mocked at the HTTP client layer
 
-**The test is the source of truth, not the implementation.** If the test fails, debug the implementation. If you believe the test is wrong, escalate to the user — do not modify the test.
+The test is the source of truth, not the implementation. If the test fails, debug the implementation. If the test seems wrong, escalate — do not modify it.
 
-#### 2. Verify — No Regressions
+#### 2. Verify — No Regressions Anywhere
 
-After tdd completes the vertical, run the full suite:
-- All integration tests pass (current + all previous verticals)
+After making the slice's test green, run the full suite:
+- All integration tests pass (current slice + every previously built spec)
 - All unit tests pass
 - Type check passes
 - Linter passes
 
+This is the regression-awareness check — research on agentic TDD (TDAD, March 2026) shows the #1 silent failure is agents that pass their target test while breaking older tests. The full-suite gate catches it.
+
 <HARD-GATE>
-Never advance to the next vertical with any test red. All integration tests (current + previous), unit tests, type check, and linter must pass.
+Never advance to the next slice with any test red. All integration tests (current + previously built specs), unit tests, type check, and linter must pass. A red test carried forward becomes invisible — the next slice's failures mask it, and you lose the ability to isolate which change broke what.
 </HARD-GATE>
 
-#### 3. Commit + Status
+#### 3. Commit + Update Spec Status
 
-Commit the vertical. Brief status to user: "V1 done — integration test green, 4 unit tests. Moving to V2."
+Commit the slice. Then update the slice spec's frontmatter `status` to `built` and append to its "Changes" log:
 
-#### 4. Next Vertical
+```markdown
+## Changes
+- 008 (2026-05-13) — initial implementation
+```
 
-Move to the next ready vertical. If the next vertical is a **headline** (not detailed):
-- Pause and tell the user: "V4 needs done criteria and a test contract before I can build it"
-- Either the user details it now (via test-planning → test-writer), or you skip to a different ready vertical
+#### 3b. Simplify
+
+Invoke **refactor** on the just-committed changes. It reviews for reuse, quality, efficiency, and contract compliance, then fixes issues. Commit refactoring separately: `refactor(scope): <slice-name> cleanup`.
+
+If refactor finds nothing, move on. This step prevents debt from accumulating across slices.
+
+Brief status to user: "`create-workflow` done — integration test green, 3 unit tests, simplified. Moving to `list-workflows`."
+
+#### 4. Next Slice
+
+Move to the next `planned`/`in-progress` spec in the plan. If the next spec doesn't have a validated integration test contract yet, pause and tell the user: "`<spec-name>` needs a test contract before I can build it" — either user details it now (via test-planning → test-writer), or you skip to a different ready spec.
 
 ---
 
 ## Subagent Mode
 
-Fresh subagent per vertical + two-stage review. The controller (you) stays clean; subagents implement.
+Fresh subagent per slice + two-stage review. The controller (you) stays clean; subagents implement.
 
 ### Setup
 
-1. Read the plan at `changes/NNN-<topic>/plan.md` and extract ready verticals
-2. If `context/` exists, read all files into your controller context — these get passed to every subagent
-3. Read the plan's "Modifies spec files" section and load the referenced `spec/<capability>.md` files into your controller context so you can pass them to subagents
-4. Create a task per vertical
-5. Note working directory, branch, and context subagents need
+1. Read the plan and extract the in-scope slice specs
+2. Read all `context/` files into your controller context — these get passed to every subagent
+3. Read each in-scope `spec/<name>.md` into your controller context so you can paste relevant sections into subagent prompts
+4. Create a task per slice
+5. Note working directory and branch
 
-### V0: Two Subagent Dispatches
+### First-Slice (V0) Dispatch — Greenfield Only
 
-V0 is the only vertical that dispatches twice, because V0a and V0b are separate commits with separate success criteria.
+V0a and V0b dispatch as separate subagents because V0b depends on V0a's committed scaffold.
 
-#### V0a Dispatch — Boundary Scaffold
+**V0a:** Dispatch implementer with the spec file content, instruction to scaffold types per V0a rules, and working directory. After it reports green, commit `build(scope): V0a boundary scaffold from spec/`. Then dispatch V0b.
 
-Dispatch an implementer subagent with:
-- The relevant `spec/<capability>.md` file(s) — full content, not a reference
-- Instruction: "Scaffold boundary code from `spec/<capability>.md`. Signatures, type declarations, Zod schemas, adapter interfaces, migrations. No business logic. No hardcoded literals. Type-check must pass. See build skill V0a rules."
-- Working directory
+**V0b:** Dispatch second implementer with the spec content, V0a scaffold paths, the locked walking-skeleton test, and instruction to wire boundaries with typed stub responses. Do not modify the test or V0a scaffold types.
 
-After V0a subagent reports green: commit `build(scope): V0a boundary scaffold from spec/`. Then dispatch V0b.
+After V0b is green, proceed to spec compliance review for the slice.
 
-#### V0b Dispatch — Walking Skeleton Wiring
+### Per-Slice Dispatch
 
-Dispatch a second implementer subagent with:
-- The relevant `spec/<capability>.md` file(s)
-- The committed V0a scaffold code paths (so the subagent knows what to wire, not build from scratch)
-- The locked walking-skeleton test file from test-writer
-- Instruction: "Wire the V0a boundaries together with typed stub responses matching the spec's expected output shape. Make the walking skeleton test green. Do NOT modify the test. Do NOT modify the V0a scaffold types."
-
-After V0b subagent reports green: proceed to Spec Compliance Review for V0.
-
-### V1+ Per-Vertical Dispatch
-
-For each ready vertical after V0:
+For each slice after V0 (or for every slice if not greenfield):
 
 #### 1. Dispatch Implementer
 
 Provide the subagent with:
-- The vertical's done criteria from `changes/NNN-<topic>/plan.md`
-- The relevant contract(s) from `spec/<capability>.md` — the specific boundary sections this vertical implements, pasted in full
-- The locked test files committed by test-writer for this vertical
-- Instruction: "Implement against the locked tests. Do NOT modify test files. Do NOT modify the contracts in spec/. Your job is to make the tests green by implementing the business logic behind the V0a boundary types."
+- The slice spec's full content (pasted, not just a path — subagents have fresh context)
+- The locked test file(s) committed by test-writer
+- Instruction: "Implement against the locked tests. Do not modify test files. Do not modify the contract in spec/. Make the tests green by implementing the business logic."
 - Constraints from the plan
-- Context: what previous verticals built, architectural decisions
+- Context from previous slices (architectural decisions, what was built)
 - Working directory
 
 #### 2. Spec Compliance Review
 
 Dispatch a reviewer subagent with:
-- The vertical's done criteria (from the plan at `changes/NNN-<topic>/plan.md`)
-- The relevant boundary contract(s) from `spec/<capability>.md` (pasted in full — the reviewer must see the authoritative source, not trust the implementer's summary)
+- The slice spec's done criteria and integration test contract (pasted)
 - The file paths changed by the implementer
-- Instruction: "Read the actual code at these paths. For each done criterion AND each field in the spec/ contract, state PASS or FAIL with evidence (file:line). Do NOT trust the implementer's summary. If the implementation deviates from spec/, that's a FAIL even if tests pass."
+- Instruction: "Read the actual code at these paths. For each done criterion and each field in the spec's integration test contract, state PASS or FAIL with evidence (file:line). Do not trust the implementer's summary. If the implementation deviates from the spec, that's a FAIL even if tests pass."
 
 - **All PASS** → proceed to code quality review
 - **Any FAIL** → resume implementer with the specific failures, then re-review
 
 #### 3. Code Quality Review
 
-Dispatch a subagent with the code-review skill. Provide:
-- The commit range for this vertical
-- The plan file path and vertical number (`changes/NNN-<topic>/plan.md`)
-- The relevant `spec/<capability>.md` file path (so the reviewer can cross-check implementation against the contract)
-- The list of files changed
+Dispatch with the **code-review** skill. Provide commit range, plan path, spec file path, and file list. Pass → refactor. Fail → resume implementer to fix.
 
-- **Pass** → mark vertical complete
-- **Fail** → resume implementer to fix, re-review
+#### 3b. Simplify
+
+Invoke **refactor** on the slice's changes. Commit refactoring separately: `refactor(scope): <slice-name> cleanup`.
 
 #### 4. Mark Complete
 
-Update task. Status to user. Move to next ready vertical.
+Update slice spec status to `built`, append to its Changes log, update task, status to user, move to next slice.
 
 ### Subagent Red Flags
 
-- **Never** dispatch parallel implementer subagents for dependent verticals
-- **Never** skip spec review
-- **Never** start code quality review before spec compliance passes
-- **Never** dispatch V0a and V0b in parallel — V0b depends on V0a's committed scaffold
-- **Never** pass only file paths to subagents for `spec/<capability>.md` — paste the relevant sections in full. Subagents have fresh context and won't load spec/ unless you give it to them.
-- **If subagent fails** — dispatch a fix subagent, don't fix manually (context pollution)
+- Never dispatch parallel implementer subagents for dependent slices
+- Never skip spec compliance review
+- Never start code quality review before spec compliance passes
+- Never dispatch V0a and V0b in parallel — V0b depends on V0a's committed scaffold
+- Never pass only file paths to subagents for spec content — paste the relevant sections. Fresh subagent context won't load the spec unless you give it to them.
+- If a subagent fails, dispatch a fix subagent — don't fix manually (context pollution)
 
 ---
 
 ## Handling Partial Plans
 
 When building from a partial plan:
-- Build all ready verticals in dependency order
-- When you reach a headline, stop and report what needs detailing
-- The user can detail it, invoke plan, or decide to stop here
-- Update the plan file as you build — mark completed verticals, note deviations
+- Build all ready slices in dependency order
+- When you reach a spec without a test contract, stop and report
+- Either the user fills it in (via test-planning), or you skip to a different ready spec
+- Update spec statuses as you build — `planned → in-progress → built`
 
 ## Parallel Session Pattern
 
-For building multiple verticals concurrently in separate terminal sessions:
-- Each session receives one vertical's constraints + done criteria + test contract
+For building multiple slices concurrently in separate terminal sessions:
+- Each session receives one slice spec
 - Each session works on its own branch (use git worktrees)
 - Sessions are independent — no shared state during build
-- Merge results after verticals are individually green
+- Merge results after slices are individually green
 
-This gives each vertical a full context window and its own subagent capacity.
+This gives each slice a full context window and its own subagent capacity.
 
 ---
-
-Follow the communication-protocol skill for all user-facing output and interaction.
 
 ## When You're Stuck
 
 | Situation | Strategy | Max Attempts |
 |---|---|---|
-| **Test fails for wrong reason** | Fix test setup, not implementation | 2 |
-| **Implementation doesn't satisfy test** | Re-read the assertion. Work backward from it. | 3 |
-| **Unclear requirement** | Check the plan. If it doesn't answer, ask. | 1 (then ask) |
-| **Same error after 2 attempts** | Stop. Explain what you tried. Ask the user. | 0 (escalate) |
+| Test fails for wrong reason | Fix test setup, not implementation | 2 |
+| Implementation doesn't satisfy test | Re-read the assertion. Work backward from it. | 3 |
+| Unclear requirement | Check the spec. If it doesn't answer, ask the user. | 1 (then ask) |
+| Same error after 2 attempts | Stop. Explain what you tried. Ask the user. | 0 (escalate) |
 
-## Common AI Code Failure Patterns
+## Common AI Build Failure Patterns
 
 | Pattern | Detection | Fix |
 |---|---|---|
+| **Modifying tests to pass** | Test file diff shows assertion changes | Revert. Tests are locked. |
 | **Hallucinated APIs** | Import errors, too-convenient methods | Verify packages exist before using |
-| **Happy-path-only error handling** | try-catch that only logs | Implement real error boundaries |
-| **Missing edge cases** | Empty arrays, null values untested | Test with empty/null/boundary inputs |
+| **Happy-path-only error handling** | try-catch that only logs | Implement the error cases from the spec |
+| **Missing edge cases** | Empty arrays, null values untested | The spec lists edge cases — implement them |
 | **Data model mismatches** | Runtime crashes on property access | Validate against actual API contracts |
+| **Passing target test, breaking older tests** | Older spec tests now red | Full-suite gate catches it — fix or escalate |
 
-## Verification Checklist (run after every vertical)
+## Verification Checklist (after every slice)
 
-- [ ] Integration test passes
-- [ ] Unit tests pass at every layer
-- [ ] Type check passes
-- [ ] Linter clean
-- [ ] No regressions (all previous verticals still pass)
+- Integration test for this slice passes
+- Unit tests at every layer pass
+- Type check passes
+- Linter clean
+- No regressions in any previously built spec's tests
+- Slice spec frontmatter updated to `status: built`
+- Slice spec Changes log updated with this change number
 
-After the final vertical, also verify:
-- [ ] The feature works when you actually use it (manual smoke test)
-- [ ] Plan updated if reality diverged
+After the final slice in the plan, also verify:
+- The feature works when actually used (manual smoke test)
+- Plan updated if reality diverged from the planned spec changes
 
 ## Output Format
 
-### Per-Vertical Status
+### Per-Slice Status
 ```
-V[N] done — [integration test result], [unit test count] unit tests. [Next action].
+<slice-name> done — integration test green, <N> unit tests, simplified. Next: <next-slice>.
 ```
 
-### Final Summary (after all verticals)
+### Final Summary (after all slices)
 ```
-## Build Complete: [Feature Name]
+## Build Complete: <Change Name>
 
-**Verticals:** [N] completed
-**Tests:** [integration count] integration, [unit count] unit
-**Deviations from plan:** [any changes, or "None"]
+Slices built: <N>
+Tests: <integration count> integration, <unit count> unit
+Spec status: <list of specs marked `built`>
+Deviations from plan: <any changes, or "None">
 
 Ready for ship.
 ```
 
 ## After Build
 
-When all verticals are complete and verified, transition to **ship** for delivery.
+The terminal state is invoking **ship** (or the user starting a ship session). All in-scope slice specs should be `status: built`, all tests green, plan updated if scope shifted.
+
+## Guidelines
+
+- **Specs are the source of truth.** The plan tells you which slices are in scope; the slice specs tell you what done looks like.
+- **The integration test is the contract.** Tests are committed before you write code. Make them green. Don't change them.
+- **One slice at a time.** Parallel slices in subagents are fine for *independent* slices, but never for dependent ones.
+- **Full-suite gate every slice.** TDAD-style regression awareness — passing your slice's test while breaking older tests is the #1 silent failure mode.
+- **Update spec status as you go.** A spec marked `built` is the durable signal that this slice is done.

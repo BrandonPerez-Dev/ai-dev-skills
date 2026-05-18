@@ -1,3 +1,4 @@
+
 ---
 name: research
 description: >-
@@ -200,8 +201,6 @@ Stop researching when:
 
 Don't stop just because you found *an* answer. Stop because you found *the right* answer with evidence.
 
-Follow the communication-protocol skill for all user-facing output and interaction.
-
 ## Guidelines
 
 - **Domain detection is step zero.** Before any search, know where the signal lives. A broad web search for an enthusiast topic returns SEO noise. A forum deep-dive for an API question wastes time. Read the reference file for your domain before any search query.
@@ -209,4 +208,3 @@ Follow the communication-protocol skill for all user-facing output and interacti
 - **Always include source references.** Every finding links to evidence.
 - **Flag uncertainty.** Ambiguous? Say so. Don't guess.
 - **Be concise.** Conclusions, not process narration.
-- **Parallelize aggressively.** Independent questions = parallel agents.

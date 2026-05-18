@@ -1,3 +1,4 @@
+
 ---
 name: boilerplate-cicd
 description: Project scaffolding and CI/CD — golden path templates for TypeScript/Node.js projects. Covers directory structure, tooling (Biome, TypeScript, Vitest), GitHub Actions, security scanning, pre-commit hooks, and monorepo setup. Use when starting a new project or standardizing an existing one.
@@ -556,8 +557,6 @@ When starting a new project:
 7. **Verify** — run `pnpm check` to confirm everything works
 8. **Commit** — initial commit with all scaffolding
 
-Follow the communication-protocol skill for all user-facing output and interaction.
-
 ## Guidelines
 
 - **Biome over ESLint+Prettier for new projects.** Faster, simpler, one config file. Migrate incrementally for existing projects.
@@ -566,4 +565,3 @@ Follow the communication-protocol skill for all user-facing output and interacti
 - **Security scanning from day one.** Adding it later means vulnerabilities in the backlog. Start with CodeQL + Dependabot at minimum.
 - **One `check` script.** A single command that runs lint, typecheck, and tests. Use it in CI and pre-commit.
 - **Match existing conventions.** If the team uses ESLint, don't force Biome. Golden paths are recommendations, not mandates.
-- **Don't over-scaffold.** A new project needs structure, not everything. Add complexity as the project grows.

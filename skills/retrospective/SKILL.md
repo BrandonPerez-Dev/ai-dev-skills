@@ -1,3 +1,4 @@
+
 ---
 name: retrospective
 description: Run sprint retrospectives, post-incident reviews, team health checks, and milestone reflections that produce real change. Use when you need to run a retro, sprint retrospective, project retrospective, what went well, what should we improve, team health check, post-mortem, after-action review, lessons learned, blameless review, futurespective, pre-mortem, or start/stop/continue. This skill improves PROCESS and TEAM dynamics — use systematic-debugging for technical root-cause analysis of a specific bug or outage, use metrics-review for product data analysis, use sprint-planning to add retro actions to the backlog.
@@ -237,5 +238,3 @@ Pull from recent metrics reviews or dashboards to ground the retro in data:
 - **Systems, not people.** The Prime Directive is not decoration — it's the mechanism that makes honest discussion possible.
 - **Safety scores below 3 are the retro topic.** Nothing else matters if people can't speak honestly.
 - **Good sprints need retros too.** Reinforcing what worked is as valuable as fixing what didn't.
-
-Follow the communication-protocol skill for all user-facing output and interaction.

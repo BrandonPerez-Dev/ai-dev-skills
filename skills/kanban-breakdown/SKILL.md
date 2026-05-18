@@ -1,3 +1,4 @@
+
 ---
 name: kanban-breakdown
 description: Break down loose conversation, meeting notes, or task lists into well-structured kanban cards. Extracts action items, captures decision context, validates task quality, and confirms with the user before creating anything. Uses kanban-mcp tools.
@@ -18,8 +19,6 @@ The context around a task is more valuable than the task itself. Decisions made,
 <HARD-GATE>
 Never create cards without presenting them to the user first. Extract, validate, confirm, then create.
 </HARD-GATE>
-
-Follow the communication-protocol skill for all user-facing output and interaction.
 
 ## When to Use
 
@@ -184,4 +183,3 @@ Map status signals from conversation to columns:
 | Invent tasks the user didn't mention | Only extract what was said |
 | Drop decision context from cards | Capture why, not just what |
 | Assume owner when not stated | Ask, or mark as unassigned |
-| Create a card for "we should think about X" | Suggest a spike task instead |

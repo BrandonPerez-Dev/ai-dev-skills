@@ -1,3 +1,4 @@
+
 ---
 name: innovation-status
 description: Auto-generate portfolio status reports by scanning existing artifacts. Produces weekly team updates, monthly portfolio reviews, gate presentations, and executive summaries. Use when you need a snapshot of where things stand across all opportunities.
@@ -273,8 +274,6 @@ After saving, ask:
 (c) Generate a different report type?
 (d) Move on?"
 
-Follow the communication-protocol skill for all user-facing output and interaction.
-
 ## Anti-Patterns
 
 | Anti-Pattern | Problem | Fix |
@@ -292,4 +291,3 @@ Follow the communication-protocol skill for all user-facing output and interacti
 - **Surface decisions, not just information.** Every report should answer "what do we need to decide?" not just "where are we?"
 - **Momentum matters.** A high-scoring opportunity that hasn't been touched in 6 weeks is a problem. Surface it.
 - **Portfolio balance is a finding.** If everything is H1, say so. If there's no pipeline behind the current bets, say so.
-- **Be honest about gaps.** "No business case exists for our highest-scored opportunity" is a useful finding, not an embarrassment.

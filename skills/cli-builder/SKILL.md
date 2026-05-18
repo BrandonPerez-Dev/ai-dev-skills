@@ -1,3 +1,4 @@
+
 ---
 name: cli-builder
 description: >-
@@ -301,5 +302,3 @@ Before shipping, verify:
 - [ ] List commands have sensible defaults and --limit flag
 - [ ] Exit codes: 0 = success, 1 = error
 - [ ] Agent smoke test: agent can discover and use the CLI without pre-loaded docs
-
-Follow the **communication-protocol** skill for all user-facing output and interaction.

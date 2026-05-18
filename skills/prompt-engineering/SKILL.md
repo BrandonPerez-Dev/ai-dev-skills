@@ -1,3 +1,4 @@
+
 ---
 name: prompt-engineering
 description: >-
@@ -302,8 +303,6 @@ Before finalizing any prompt, verify:
 | **Over-Specified Steps** | "Step 1: Click X. Step 2: Type Y" for context-dependent work | Use altitude principle — specify at the right level |
 | **Token Gluttony** | Full file contents pasted when path reference suffices | Just-in-time loading |
 
-Follow the communication-protocol skill for all user-facing output and interaction.
-
 ## Guidelines
 
 - **Structure first, then words.** Reorganizing information (positioning, XML sections, progressive disclosure) beats rewriting sentences. The shape of context matters more than the wording.
@@ -312,4 +311,3 @@ Follow the communication-protocol skill for all user-facing output and interacti
 - **Tool descriptions are prompts.** The 40% improvement from tool description optimization means this is some of the highest-leverage prompt work you can do. Treat every parameter description, error message, and response format as prompt engineering.
 - **Permission to not know.** Explicitly granting uncertainty reduces hallucination more than any "be accurate" instruction.
 - **Measure, don't guess.** If you can't tell whether a prompt change improved things, you're optimizing by feel. Use the diagnosis checklist to identify the actual problem before applying techniques.
-- **Attention is finite.** Every token competes for attention budget. Loading less context, positioned well, outperforms loading more context positioned poorly.

@@ -1,3 +1,4 @@
+
 ---
 name: okr-setting
 description: Create and manage OKRs (Objectives and Key Results) — translate strategy into measurable outcomes by defining what success looks like each quarter or year. Produces OKR sets with scored key results, confidence tracking, and health metrics. Use when asked to set OKRs, write OKRs, define objectives, update key results, score or grade OKRs, run an OKR review or check-in, track progress against objectives, define success criteria, set team or company goals, or run quarterly or annual OKR planning. This skill is about MEASUREMENT and GOAL-SETTING — use roadmap-planning instead when deciding which initiatives to pursue, even if that happens during quarterly planning.
@@ -273,5 +274,3 @@ Confidence below 4 for two consecutive weeks = trigger a conversation about whet
 - **OKRs precede the roadmap.** The roadmap is how you achieve OKR outcomes. If OKRs are written to match the roadmap, you've inverted the relationship.
 - **Health metrics protect the business.** Pursuing KRs at the expense of stability, quality, or team health is not success.
 - **Kill sandbagging aggressively.** Consistently hitting 1.0 on aspirational OKRs means the bar is too low. Raise it.
-
-Follow the communication-protocol skill for all user-facing output and interaction.

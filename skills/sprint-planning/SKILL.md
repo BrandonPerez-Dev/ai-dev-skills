@@ -1,3 +1,4 @@
+
 ---
 name: sprint-planning
 description: Plan sprints by defining a sprint goal, calculating capacity, and selecting stories that serve the goal — not the reverse. Produces sprint plans with goal, capacity math, story selection, dependencies, and risks. Use when asked to plan a sprint, start a new sprint, set a sprint goal, figure out what fits in this sprint, scope a sprint, do capacity planning, determine how much the team can take on, handle sprint carryovers, or run sprint planning. This skill SELECTS and COMMITS stories for a sprint — use backlog-refinement to PREPARE stories before they're sprint-ready. Use roadmap-planning for quarterly or strategic planning decisions. Use decompose-tasks to break committed stories into implementation tasks.
@@ -242,5 +243,3 @@ After saving, offer next steps:
 - **Capacity math is honest.** 4-6 productive hours per day after overhead. Teams that plan on 8h/day carry over every sprint.
 - **Work type balance is intentional.** 15-20% tech debt allocation every sprint prevents the "we'll do it next sprint" death spiral.
 - **Dependencies are sprint risks.** Any story with a pending dependency is a risk. Flag it, mitigate it, or don't commit to it.
-
-Follow the communication-protocol skill for all user-facing output and interaction.

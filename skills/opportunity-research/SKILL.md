@@ -1,3 +1,4 @@
+
 ---
 name: opportunity-research
 description: Evaluate a new opportunity from any starting point — customer problem, technical capability, or market signal. Produces a decision brief with GO/YELLOW/RED recommendation. Use when exploring whether an idea is worth pursuing.
@@ -207,8 +208,6 @@ After saving, present the decision brief (Layer 1 only) and ask:
 - Fatal risks identified (regulatory, competitive, technical)
 - Or: timing is wrong (revisit in 6-12 months)
 
-Follow the communication-protocol skill for all user-facing output and interaction.
-
 ## Guidelines
 
 - **Have an opinion.** "Further research needed" is not a verdict. Pick a color and defend it.
@@ -217,4 +216,3 @@ Follow the communication-protocol skill for all user-facing output and interacti
 - **Don't inflate WEX advantage.** If the connection is thin, say so. A strong standalone idea beats a weak WEX-adjacent one.
 - **Confidence ranges, not point estimates.** "$50-150M SAM" is honest. "$97.3M SAM" is false precision.
 - **Check in at every checkpoint.** The user shapes the research direction — don't disappear for 10 minutes and return with a finished product.
-- **Layer 1 is the product.** Layer 2 is the appendix. Optimize for Layer 1 quality.

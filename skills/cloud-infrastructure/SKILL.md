@@ -1,3 +1,4 @@
+
 ---
 name: cloud-infrastructure
 description: >-
@@ -237,5 +238,3 @@ After spec is approved, offer to invoke the **architecture-diagram** skill to vi
 - **Team size is a constraint.** A 2-person team cannot operate Kubernetes, a service mesh, and a multi-region deployment. Design for the team you have.
 - **Token costs dominate AI workloads.** In a typical AI agent system, 70% of cost is LLM inference. Optimizing compute without optimizing prompts is looking under the streetlight.
 - **Checkpoint relentlessly.** Every phase ends with user confirmation. The cost of pausing to confirm is low. The cost of designing the wrong architecture is weeks.
-
-Follow the communication-protocol skill for all user-facing output and interaction.

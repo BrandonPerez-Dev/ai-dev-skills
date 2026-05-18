@@ -1,3 +1,4 @@
+
 ---
 name: git-worktrees
 description: Creating isolated workspaces with git worktrees. Use when you need parallel branches, isolated feature work, or subagent isolation without context-switching.
@@ -254,12 +255,9 @@ git worktree prune  # Cleans up stale references
 git worktree list   # Verify it's gone
 ```
 
-Follow the communication-protocol skill for all user-facing output and interaction.
-
 ## Guidelines
 
 - **Worktrees for parallel work, branches for sequential work, stash for quick saves.** Use the decision framework, don't default to worktrees for everything.
 - **Always `git worktree remove`, never `rm -rf`.** This is the single most common mistake. It leaves orphaned metadata that causes confusing errors later.
 - **Run setup after creation.** Dependencies aren't shared between worktrees. Install immediately.
 - **Clean up when done.** `git worktree list` should only show active work. Remove what you're not using.
-- **Use `isolation: worktree` for parallel agents that write.** Read-only agents don't need isolation. Write agents do.

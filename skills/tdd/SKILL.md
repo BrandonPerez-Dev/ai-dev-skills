@@ -1,3 +1,4 @@
+
 ---
 name: tdd
 description: >-
@@ -137,8 +138,6 @@ Move to the next slice in the test plan. Repeat from step 1.
 - **Postman MCP** — API testing and collection management. Useful for validating API contracts during integration testing.
 - **GitHub MCP** — CI/CD monitoring, workflow logs, re-run failed jobs. Check if tests pass in CI without leaving the agent context.
 
-Follow the communication-protocol skill for all user-facing output and interaction.
-
 ## Guidelines
 
 - **Integration test is the source of truth.** If it passes, the slice works. If it fails, the slice is incomplete.
@@ -146,4 +145,3 @@ Follow the communication-protocol skill for all user-facing output and interacti
 - **Test behavior, not implementation.** Refactoring shouldn't break tests. If it does, the test is testing the wrong thing.
 - **Live testing is the default.** Real controlled deps. Real test environments for uncontrolled deps when available. Mocks are a fallback, pushed as far outward as practical (mock the HTTP client, not the adapter). No in-memory substitutes.
 - **Red means stop.** If any integration test is red, fix it before new work. Carrying red tests forward creates compounding debt.
-- **The test plan is the contract.** Don't deviate from approved contracts. If you discover the contract is wrong during implementation, go back to the user — don't silently adjust.

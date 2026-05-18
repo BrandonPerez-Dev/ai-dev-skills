@@ -1,3 +1,4 @@
+
 ---
 name: git-ops
 description: >-
@@ -268,8 +269,6 @@ If a git command times out, it may leave state artifacts:
 | "Reset --hard is fine, reflog has it" | Uncommitted work is gone forever | Stash or commit WIP first |
 | "The conflict is obvious, take theirs" | Semantic conflicts hide behind clean markers | Read both sides, test after resolving |
 
-Follow the communication-protocol skill for all user-facing output and interaction.
-
 ## Guidelines
 
 - **State before action.** The 3-second trinity (status, branch, remote) prevents the 3-hour recovery.
@@ -277,4 +276,3 @@ Follow the communication-protocol skill for all user-facing output and interacti
 - **Rebase local, merge shared.** If anyone else has seen the commits, don't rebase them.
 - **Recovery is always possible.** Reflog keeps 30 days of history. Don't panic — find the SHA.
 - **Ask before destroying.** Force-push, reset --hard, clean -f, branch -D are one-way doors. Show dry-run output, get approval.
-- **Delegate staging/commits/PRs.** Those belong to commit-and-pr. This skill handles everything else.

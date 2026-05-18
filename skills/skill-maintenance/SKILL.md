@@ -1,3 +1,4 @@
+
 ---
 name: skill-maintenance
 description: Evolve skills based on real-world usage — reads LEARNINGS.md logs, validates findings with research, and applies targeted updates to skills. Use when a skill produced incorrect guidance, missed a pattern, or needs updating based on new information.
@@ -225,8 +226,6 @@ When updating one skill, check related skills for consistency:
 | **Updating the skill but not the learnings log** | Entries stay open, causing re-investigation | Mark entries resolved when addressed |
 | **Silent fixes** | No audit trail of why something changed | Always add a changelog entry |
 
-Follow the communication-protocol skill for all user-facing output and interaction.
-
 ## Guidelines
 
 - **Validate before changing.** One anecdote is not a pattern. Research confirms or denies.
@@ -235,4 +234,3 @@ Follow the communication-protocol skill for all user-facing output and interacti
 - **Log everything.** Changelog entries, resolved learnings, research findings. Future maintainers need context.
 - **Cross-check related skills.** A change in one skill may create contradictions in another.
 - **Batch minor fixes.** Don't update a skill for every papercut. Wait for patterns to emerge.
-- **Full rewrite when needed.** When fixes outnumber original content, stop patching and re-research from scratch.

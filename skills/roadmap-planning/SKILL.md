@@ -1,3 +1,4 @@
+
 ---
 name: roadmap-planning
 description: Create and maintain product roadmaps — strategic planning artifacts that connect vision to execution. Produces Now/Next/Later or outcome-based roadmaps with initiative prioritization, confidence levels, and audience-specific views. Use when building a new roadmap, updating an existing one, running quarterly planning, preparing a roadmap for stakeholder presentation, or deciding what to build next at the strategic level. This skill plans WHICH initiatives to pursue and WHEN — use product-definition to scope HOW a specific initiative works.
@@ -279,8 +280,6 @@ If outcomes are consistently missed, question the themes — not just the initia
 | **No parking lot** | Deferred ideas resurface every planning cycle. | Explicit Parking Lot with revisit triggers. |
 | **No outcome checking** | Items rotate through horizons without measuring impact. | Review Protocol requires outcome check before any update. |
 
-Follow the communication-protocol skill for all user-facing output and interaction.
-
 ## Guidelines
 
 - **Outcomes over outputs.** "Reduce churn by 15%" is a roadmap item. "Build notification system" is a solution hypothesis that belongs inside the initiative.
@@ -290,4 +289,3 @@ Follow the communication-protocol skill for all user-facing output and interacti
 - **Now is sacred.** Only 2-4 items. 8 simultaneous items = nothing gets done well.
 - **Review is not optional.** Unreviewed roadmap = wish list.
 - **Kill criteria belong on the roadmap.** For Later items, define what would trigger removal.
-- **Outcome check before any update.** The Review Protocol gate is non-negotiable — rotating items without measuring impact is the second most common roadmap failure mode after feature factory.

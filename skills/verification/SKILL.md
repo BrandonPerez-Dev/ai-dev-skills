@@ -1,3 +1,4 @@
+
 ---
 name: verification
 description: Before ANY claim of completion — run verification. Evidence before assertions, always. Use when finishing a bug fix, feature, refactor, config change, or dependency update.
@@ -217,8 +218,6 @@ Verification is invoked BY other skills at their gates:
 
 Don't duplicate what these skills do. Verification provides the discipline; they provide the context.
 
-Follow the communication-protocol skill for all user-facing output and interaction.
-
 ## Guidelines
 
 - **Same checklist, same order, every time.** Aviation learned this: standardized procedures prevent skipped steps. Don't customize away the discipline.
@@ -226,4 +225,3 @@ Follow the communication-protocol skill for all user-facing output and interacti
 - **Fresh evidence only.** Stale results are not results. If you changed anything, re-run.
 - **Evidence format matters.** "Tests pass" is weak. "[N/N] tests pass with 0 regressions, manual test confirmed [specific behavior]" is strong.
 - **Regression before celebration.** All previous tests must still pass. A feature that breaks something else is not done.
-- **Edge cases are not optional.** Actively think about what could go wrong. The obvious path works — what about the non-obvious ones?

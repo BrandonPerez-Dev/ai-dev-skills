@@ -1,3 +1,4 @@
+
 ---
 name: business-case
 description: Build an evidence-based investment case for an opportunity. Pulls together market analysis, customer discovery, and experiment results into a revenue model, unit economics, GTM strategy, and financial projections. The artifact leadership uses to make funding decisions.
@@ -281,8 +282,6 @@ After saving, present Layer 1 and ask:
 (c) Run product-definition to start scoping what we'd build?
 (d) Move on?"
 
-Follow the communication-protocol skill for all user-facing output and interaction.
-
 ## Guidelines
 
 - **Evidence over estimates.** Pull from existing artifacts. Flag what's validated vs assumed.
@@ -292,4 +291,3 @@ Follow the communication-protocol skill for all user-facing output and interacti
 - **GTM is not "build it and they will come."** Specify channel, cost, timeline.
 - **Resource requirements are honest.** Don't low-ball to get approval — it backfires.
 - **Check in on the financial picture.** The user may know things about pricing or costs that change the model.
-- **Lean Canvas for quick reference.** Include a one-page Lean Canvas as an appendix — it forces clarity.
