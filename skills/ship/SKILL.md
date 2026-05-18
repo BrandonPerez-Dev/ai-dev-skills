@@ -1,3 +1,4 @@
+
 ---
 name: ship
 description: Review and delivery phase — user reviews the completed build, then chooses how to finish (merge, PR, keep working, or discard). Use after the build phase completes all vertical slices.
@@ -24,7 +25,13 @@ Run the full verification gate before presenting options. Broken work is not rea
 
 ## Process
 
-### 1. Verification Gate
+### 1. Final Simplify
+
+Invoke **refactor** on the full set of changes (all verticals). This is the final polish pass — catching cross-vertical redundancy, naming inconsistencies, or patterns that emerged during build that can now be consolidated. Commit any changes: `refactor(scope): final cleanup`.
+
+If build already ran refactor after each vertical (which it should), this pass is typically light. Skip if the diff is empty.
+
+### 2. Verification Gate
 
 Invoke **verification** to confirm everything works:
 - All integration tests pass
@@ -35,7 +42,7 @@ Invoke **verification** to confirm everything works:
 
 **If verification fails, stop.** Go back to build. Don't present options.
 
-### 2. Present Summary
+### 3. Present Summary
 
 Show the user what was built:
 - Completed vertical slices (what each delivers)
@@ -45,7 +52,7 @@ Show the user what was built:
 
 Keep it concise — they've been in the loop during build.
 
-### 3. User Decision
+### 4. User Decision
 
 Present the completion options. **Wait for the user to choose — never auto-select.**
 
@@ -65,7 +72,7 @@ Tests pass. Work is ready. How would you like to finish?
 | 3. Keep working | No | No | No | No |
 | 4. Discard | No | No | No | Yes |
 
-### 4. Execute Choice
+### 5. Execute Choice
 
 #### Option 1: Push & Create PR
 
@@ -91,11 +98,10 @@ git commit -m "feat(scope): description"
 # Delete feature branch
 git branch -d <feature-branch>
 
-# Verify merge is clean
-npm test
+# Verify merge is clean — use the project's test command
 ```
 
-Then clean up worktree if applicable (Step 5).
+Then clean up worktree if applicable (Step 6).
 
 #### Option 3: Keep Working
 
@@ -131,9 +137,9 @@ git checkout <base-branch>
 git branch -D <feature-branch>
 ```
 
-Then clean up worktree if applicable (Step 5).
+Then clean up worktree if applicable (Step 6).
 
-### 5. Worktree Cleanup (if applicable)
+### 6. Worktree Cleanup (if applicable)
 
 For Options 2 and 4 only — Options 1 and 3 keep the worktree alive.
 
@@ -155,12 +161,9 @@ git worktree list                      # Verify cleanup
 | **rm -rf a worktree** | Orphaned metadata causes confusing errors | Always `git worktree remove` |
 | **Discard without confirmation** | Permanent data loss | Require typed confirmation for destructive actions |
 
-Follow the communication-protocol skill for all user-facing output and interaction.
-
 ## Guidelines
 
 - **Verification before options.** The gate is non-negotiable.
 - **User chooses, you execute.** Never auto-select a delivery method.
 - **Delegate to commit-and-pr.** Don't duplicate commit/PR logic — invoke the skill.
 - **Destructive actions need confirmation.** Option 4 requires explicit typed confirmation.
-- **Clean up worktrees properly.** `git worktree remove`, never `rm -rf`.

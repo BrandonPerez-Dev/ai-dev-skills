@@ -1,6 +1,14 @@
 ---
 name: plan
-description: Lightweight iterative planning — discover constraints through conversation, define verticals with done criteria and sketch test assertions. Declares which spec/ and context/ files the feature will modify; full contracts land in spec/ during test-planning, architectural decisions land in context/. Use before build for any non-trivial feature, or let design invoke it.
+description: >-
+  Lightweight iterative planning — discover constraints through conversation,
+  decide which spec files this change adds, modifies, or supersedes, and hand
+  off to test-planning + build. The plan captures rationale for a specific
+  change; the slices themselves live as files in spec/.
+when_to_use: >-
+  Before building any non-trivial feature, when invoked by the design skill, or
+  when aligning with a teammate on approach before coding. Skip for single-line
+  fixes with obvious scope — just build those.
 allowed-tools:
   - Read
   - Write
@@ -12,226 +20,172 @@ allowed-tools:
   - WebFetch
   - Skill
 argument-hint: "[topic or path/to/existing-plan.md]"
+effort: high
 ---
 
 # Plan
 
-Discover what matters through conversation, write it down as constraints + verticals, start building. Planning a medium feature should take 10-15 minutes, not hours.
+Discover what matters through conversation, decide which spec files change, hand off to test-planning and build. Planning a medium feature should take 10–15 minutes, not hours.
+
+## The Model
+
+There are three persistent directories at the project root:
+
+- **`context/`** — architectural truth. Tech choices, integration patterns, infrastructure commitments. Loaded by every planning session.
+- **`spec/`** — behavioral specs. Each file describes one slice of behavior with its integration test contract in plain text. Specs are the source of truth for *what work has been committed to* and *what proves it done*. A spec file with an integration test contract is what build implements against.
+- **`changes/NNN-<topic>/`** — narrative for a single change. Captures *why* this change is happening, what decisions were made, and which specs are added/modified/superseded.
+
+**Specs are persistent. Plans are transient.** A plan tells the story of one change. Specs accumulate and evolve over many changes. Each spec carries its own status (`planned | in-progress | built | superseded`) and its own change log.
 
 <HARD-GATE>
-Read the codebase before planning. Never plan against an imagined architecture.
+Read the codebase before planning. Planning against an imagined architecture leads to constraints that the code can't satisfy and slices that don't fit existing seams.
 </HARD-GATE>
-
-## When to Use
-
-- Before building any non-trivial feature
-- When invoked by the design skill
-- When aligning with a teammate on approach before coding
-
-**Skip planning** if the change is a single-sentence fix with obvious scope — just build it.
 
 ## Process
 
 ### 1. Ground in Reality (2 min)
 
-Read the relevant parts of the codebase:
-- `context/` files if they exist — architectural truth, technology choices, integration patterns. These are hot memory: always read before planning. They prevent re-discovering known constraints.
-- Project structure, tech stack, existing patterns
-- Files that will likely be touched
-- Existing tests for style and conventions
+Read what's relevant:
+- All files in `context/` — these are hot memory, always read before planning
+- All files in `spec/` that the change might touch, plus `spec/README.md` if present
+- Project structure, tech stack, existing patterns, existing tests for style
 
-Don't read everything. Read what matters for this feature.
+Don't read everything. Read what matters for this change.
 
-### 2. Understand What We're Building (2-3 min)
+### 2. Understand What We're Building (2–3 min)
 
-Ask the user what they're building and why. Propose your understanding, let them correct it — don't interrogate with a checklist.
+Ask what's being built and why. Propose understanding back as 2–3 sentences; let the user correct.
 
-Summarize back in 2-3 sentences:
 > "So we're building X to solve Y. The main risk is Z."
 
 Get confirmation before continuing.
 
-### 3. Discover Constraints (5-10 min, iterative)
+### 3. Discover Constraints (5–10 min, iterative)
 
-This is where the value lives. Surface architectural decisions as proposals, not open-ended questions:
+Surface architectural decisions as proposals, not open-ended questions:
 
 > "For auth, QuickBooks requires OAuth 2.0 — no API key option. I'll use their Node SDK for the token flow. Sound right?"
 
-Each confirmed decision becomes a constraint line in the plan. **System-level decisions** (technology choices, integration patterns, infrastructure commitments that apply beyond this feature) should also be written to `context/` — create or update the relevant topic file. Feature-specific decisions stay in the plan only.
+Each confirmed decision becomes a constraint line in the plan. **System-level decisions** (technology choices, integration patterns, infrastructure commitments beyond this change) also get written to `context/` — feature-specific decisions stay in the plan only.
 
-Keep going until you've covered the decisions that matter for **this** feature:
+Cover the decisions that matter for *this* change:
+- Transport & protocol
+- Framework & patterns
+- Auth & security
+- Data — schemas, storage, external APIs
+- Scope boundaries — what's in, what's explicitly out
 
-- **Transport & protocol** — HTTP, gRPC, stdio, SSE?
-- **Framework & patterns** — what matches existing codebase?
-- **Auth & security** — how does this authenticate?
-- **Data** — what schemas, storage, external APIs?
-- **Scope boundaries** — what's in, what's explicitly out?
+Skip categories that are obvious. Spend time where a wrong default wastes hours.
 
-Skip categories that are obvious for this feature. Spend time on decisions where a wrong default wastes hours of build time.
+Present constraints in groups of 2–3, confirm each group before moving on.
 
-Present constraints in groups of 2-3. Confirm each group before moving to the next.
+If a constraint involves component boundaries, data flow between services, or API contract design, invoke **architecture** for that specific question. If there's a UI component, invoke **ui-ux-design**.
 
-When confirmed, record as a constraint:
-- **Auth: QuickBooks OAuth 2.0 via Node SDK** — no API key option available
+### 4. Decide Which Specs Change
 
-If a constraint involves component boundaries, data flow between services, or API contract design, invoke the **architecture** skill for that specific question.
+Walk through the existing `spec/` files and decide for each one whether this change:
+- **Adds** a new spec (new slice of behavior not yet committed to)
+- **Modifies** an existing spec (extends done-criteria, adds test cases, updates invariants)
+- **Supersedes** an existing spec (the old slice is being replaced or removed)
 
-If there's a UI component, invoke **ui-ux-design** for the visual direction.
+A new spec gets created when this change introduces a slice that doesn't already exist. An existing spec gets modified when the change extends or refines work that's already committed to. This is the design choice that separates good planning from bad planning — **default to modifying existing specs over creating new ones** unless the slice is genuinely new behavior.
 
-### 4. Slice into Verticals (2-5 min)
+The actual spec content (intent, integration test contract, error cases, invariants) is written by **test-planning** in collaboration with the user, not by this skill. The plan only declares *which* specs change and *why*.
 
-Break the work into ordered verticals. Each vertical has:
-- **Does** — what it accomplishes (one sentence)
-- **Done when** — the observable outcome that proves it works
-- **Test** — the integration test assertion that verifies it
-- **Skills** — (optional) skills to inject into the build context for this vertical
-- **Deps** — which other verticals must be complete first
+### 5. Identify the First Slice + Walking Skeleton
 
-**Vertical 0 is always the walking skeleton** — thinnest end-to-end path proving the infrastructure works.
+For greenfield projects (no `spec/` yet), the first slice spec is the **walking skeleton** — thinnest end-to-end path proving the infrastructure works. Build handles the V0a (boundary scaffold) / V0b (walking skeleton wiring) split internally; the plan only declares the slice's scope.
 
-- On subsequent features: V0 derives its boundary scaffold from existing `spec/<capability>.md` files (test-planning has already landed contracts there).
-- On greenfield: test-planning bootstraps `spec/` **before** build starts. V0 then scaffolds boundaries from the freshly-created spec files, same as any other feature.
-- Build handles the V0a (boundary scaffold) / V0b (walking skeleton through typed boundaries) split internally — the plan just declares V0's scope. Do not plan V0a and V0b as separate verticals.
+For changes to existing projects, identify which spec is the entry point — usually the most foundational, the one with the fewest dependencies on other in-scope specs. Build will start there.
 
-**Detail the first 2-3 verticals fully.** Later verticals stay as headlines — they get detailed when you're closer to building them. This is the hierarchical breakdown: broad picture first, detail progressively.
+### 6. Suggest Build Skills
 
-Example:
-```markdown
-### V1: Customer list
-- **Does:** `qb customers list` returns paginated customer list
-- **Done when:** Command returns formatted customer records with name, email, balance
-- **Test:** Integration test hits sandbox API, asserts array with required fields
-- **Skills:** rust-quality
-- **Deps:** V0 (auth + config established)
-```
+Suggest which skills the build phase will need:
+- Language/runtime — `rust-quality`, `frontend-build`, etc.
+- Domain — `ai-agent-building`, `mcp-builder` if relevant
+- Infrastructure — `boilerplate-cicd` if the project lacks CI/linting
 
-The "done when" + "test" lines are a **sketch** of the test contract — specific enough to name what the vertical proves, but not the full shape. Test-planning expands them into full contracts (setup, action, input, expected, side effects, error cases) and lands them in `spec/<capability>.md`. The plan stays terse; the living spec holds the detail.
+Present suggestions. User confirms. Record in the plan's "Build skills" section.
 
-### 4b. Suggest Build Skills
+### 7. Save the Plan
 
-After defining verticals, suggest which skills the build phase will need. Check:
-- **Language/runtime** — is there a language-specific quality skill? (e.g., `rust-quality`)
-- **Domain** — does this touch agent/MCP patterns? (`ai-agent-building`)
-- **Infrastructure** — does this project lack CI/linting? (`boilerplate-cicd`)
-- **Available skills** — scan `~/.claude/skills/` for relevant matches
-
-Present suggestions to the user: "For this Rust project, I'd inject `rust-quality` and `coding-standards` into each vertical's build context. Want to add or change any?"
-
-The user confirms. Record confirmed skills in each vertical's `Skills` field or as a plan-level default.
-
-### 5. Save the Plan
-
-Save to `changes/NNN-<topic>/plan.md` (or update an existing plan).
-
-**Changes directory protocol:**
-- Directory: `changes/` at project root (`mkdir -p changes` if needed)
+Save to `changes/NNN-<topic>/plan.md`:
+- `changes/` at project root (`mkdir -p changes` if needed)
 - Find highest existing `NNN-*` prefix, increment by 1. Start at `001` if empty.
-- All rationale/research/notes for this feature go in the same directory.
-- **The plan holds rationale, not contracts.** Test contracts live permanently in `spec/<capability>.md` (the living system specification), where they are edited during test-planning. The plan references which `spec/*.md` files this feature will modify — see the "Modifies" section in the plan format below.
+- All rationale, research, and notes for this change go in the same directory.
 
-Get today's date for the plan header: !`date +%Y-%m-%d`
+Today's date for the plan header: !`date +%Y-%m-%d`
 
-### 6. Review (optional)
+### 8. Hand Off
 
-If the user wants teammate review before building:
-- Invoke **commit-and-pr** to push and create a PR
-- Wait for review before building
+Either the user moves to **test-planning** to land contracts in the affected spec files, or you invoke it directly. After test-planning lands integration test contracts in the specs, **test-writer** translates them into executable tests, and **build** implements until green.
 
-If solo or time-pressured: skip to build.
-
-### 7. Hand Off to Build
-
-When the first verticals have done criteria + test contracts:
-- Tell the user which verticals are ready
-- Suggest starting build on V0/V1 while later verticals get detailed
-- Invoke **build** with the plan path, or let the user start a separate session
-
-**You don't need the whole plan finished to start building.** Ready verticals go to build while you continue detailing later ones.
+You don't need every spec finalized before build starts — once one spec has its test contract landed, build can start on that slice while later specs get detailed.
 
 ## Plan Format
 
 ```markdown
-# Plan: [Feature Name]
+# Plan: [Change Name]
 
 > Date: YYYY-MM-DD
-> Status: [planning | building | complete]
+> Status: planning | building | complete
 
 ## What & Why
-[2-3 sentences: what are we building and why]
+[2–3 sentences: what this change accomplishes and why now]
 
-## Modifies spec files
-- `spec/<capability>.md` — [what's changing: new boundaries, modified invariants, etc.]
-- [repeat per modified file; mark new capability files with "(new)"]
-- [on greenfield: "Bootstraps spec/ — test-planning will propose capability file names before creating them"]
+## Spec changes
+- `spec/<name>.md` — modified — [what's changing: new test cases, extended done-criteria, etc.]
+- `spec/<name>.md` (new) — [what slice this describes]
+- `spec/<name>.md` (superseded by `spec/<new-name>.md`) — [why]
 
-## Updates context files
+## Context changes
 - `context/<topic>.md` — [what's changing or being added]
-- [mark new files with "(new)"]
 - [omit this section if no context/ changes needed]
 
 ## Constraints
 - [Decision: rationale]
 - [Decision: rationale]
-- ...
 
 ## Non-Goals
-- [What this explicitly does NOT do]
+- [What this change explicitly does NOT do]
 
-## Build Skills (default for all verticals)
+## Build skills
 - [skill-name — why it's needed]
 
-## Verticals
-
-### V0: Walking skeleton
-- **Does:** [thinnest end-to-end path]
-- **Done when:** [observable outcome]
-- **Test:** [integration test assertion]
-- **Deps:** None
-
-### V1: [Name]
-- **Does:** [one sentence]
-- **Done when:** [observable outcome]
-- **Test:** [integration test assertion]
-- **Deps:** [V0, etc.]
-
-### V2: [Name]
-- **Does:** [one sentence]
-- **Done when:** [observable outcome]
-- **Test:** [integration test assertion]
-- **Deps:** [V0, V1, etc.]
-
-### V3: [Name] (headline — detail later)
-### V4: [Name] (headline — detail later)
+## First slice
+- `spec/<name>.md` — [why this is the entry point]
 
 ## Open Questions
-- [Anything unresolved that might affect later verticals]
+- [Anything unresolved that might affect later slices]
 ```
+
+The plan is the narrative for *this change*. It does not duplicate spec content — it points at the specs being touched and explains why. Spec files carry the test contracts, done criteria, and historical change log.
 
 ## Scaling
 
-| Feature Size | Constraints | Verticals | Planning Time |
+| Change Size | Constraints | Specs touched | Planning Time |
 |---|---|---|---|
-| **Small** (single endpoint, CLI command) | 3-5 bullets | 2-3 | 5 min |
-| **Medium** (multi-endpoint feature, integration) | 5-10 bullets | 3-6 | 10-15 min |
-| **Large** (new system, multi-service) | 10-15 bullets | 6-12, headlines for later ones | 15-20 min |
+| **Small** | 3–5 bullets | 1–2 (often modify, not add) | 5 min |
+| **Medium** | 5–10 bullets | 2–4 | 10–15 min |
+| **Large** | 10–15 bullets | 4–8, often with new specs | 15–20 min |
 
-If planning takes more than 20 minutes, the feature is too big — split it.
+If planning takes more than 20 minutes, the change is too big — split it into multiple changes that touch different specs.
 
 ## Anti-Patterns
 
 | Anti-Pattern | Fix |
 |---|---|
-| **Writing prose constraints** | Constraints are bullets, not paragraphs (note: "spec" in this skill refers to `spec/<capability>.md`, not feature specifications — the anti-pattern is about verbose prose, not about writing the living spec) |
-| **Detailing every vertical upfront** | Only detail the next 2-3. Headlines for the rest. |
-| **Planning without reading code** | Hard gate: read the codebase first |
+| **Inventing new specs when an existing one fits** | Default to modifying. Only add when the slice is genuinely new behavior. |
+| **Duplicating spec content in the plan** | Plans point at specs; specs hold the contracts. Don't restate. |
+| **Planning without reading `spec/` and `context/`** | Hard gate — without these you'll re-discover known constraints. |
 | **Skipping non-goals** | Non-goals prevent scope creep. Always include them. |
-| **Separate business and technical constraints** | One plan document. Constraints cover both. |
-| **Template-filling** | Skip sections that don't apply to this feature |
-| **Planning for more than 20 minutes** | Feature is too big (split) or you're over-specifying |
-
-Follow the communication-protocol skill for all user-facing output and interaction.
+| **Writing prose constraints** | Constraints are bullets, not paragraphs. |
+| **Detailing every spec change upfront** | Only detail the first 2–3 slices fully. Later specs get fleshed out as build approaches them. |
+| **Planning > 20 minutes** | Change is too big — split, or you're over-specifying. |
 
 ## Guidelines
 
+- **Specs are the source of truth.** The plan is a pointer to a change. The work commitments live in `spec/`.
 - **Constraints prevent wrong turns.** This is where planning time pays off — not prose descriptions.
-- **The plan is a thinking tool for the human.** Keep it readable and concise.
+- **Every slice spec needs an integration test contract.** test-planning enforces this. The plan's job is to declare which specs are in scope; test-planning fills in the contract.
+- **A spec without a test contract is an unfinished idea.** Don't hand it to build.

@@ -1,13 +1,17 @@
+
 ---
 name: test-writer
 description: >-
-  Write test code from user-validated contracts in spec/<capability>.md —
-  integration tests first, one vertical at a time. Translate each contract
-  into executable test code using AAA structure, confirm red (failing for the
-  right reason), and commit as locked artifacts. Use after test-planning has
-  landed contracts in spec/, before build begins implementation. Tests
-  committed by this skill are immutable — build implements against them but
-  cannot modify them.
+  Translate user-validated integration test contracts from spec/<name>.md into
+  executable test code using AAA structure, confirm each test fails for the
+  right reason, and commit them as locked artifacts. One slice at a time.
+  Tests committed by this skill are immutable — build implements against them
+  but cannot modify them.
+when_to_use: >-
+  Use after test-planning has landed an integration test contract in at least
+  one spec/<name>.md file, before build begins implementation. Typically
+  invoked by design between test-planning and build, but can be run directly
+  on a specific spec.
 allowed-tools:
   - Read
   - Write
@@ -32,8 +36,8 @@ prevents the #1 AI testing failure: modifying tests to match the code.
 </HARD-GATE>
 
 <HARD-GATE>
-Every test MUST trace to a user-validated contract in `spec/<capability>.md`.
-Do NOT invent test scenarios, assertions, or expected values from your
+Every test MUST trace to a user-validated contract in `spec/<name>.md`. Do
+NOT invent test scenarios, assertions, or expected values from your
 understanding of the code. If the spec doesn't specify an error case, ask —
 don't fill the gap yourself. The user validated the contracts in `spec/`
 because they know what "correct" means for their system. You don't.
@@ -79,21 +83,21 @@ Different contracts produce different test types. Integration tests are always t
 ### 0. Check Prerequisites
 
 Before writing any test code:
-- [ ] `spec/<capability>.md` exists and contains user-validated contracts for the vertical(s) you're writing tests for (from **test-planning**)
-- [ ] Feature plan at `changes/NNN-<topic>/plan.md` references which spec files are in scope
-- [ ] Test infrastructure is ready (database, test runner, any required mock servers)
+- [ ] At least one slice spec at `spec/<name>.md` contains a user-validated integration test contract (from **test-planning**)
+- [ ] Plan at `changes/NNN-<topic>/plan.md` lists which spec files are in scope
+- [ ] Test infrastructure is ready (database, test runner, mock servers)
 - [ ] Existing test patterns in the codebase have been read (match conventions)
-- [ ] Greenfield feature 1: you are WRITING the walking skeleton test for V0 (it will not exist yet — that's expected). Subsequent features: the walking skeleton test from the bootstrap feature is committed and passing.
+- [ ] Greenfield first change: you are WRITING the walking skeleton test for the first slice (it won't exist yet — that's expected). Subsequent changes: the walking skeleton test is already committed and passing.
 
 If prerequisites are missing, stop. Don't improvise — go back to test-planning.
 
-### 1. Pick the Next Vertical
+### 1. Pick the Next Slice Spec
 
-Work one vertical at a time, in dependency order from the feature plan (`changes/NNN-<topic>/plan.md`). Do not write tests for multiple verticals in one pass. Report which vertical you're working on.
+Work one slice at a time, in dependency order from the plan. Do not write tests for multiple slices in one pass. Report which slice you're working on.
 
-### 2. Read the Contract from the Living Spec
+### 2. Read the Contract from the Spec
 
-Read the relevant `spec/<capability>.md` file for this vertical. Find the contract(s) for the boundary this vertical touches and identify:
+Read the relevant `spec/<name>.md` file. Find:
 - **Setup** — what state must exist before the test
 - **Action** — the API call or operation
 - **Input** — request body, parameters, headers
@@ -101,9 +105,9 @@ Read the relevant `spec/<capability>.md` file for this vertical. Find the contra
 - **Side effects** — database changes, events emitted, external calls made
 - **Error cases** — what happens with bad input, missing deps, failure scenarios
 
-Each of these maps directly to a test. Also read the capability's **Invariants** section — any invariant relevant to this vertical should produce a test that enforces it.
+Each of these maps directly to a test. Also check any invariant spec files referenced by the plan — invariants relevant to this slice should produce tests that enforce them.
 
-The `spec/` file is the authoritative source. Do not read contracts from the feature plan in `changes/` — those are pointers, the spec is the truth.
+The spec file is the authoritative source. Do not read contracts from the plan — that's a pointer, the spec is the truth.
 
 ### 3. Read Existing Test Patterns
 
@@ -168,21 +172,34 @@ Run the test suite. Every new test must fail. Check each failure:
 | Test passes | Wrong — feature already exists or test is broken | Investigate before proceeding |
 | Assertion error with unexpected values | Wrong — test may have incorrect expectations | Check against contract, ask user if unclear |
 
-### 7. Commit
+### 7. Update the slice spec's `## Tests` section, then commit
 
-Commit the test file(s) for this vertical with a clear message:
+Before committing, edit each affected `spec/<slice>.md` to fill in its `## Tests` section with pointers to the test file + test name(s) you just produced. Pattern:
+
+```markdown
+## Tests
+- `<test file path>` § `"<test name>"` — covers § Integration test contract.
+- `<test file path>` § `"<test name>"` — covers § Case: <case name>.
+- `<test file path>` § `"<test name>"` — covers § Error cases (specifically: <which one>).
+```
+
+If the spec already has a `## Tests` section from test-planning (placeholder or a "no test yet" note), replace it. If the section is missing, add it between `Integration test contract` and `Notes`.
+
+WHY this matters: without the back-pointer, the spec→test link only exists in the test author's head. Future readers (build, refactor, ultrareview, the user) can't navigate from a contract to the test enforcing it without grepping. The pointer makes the spec self-contained for verification.
+
+Then commit BOTH the test files AND the spec edits in a single commit:
 
 ```
-test(scope): V1 integration tests — [slice name]
+test(scope): integration tests — [slice name]
 ```
 
 These committed tests are now locked artifacts. Build will implement against them.
 
-### 8. Report and Next Vertical
+### 8. Report and Next Slice
 
-Report status: "V1 tests written and committed (red). [N] integration tests, [M] error case tests."
+Report status: "`<slice-name>` tests written and committed (red). [N] integration tests, [M] error case tests. Slice spec `## Tests` section updated."
 
-Move to the next vertical. Repeat from step 1.
+Move to the next slice. Repeat from step 1.
 
 ## Mock Boundary Rules
 
@@ -263,21 +280,19 @@ Every test must be independent. No test should depend on state from another test
 | Anti-Pattern | What Happens | This Skill Prevents It By |
 |--------------|-------------|--------------------------|
 | **Modify test to pass** | AI changes assertions to match buggy code | Structural separation — test-writer commits before build starts |
-| **Improvised contracts** | Tests validate assumed behavior, not specified behavior | Hard gate — every test traces to a contract in `spec/<capability>.md` |
+| **Improvised contracts** | Tests validate assumed behavior, not specified behavior | Hard gate — every test traces to a contract in `spec/<name>.md` |
 | **Happy path only** | Error cases untested, failures crash production | Error cases are first-class in the process, not optional |
 | **Over-mocking** | Mock internal systems, tests pass but code is broken | Mock boundary table — only uncontrolled deps get mocked |
 | **Implementation mocks** | Assert on internal function calls, tests break on refactor | Three mock types guide — avoid mocks in assert phase on internal code |
 | **Test passes immediately** | Test doesn't actually test anything | Confirm red gate — every test must fail before commit |
 | **Brittle assertions** | Test breaks on irrelevant changes (timestamps, IDs) | Assert on behavior and contract fields, not exact object equality |
 
-Follow the communication-protocol skill for all user-facing output and interaction.
-
 ## Guidelines
 
 - **Tests are contracts, not suggestions.** Once committed, they define "done." Build implements against them. If they seem wrong, escalate — don't adjust.
-- **Integration first, always.** Integration tests catch 99% of bugs with less effort than comprehensive unit coverage. Start here for every vertical.
+- **Integration first, always.** Integration tests catch 99% of bugs with less effort than comprehensive unit coverage. Start here for every slice.
 - **Error paths are first-class.** They catch the bugs that wake people up at night. Not optional, not "if time allows."
+- **Multiple test cases per contract is fine.** A slice spec can have many error cases and edge conditions — write a test for each. Don't artificially limit yourself to "one test per slice."
 - **Match the codebase.** Read existing tests before writing new ones. Consistency in style, naming, and patterns makes the test suite maintainable.
 - **AAA is non-negotiable.** Every test: Arrange (set up state), Act (do the thing), Assert (check the result). No exceptions.
 - **Live testing is the default; mocks are a fallback.** Real controlled deps. Real test environments for uncontrolled deps when they exist. When you must mock, mock the HTTP client the adapter calls — not the adapter the service calls. Push the mock as far outward as practical so the most real code runs.
-- **One vertical at a time.** Write, confirm red, commit. Then next. Don't batch.
