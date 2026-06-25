@@ -8,7 +8,14 @@
 
 A **flow of skills** — not a single skill — that reads a repo and produces a **repo-specific agent chain**: a customized set of skills, agents, and a CLAUDE.md that an autonomous agent uses to plan, test, and build in that particular codebase. The auto-* skills (auto-plan-grill, auto-test-planning, auto-build) are the generic templates (L0). The chain creator flow (L1) adapts them into repo-specific skills (L2) that know the project's language, conventions, test infrastructure, and architectural patterns.
 
-The chain creator follows a similar pattern to the pipeline it produces: survey → grill the findings → plan the chain → design evals/contracts for each skill → write the skills → validate them. It is itself a pipeline of skills that understands the framework we build around repos and knows how to break that down into optimizable skills and agents.
+The chain creator is itself a pipeline of four skills:
+
+1. **`chain-survey`** — Reads the target repo systematically. Extracts language, build commands, test infrastructure, project structure, CI/CD, conventions, and patterns. Verifies commands by running them. Produces `.claude/chain/survey.md`.
+2. **`chain-plan`** — Reads the survey, compares against what a complete agent chain requires, grills the findings for accuracy and coverage gaps, and produces a generation plan specifying which L2 skills to create and what repo-specific knowledge to inject. Produces `.claude/chain/plan.md`.
+3. **`chain-generate`** — Reads the plan + survey + L0 auto-* templates. Produces fully self-contained L2 skills in `.claude/skills/`, a CLAUDE.md (if missing), and an `agent-chain.yaml` manifest. L2 skills contain no references back to L0.
+4. **`chain-verify`** — Smoke tests the generated chain. Runs every referenced command, checks every file path, validates skill structure, and tests internal consistency. Produces `.claude/chain/verification.md`.
+
+These skills live in `ai-workflow-config/skills/chain-*/` alongside the L0 auto-* templates. The chain creator understands the framework we build around repos and knows how to break that down into optimizable skills and agents.
 
 ## Why Not Just Use Generic Skills
 
@@ -184,15 +191,17 @@ verification:
 
 ## How the Chain Creator Works
 
-### Phase 1: Survey (automated, ~2-5 min)
+### Phase 1: Survey → `chain-survey`
 
 Read the repo systematically. For each category in the "What to extract" table above:
 1. Find the relevant files (build config, test files, CI config, etc.)
 2. Extract the specific information
 3. Verify by running commands (e.g., `cargo test --workspace` to confirm it works)
-4. Record findings in a survey document
+4. Record findings in `.claude/chain/survey.md`
 
-### Phase 2: Gap Analysis
+See `skills/chain-survey/SKILL.md` for the full extraction process.
+
+### Phase 2: Gap Analysis + Grill → `chain-plan`
 
 Compare what was found against what a complete agent chain needs:
 
@@ -206,32 +215,35 @@ Compare what was found against what a complete agent chain needs:
 | spec/ docs | ✅ 8 files | — |
 | Mock boundaries | ✅ Documented in testing-strategy.md | — |
 
+Then grill the survey findings for accuracy, coverage gaps, and assumption risks. Each finding becomes an ADR.
+
 Gaps become either:
-- Things the chain creator fills (CLAUDE.md, skill files)
+- Things chain-generate fills (CLAUDE.md, skill files)
 - Open questions for the human (external service access, team conventions)
 - Foundation skill triggers (CI setup, missing infrastructure)
 
-### Phase 3: Generate (skills + config)
+Output: `.claude/chain/plan.md`. See `skills/chain-plan/SKILL.md`.
+
+### Phase 3: Generate → `chain-generate`
 
 For each L2 skill:
 1. Start from the corresponding L0 template (auto-plan-grill, auto-test-planning, etc.)
 2. Inject repo-specific knowledge into the relevant sections
 3. Remove generic guidance that's now covered by specific guidance
 4. Validate that the skill references real files, real commands, real patterns
+5. Commit and push to branch
 
-### Phase 4: Verify
+L2 skills are fully self-contained — no runtime references back to L0. See `skills/chain-generate/SKILL.md`.
 
-Run a lightweight smoke test:
-- Can the build command succeed?
-- Can the test command succeed?
-- Do the referenced test helpers exist?
-- Do the referenced context/ and spec/ files exist?
-- Does the generated CLAUDE.md match reality?
+### Phase 4: Verify → `chain-verify`
 
-### Phase 5: Push and Report
+Smoke test every generated artifact:
+- Run every command referenced in skills, CLAUDE.md, and agent-chain.yaml
+- Check every file path referenced in generated skills
+- Validate skill structure (frontmatter, hard gates, anti-patterns)
+- Test internal consistency across all generated artifacts
 
-- Commit generated files to the repo (on a branch if configured for GitHub flow)
-- Report what was generated, what gaps remain, what open questions need human input
+Output: `.claude/chain/verification.md`. See `skills/chain-verify/SKILL.md`.
 
 ## The Foundation Skill
 
