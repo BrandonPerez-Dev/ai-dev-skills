@@ -161,9 +161,23 @@ For each grill finding, the agent does one of:
 
 | Confidence | Action | Artifact |
 |---|---|---|
-| **High** | Self-answers. Records resolution in `## Grill` section. | No open question. |
-| **Medium** | Self-answers tentatively. Records assumption in `## Grill` section. | Entry in open-questions.md marked "assumption — proceeding unless corrected." |
-| **Low** | Does NOT assume. Records the question and its best guess. | Entry in open-questions.md marked "blocking" with affected slices listed. |
+| **High** | Self-answers. Records resolution as ADR in `## Grill` section. | No open question. |
+| **Medium** | Self-answers tentatively. Records assumption as ADR in `## Grill` section. | Entry in open-questions.md marked "assumption — proceeding unless corrected." |
+| **Low** | Does NOT assume. Records the question and its best guess as ADR. | Entry in open-questions.md marked "blocking" with affected slices listed. |
+
+#### ADR Format for Grill Entries
+
+Each grill finding is recorded as a lightweight Architecture Decision Record:
+
+```markdown
+### [Finding Title]
+- **Status:** resolved | assumption | blocking
+- **Context:** [What part of the plan this challenges]
+- **Decision:** [The resolution or assumption]
+- **Confidence:** high | medium | low
+- **Consequences:** [What changes as a result — spec updates, new constraints, etc.]
+- **Alternatives considered:** [Other options and why they were rejected]
+```
 
 ### 4. Build the Dependency Graph
 
@@ -286,15 +300,37 @@ Every decision gets a confidence classification.
 
 ## Grill
 
+Each finding below uses ADR format. Grill runs BEFORE slicing — horizontal validation before vertical decomposition.
+
 ### Tensions & Structure
-- **[Challenge]** — Resolution: [answer]. Confidence: [level].
-- **[Challenge]** — Resolution: [answer]. Confidence: [level].
+
+#### [Challenge Title]
+- **Status:** resolved
+- **Context:** [What part of the plan this challenges]
+- **Decision:** [The resolution]
+- **Confidence:** high
+- **Consequences:** [What changes]
+- **Alternatives considered:** [Other options]
 
 ### Terminology
-- **[Term collision]** — Resolution: [standardized term]. Written to context/: [yes/no].
+
+#### [Term Collision Title]
+- **Status:** resolved
+- **Context:** [Term usage in plan vs context/]
+- **Decision:** [Standardized term. Written to context/: yes/no]
+- **Confidence:** high
+- **Consequences:** [Where the term is updated]
+- **Alternatives considered:** [Other terms]
 
 ### Prior-Decision Conflicts
-- **[Conflict with spec/context]** — Resolution: [keep old / supersede]. Confidence: [level].
+
+#### [Conflict Title]
+- **Status:** resolved | assumption
+- **Context:** [Which spec/context decision this contradicts]
+- **Decision:** [Keep old / supersede on purpose]
+- **Confidence:** high | medium
+- **Consequences:** [What specs/context docs change]
+- **Alternatives considered:** [Other resolutions]
 
 ### Refutation
 - **Strongest argument against this plan:** [argument]
