@@ -5,7 +5,7 @@
 
 ## Problem
 
-The current skill pipeline (engineering → slicing → grill → test-planning → test-writer → build → refactor) assumes real-time interactive conversation. Every step with user involvement — grill, slicing constraint discovery, test-planning contract validation — blocks on synchronous back-and-forth.
+The current skill pipeline (engineering → grill → slicing → test-planning → test-writer → build → refactor) assumes real-time interactive conversation. Every step with user involvement — grill, slicing constraint discovery, test-planning contract validation — blocks on synchronous back-and-forth.
 
 The goal is an autonomous agent that lives on a repo and communicates with the human via GitHub (PRs, comments, labels). The human acts as a staff engineer giving direction, not a pair programmer.
 
@@ -30,93 +30,127 @@ Minimum viable kickoff: 2-3 sentences of what and why. Constraints and non-goals
 
 ## The Flow
 
-### Phase 1: Investigate + Plan + Grill (one pass)
+### Phase 0: Investigate (if needed)
 
 **What the agent does:**
 1. Reads `context/`, in-scope `spec/`, and codebase
 2. Investigates unknowns (web research, codebase exploration)
-3. Produces the plan (`changes/NNN-<topic>/plan.md`) with spec changes declared
-4. Grills its own plan using the three lenses:
+3. Records findings in `changes/NNN-<topic>/research.md`
+4. Promotes system-level findings to `context/` (marked as agent-proposed)
+
+This phase is skipped if the kickoff + context/ provide enough information to plan.
+
+### Phase 1: Grill (horizontals first)
+
+Grill comes BEFORE slicing. The grill validates the approach at the horizontal level — cross-cutting concerns, architectural tensions, terminology, prior-decision conflicts — before the agent commits to how it cuts the work into verticals.
+
+**What the agent does:**
+1. Drafts a high-level approach (what, why, key constraints, proposed architecture)
+2. Grills the approach using three lenses:
    - Tensions & structure (cardinality, deletion semantics, state transitions, idempotency)
-   - Terminology collisions (plan language vs `context/` language)
-   - Prior-decision conflicts (existing specs/context the plan contradicts)
-5. Self-answers grill questions at each confidence level (see Confidence Model below)
-6. Creates `changes/NNN-<topic>/open-questions.md` with anything medium or low confidence
+   - Terminology collisions (approach language vs `context/` language)
+   - Prior-decision conflicts (existing specs/context the approach contradicts)
+3. Self-answers at each confidence level (see Confidence Model below)
+4. Records each grill finding as an **ADR (Architecture Decision Record)** in the plan
+
+**Grill output format — ADRs, not a flat list:**
+
+Each grill finding becomes a lightweight ADR in `changes/NNN-<topic>/plan.md`:
+
+```markdown
+### ADR: [Decision Title]
+- **Status:** accepted | proposed | blocked
+- **Context:** [What tension/collision/conflict was found]
+- **Decision:** [What we decided]
+- **Confidence:** high | medium | low
+- **Consequences:** [What this means for the design]
+- **Alternatives considered:** [What else we could have done]
+```
+
+High-confidence ADRs are `accepted`. Medium-confidence are `proposed` (assumption — proceeding unless corrected). Low-confidence are `blocked` (posted as PR question).
 
 **What the agent pushes:**
 - Creates branch (`agent/<topic>`)
-- Pushes: plan.md, open-questions.md, any context/ updates
-- Opens **draft PR**
-- PR description = summary of the plan + current status
-- Low-confidence questions → PR comments on the relevant lines in plan.md or spec files, labeled with severity
+- Pushes: plan.md with ADRs, open-questions.md, any context/ updates
+- Opens **draft PR** (this is the "plan PR" — one per change, not per slice)
+- PR description = summary of the approach + current status
+- Low-confidence ADRs → PR comments on the relevant lines, labeled with severity
 
 **What the human does:**
-- Reviews plan + open questions
-- Leaves line-level comments on plan.md, spec files, or open-questions.md
-- Can also use a separate Claude Code chat to read the PR and ask clarifying questions in a different context
+- Reviews approach + ADRs
+- Leaves line-level comments on plan.md or ADR entries
+- Can use a separate Claude Code chat to read the PR and ask clarifying questions in a different context
 - Doesn't need to answer everything — agent proceeds on assumptions
 
-**When the agent proceeds:**
-- Immediately after posting, without waiting for human review
-- Starts working on slices that are NOT blocked by low-confidence open questions
-- Checks for human responses periodically (see Polling below)
+### Phase 2: Slicing (verticals from grilled approach)
 
-### Phase 2: Test Planning (per slice, autonomous)
+After the approach is grilled, the agent decomposes into vertical slices.
 
 **What the agent does:**
-1. For each unblocked slice in dependency order:
-   - Writes or extends the integration test contract in `spec/<name>.md`
-   - Decides mock boundaries based on `context/` (doesn't need to ask — context/ should document which systems have test modes)
-   - Classifies contract confidence
+1. Declares which specs are added, modified, or superseded
+2. Identifies the dependency graph (which slices depend on which)
+3. Identifies the first slice (entry point, fewest dependencies)
+4. Creates spec stubs for new slices
+5. Updates plan.md with slice order and dependency graph
 
 **What the agent pushes:**
-- Commits updated spec files to the branch
-- High-confidence contracts → pushed with FYI comment ("contracts ready for `<slice>`, proceeding to test writing")
-- Medium-confidence contracts → pushed with assumption comment ("assumed X for `<slice>`, will build against this unless corrected")
-- Low-confidence contracts → pushed with blocking comment, slice paused
+- Updates the plan PR with spec stubs and slice order
+- Each independent slice will get its own PR in the next phases (see PR-per-Slice below)
 
-**What the human does:**
-- Reviews spec file changes in the PR
-- Line-level comments to correct contracts
-- Approval = silence (agent proceeds after a reasonable window)
+### Phase 3: Test Planning + Test Writing + Build (per slice)
 
-### Phase 3: Test Writing (per slice, autonomous)
+Each slice follows the full pipeline: test-plan → test-write → build → refactor.
 
-**What the agent does:**
-1. For each slice with a high/medium-confidence contract:
-   - Translates contracts to executable tests (AAA structure)
-   - Confirms each test fails for the right reason
-   - Updates spec `## Tests` section with pointers
-   - Commits test files + spec updates
+**PR-per-slice model:** Each slice gets its own PR branched from the appropriate base. This makes reviews atomic — each PR has one test contract, one test suite, one implementation. The human reviews one focused change at a time instead of a monolithic diff.
 
-**What the agent pushes:**
-- Per-slice test commits
-- If a test can't be written (infrastructure missing, contract unclear) → PR comment explaining what's blocked
+**Branching strategy — stacked PRs + worktrees:**
 
-### Phase 4: Build (per slice, autonomous)
+The agent builds a dependency DAG from spec `depends_on` frontmatter, then:
+- **Independent slices** branch from `main`, can be built in parallel using separate git worktrees
+- **Dependent slices** use **stacked branches** via `gh stack` (GitHub native, shipped April 2026): slice B branches from slice A's branch, PR targets A's branch
+- When slice A merges to main, `gh stack sync` cascading-rebases the chain and retargets PRs to main automatically
+- `gh stack push` uses `--force-with-lease --atomic` — safe (rejects if remote has unexpected changes) and atomic (all branches update or none do). This is inherent to stacked workflows where rebase rewrites history.
+- **Fallback** if `gh stack` unavailable: Graphite `gt` CLI with `--no-interactive`, or plain `git` + `gh pr create --base <parent-branch>` with agent-managed dependency tracking
 
-**What the agent does:**
-1. For each slice with committed red tests:
-   - Implements against locked tests (red → green → refactor)
-   - Full-suite gate after each slice
-   - Marks spec `status: built`
-   - Invokes refactor on just-committed changes
+**Parallel worktree pattern:**
+```bash
+# Independent slices get their own worktrees
+git worktree add ../repo-slice-d agent/<topic>/slice-d
+git worktree add ../repo-slice-e agent/<topic>/slice-e
+# Each worktree = own agent session, own branch, merge back after green
+# Cleanup after merge: git worktree remove <path>
+```
 
-**What the agent pushes:**
-- Per-slice implementation commits
-- Per-slice refactor commits (if refactor finds improvements)
-- If stuck after 2 attempts → PR comment explaining the failure, moves to next unblocked slice
+**Per-slice flow:**
+1. **Test planning:** Write integration test contract in `spec/<name>.md`, classify confidence
+2. **Test writing:** Translate contract to executable tests, confirm red, commit as locked artifacts
+3. **Build:** Implement against locked tests (red → green), full-suite gate, invoke refactor
+4. **Push:** Open a slice PR (`agent/<topic>/<slice-name>`), request review
 
-### Phase 5: Completion
+**Per-slice PR conventions:**
+- Title: `[Agent] <slice-name>: <one-line description>`
+- Base: `main` for independent slices, parent slice branch for dependent slices
+- Body: spec contract, test pointers, implementation summary
+- Label: `agent-slice`
 
-**When all buildable slices are done:**
-- Agent updates PR description with final status
+**What the human does per slice PR:**
+- Reviews the test contract (is this what "done" looks like?)
+- Reviews the implementation
+- Can override a locked test via PR comment (one-time permission, not a general unlock)
+- Approves or requests changes
+
+### Phase 4: Completion
+
+**When all slices are done:**
+- Agent updates the plan PR description with final status
+- Links to all slice PRs
 - If blocked slices remain → posts summary of what's blocked and why
-- If all slices done → marks PR ready for review, requests review
-- Removes `in-progress` label, adds `ready-for-review`
+- Slice PRs merge independently as they're approved (in dependency order)
+- Plan PR is closed (not merged — it's a coordination artifact, not code)
 
-**When human approves:**
+**When human approves a slice PR:**
 - Agent does NOT self-merge (protected branches / human-only merge)
+- Agent rebases dependent slice branches onto main after merge
 - Agent may do final cleanup if review comments request changes → new commits → re-request review
 
 ## Confidence Model
@@ -139,20 +173,34 @@ Every decision the agent makes gets a confidence classification. This replaces t
 ## The GitHub Protocol
 
 ### Branch naming
-`agent/<topic>` (e.g., `agent/credential-refresh-flow`)
+- Plan branch: `agent/<topic>` (e.g., `agent/credential-refresh-flow`)
+- Slice branches: `agent/<topic>/<slice-name>` (e.g., `agent/credential-refresh-flow/create-intent`)
+- Stacked slices: branch from parent slice branch, not from `agent/<topic>`
 
-### PR lifecycle
-1. Opened as **draft** immediately after plan is pushed
-2. Updated with commits as work progresses
-3. PR description updated at each phase transition
-4. Marked **ready for review** when all buildable slices are done
-5. Never self-merged
+### Two PR types
+1. **Plan PR** — opened as draft after grill+plan. Contains plan.md, ADRs, open-questions.md, spec stubs, context/ updates. This is a coordination artifact — it's closed (not merged) when all slice PRs are done.
+2. **Slice PRs** — one per slice. Contains the test contract, locked tests, implementation, and refactor. These are the PRs that get reviewed and merged.
+
+### PR lifecycle (plan PR)
+1. Opened as **draft** after grill+plan completes
+2. Updated with status comments as slices progress
+3. Links to all slice PRs in description
+4. Closed when all slices are merged (or blocked slices documented)
+
+### PR lifecycle (slice PRs)
+1. Opened after test-write + build for that slice
+2. Base: `main` for independent slices, parent slice branch for dependent slices
+3. Marked **ready for review** immediately (each slice is self-contained)
+4. Merged independently by the human in dependency order
+5. After merge, agent runs `gh stack sync` to cascade-rebase dependent slices
 
 ### Labels (the state machine)
 - `agent-in-progress` — agent is actively working
 - `needs-answer` — agent is blocked on human input
 - `ready-for-review` — all work done, awaiting human review
 - `changes-requested` — human left review comments, agent addressing them
+- `agent-slice` — marks a slice PR (vs the plan PR)
+- `agent-plan` — marks the plan/coordination PR
 
 ### Comment conventions
 Comments from the agent use a prefix to indicate type:
@@ -208,64 +256,87 @@ The agent should explicitly state where it's recording the correction: "Recorded
 
 ## Polling and Triggers
 
-The supervisor (running on the always-on box) manages timing:
+The supervisor (running on the always-on box) manages timing. Claude Code also supports native scheduling via `/schedule` and cloud Routines (see https://code.claude.com/docs/en/scheduled-tasks) — these can complement or replace self-hosted triggers.
 
 ### Triggers that start a new cycle
-- **Issue created** with agent label/assignee → new plan+grill pass
+- **Issue created** with agent label/assignee → new grill+plan pass
 - **PR comment from human** → agent reads, updates, continues
 - **PR review submitted** → agent addresses review comments
 - **Heartbeat timer** (configurable, default ~2-4 hours) → agent checks for unanswered items that got answered, stale PRs
+- **Claude Code Routine** (cron ≥1h or GitHub webhook) → cloud-managed trigger, laptop-independent
+- **Slice PR merged** → agent rebases dependent slices, continues building next slice
 
 ### What the agent does on each wake
-1. Check for new human comments on active PRs
+1. Check for new human comments on active PRs (plan PR + all slice PRs)
 2. Map comments to open questions / change requests
 3. Update open-questions.md with answers
 4. Unblock slices whose questions are now answered
-5. Continue building unblocked slices
-6. Post status update if state changed
+5. Rebase dependent branches if parent slices merged
+6. Continue building unblocked slices
+7. Post status update if state changed
 
 ### What the agent does NOT do
 - Poll more than every ~1 hour (respects subscription caps)
 - Work on blocked slices without answers
 - Self-merge any PR
 - Push to main/master directly
-- Delete branches without human approval
+- Force-push or delete branches without human approval
 
 ## Skill Changes Needed
 
-Each skill needs an **autonomous adapter** — a thin wrapper that translates its interactive communication into GitHub artifacts. The core logic stays the same.
+Each skill interacts with GitHub differently. The GitHub interaction is skill-specific, not a generic adapter — the plan skill opens plan PRs and posts ADRs as comments; the build skill opens slice PRs and posts stuck-points; the refactor skill just commits to the slice branch.
 
-### Plan + Grill (merged from engineering + slicing + grill)
-- **Remove:** one-at-a-time Q&A pacing, interactive constraint discovery
-- **Add:** bulk grill with confidence classification, self-answering, open-questions.md generation
-- **Add:** GitHub artifact generation (branch, draft PR, labeled comments)
-- **Keep:** three grill lenses, context/ loading, spec change declaration, plan format
+### Grill (horizontal approach validation)
+- **Remove:** one-at-a-time Q&A pacing
+- **Add:** bulk grill with ADR output format, confidence classification, self-answering
+- **GitHub role:** opens the plan PR (draft), posts blocking/assumption ADRs as line comments on plan.md, manages the `agent-plan` label
+- **Keep:** three grill lenses, context/ loading
+
+### Slicing (vertical decomposition)
+- **Remove:** interactive constraint discovery conversation
+- **Add:** dependency graph construction, spec stub generation, stacked branch planning
+- **GitHub role:** updates the plan PR with slice order and spec stubs, creates branch structure for slices
+- **Keep:** spec change declaration, plan format, first-slice identification
 
 ### Test Planning
 - **Remove:** interactive checkpoint validation ("present one at a time, wait")
 - **Add:** autonomous contract writing with confidence classification
-- **Add:** PR comments for medium/low-confidence contracts
+- **GitHub role:** commits contracts to slice branches, posts assumption/blocking comments on spec files in slice PRs
 - **Keep:** contract format, mock boundary decisions, spec file structure
 
 ### Test Writer
 - **Remove:** nothing significant — already mostly autonomous
-- **Add:** git push per slice, PR comment on infrastructure issues
+- **Add:** commits to slice branch, pushes
+- **GitHub role:** minimal — test files committed to slice branch. Posts comment only if infrastructure issues block test writing.
 - **Keep:** everything — AAA, confirm red, locked artifacts, spec pointer updates
 
 ### Build
 - **Remove:** nothing significant — already mostly autonomous
-- **Add:** git push per slice, PR comment on stuck-points, skip-and-continue for blocked slices
+- **Add:** commits to slice branch, pushes, opens slice PR when green
+- **GitHub role:** opens slice PR (`agent-slice` label), posts stuck-points as comments, requests review when green
 - **Keep:** everything — TDD loop, full-suite gate, refactor invocation, spec status updates
 
 ### Refactor
-- **No changes.** Already fully autonomous. Just commits to the branch.
+- **Minimal changes.** Commits to slice branch. No direct GitHub interaction beyond the commit.
 
-### New: GitHub Adapter (infrastructure, not a skill)
-- Branch management (create, push, never force-push)
-- PR lifecycle (open draft, update description, add/remove labels, request review)
+### Checker / Validation Skills
+Beyond refactor, additional validation skills may be needed:
+- **Spec compliance checker** — does the implementation match the spec contract? (already exists as a step in build's subagent mode)
+- **Security review** — does the change introduce security issues? (especially important for security-critical projects like Ostia)
+- **Cross-slice regression checker** — do merged slices still work together? (runs after dependent slices rebase)
+- **CI validator** — do CI checks pass? (reads GitHub Actions results)
+
+These are future additions. Refactor + the locked-test full-suite gate are the day-one validation layer. Additional checkers layer on as we learn where the autonomous agent's blind spots are.
+
+### GitHub Operations (shared infrastructure, not a skill)
+Common operations used by multiple skills:
+- Branch management (`gh stack`, worktrees, rebase after merge)
+- PR lifecycle (create, update description, add/remove labels, request review)
 - Comment reading and parsing (map human comments to open questions)
 - Comment writing (labeled with 🔴/🟡/🟢/📋 prefixes)
 - Polling logic (check for new comments, map to state changes)
+
+These are bash/gh commands available to all skills, not a separate skill. Each skill calls them differently depending on its GitHub role.
 
 ## Eval Tasks for Skill Evolution (Phase: L1 Factory)
 

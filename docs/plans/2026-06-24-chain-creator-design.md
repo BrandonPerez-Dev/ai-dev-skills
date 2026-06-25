@@ -6,7 +6,9 @@
 
 ## What This Is
 
-A skill that reads a repo and produces a **repo-specific agent chain** — a customized set of skills and a CLAUDE.md that an autonomous agent uses to plan, test, and build in that particular codebase. The auto-* skills (auto-plan-grill, auto-test-planning, auto-build) are the generic templates (L0). The chain creator (L1) adapts them into repo-specific skills (L2) that know the project's language, conventions, test infrastructure, and architectural patterns.
+A **flow of skills** — not a single skill — that reads a repo and produces a **repo-specific agent chain**: a customized set of skills, agents, and a CLAUDE.md that an autonomous agent uses to plan, test, and build in that particular codebase. The auto-* skills (auto-plan-grill, auto-test-planning, auto-build) are the generic templates (L0). The chain creator flow (L1) adapts them into repo-specific skills (L2) that know the project's language, conventions, test infrastructure, and architectural patterns.
+
+The chain creator follows a similar pattern to the pipeline it produces: survey → grill the findings → plan the chain → design evals/contracts for each skill → write the skills → validate them. It is itself a pipeline of skills that understands the framework we build around repos and knows how to break that down into optimizable skills and agents.
 
 ## Why Not Just Use Generic Skills
 
@@ -64,7 +66,11 @@ A project-level CLAUDE.md with:
 
 ### 2. Repo-specific skills (L2)
 
-Customized versions of the L0 auto-* templates, living in the repo's `.claude/skills/`:
+Two categories of L2 skills, living in the repo's `.claude/skills/`:
+
+**Process skills** — customized versions of the L0 auto-* templates. These define *how* to plan, test, and build in this repo:
+
+**Domain skills** — deeply repo-specific knowledge that goes beyond process. These define *what to know* about this specific codebase:
 
 #### `.claude/skills/plan-grill/SKILL.md`
 Auto-plan-grill adapted with:
@@ -101,13 +107,25 @@ Auto-build adapted with:
 - Linting rules to follow
 - How to verify (cargo check, cargo clippy, cargo test)
 
-#### `.claude/skills/foundation/SKILL.md` (conditional)
-For greenfield or major structural changes:
-- Project initialization steps
-- CI/CD setup
+#### Domain skills (deeply repo-specific)
+
+Beyond process skills, the chain creator also produces domain skills — knowledge about *this specific codebase* that isn't about process:
+
+- **Language/runtime skill** (e.g., `.claude/skills/rust-ostia/SKILL.md`) — Rust patterns specific to this project: how `anyhow` is used, how traits are organized, how `nix` FFI is wrapped, naming conventions
+- **Data interaction skill** (e.g., `.claude/skills/sandbox-rules/SKILL.md`) — rules for interacting with specific subsystems: "always validate Landlock rules before applying", "never bypass namespace isolation in tests", "always make backups before modifying credential stores"
+- **Security skill** (for security-critical projects) — project-specific security constraints: threat model references, what constitutes a security-relevant change, required review patterns
+
+Domain skills are where gskill excels later — once the repo has clean commit history, gskill can evolve domain skills from real pass/fail signals on actual codebase tasks.
+
+#### `.claude/skills/foundation/SKILL.md` (non-optional for new projects)
+CI/CD is critical for determinism and consistency. Every project should have it. The foundation skill handles:
+- CI/CD setup (GitHub Actions for build, test, lint, format) — **this is non-optional**
+- Project initialization steps (for greenfield)
 - Config scaffolding
 - Dependency installation
 - Context/ and spec/ bootstrapping
+
+For existing projects without CI, the chain creator flags this as a gap and the foundation skill creates it as a first step before any feature work.
 
 ### 3. Agent chain config
 
@@ -264,9 +282,35 @@ This three-level correction routing is what makes the system self-improving acro
 - **Guess at business logic.** The chain creator extracts conventions and infrastructure patterns. It doesn't decide what features to build — that comes from the kickoff/issue.
 - **Skip human review of generated chains.** The first chain for a repo always gets human review. GEPA optimization reduces the need for corrections over time, but the human gate stays.
 
+## Multi-Repo Hub Pattern
+
+For projects spanning multiple repos (e.g., a backend + frontend + shared types), a **hub repo** provides hierarchical orchestration above the individual repo level:
+
+```
+hub-repo/                          # Shared context and orchestration
+├── context/                       # Cross-repo architectural truth
+├── spec/                          # Cross-repo behavioral specs
+├── .claude/skills/                # Hub-level orchestration skills
+├── README.md                      # Setup: cloning all related repos
+└── repos/                         # Convention: related repos cloned here
+    ├── backend/                   # Each has its own L2 chain
+    ├── frontend/
+    └── shared-types/
+```
+
+The hub repo's README contains clone instructions that set up all related repos in the same parent directory. The hub's `.claude/skills/` contain orchestration skills that understand the cross-repo dependency graph and can coordinate work across repos.
+
+This pattern gives us **near-infinite hierarchy** — hubs can reference other hubs, creating an org-chart-like structure for large projects. Each level has its own context/, spec/, and skill chain scoped to that level's concerns.
+
+The chain creator at the hub level produces:
+- Cross-repo context/ (shared architectural decisions)
+- Orchestration skills (which repo to modify for a given change, how to coordinate cross-repo PRs)
+- References to each sub-repo's L2 chain
+
 ## Open Questions
 
 1. **Where does the agent-chain.yaml live?** Options: `.claude/agent-chain.yaml` in the repo (versioned, visible), or in the skill config system (centralized, not repo-versioned).
 2. **How much of the L0 template shows through in L2?** Should L2 skills be fully self-contained (copy everything from L0 + add repo-specific), or should they reference L0 and only override the repo-specific parts? Self-contained is more robust but harder to update when L0 improves.
-3. **How does the chain creator handle multi-language repos?** (e.g., remote-terminal: Go + TypeScript + Proto). Does it produce one chain with language-specific steps, or multiple chains?
-4. **Should the foundation skill be part of the chain or a pre-chain step?** If it's in the chain, the chain config handles triggering. If it's pre-chain, the chain creator runs it during initial setup.
+3. **How does the chain creator handle multi-language repos?** One chain with a diverging path for languages seems viable (e.g., shared grill+plan, language-specific test-write+build). May need trial and error — the remote-terminal project (Go + TypeScript + Proto) will be a natural test case.
+4. ~~**Should the foundation skill be part of the chain or a pre-chain step?**~~ Resolved: foundation is part of the chain, triggered conditionally. CI/CD is non-optional for new projects.
+5. **Hub-level chain creator:** How does the L1 flow work at the hub level? Does it survey all sub-repos and produce a hub-level orchestration chain, or does it delegate to per-repo chain creators and only add the cross-repo coordination layer?
