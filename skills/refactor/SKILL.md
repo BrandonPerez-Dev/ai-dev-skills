@@ -22,7 +22,7 @@ allowed-tools:
 Review changed code. Fix what's wrong. Don't break contracts.
 
 <HARD-GATE>
-Do NOT make changes that violate contracts in `spec/<capability>.md` or architectural decisions in `context/`. If simplification would change behavior defined in spec/, skip it. The spec is the source of truth — cleaner code that breaks a contract is not cleaner.
+Do NOT make changes that violate contracts in `spec/<name>.md` or architectural decisions in `context/`. If simplification would change behavior defined in spec/, skip it. The spec is the source of truth — cleaner code that breaks a contract is not cleaner.
 </HARD-GATE>
 
 <HARD-GATE>

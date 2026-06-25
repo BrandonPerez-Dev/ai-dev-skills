@@ -108,7 +108,7 @@ Research the problem space first. Discover tools that could expand the skill's c
 ```
 product-definition → design → (write-spec → PR review → technical-breakdown → PR review) → decompose-tasks → build
 ```
-The design skill orchestrates write-spec and technical-breakdown with review gates between them. Specs go in `specs/NNN-<topic>/`.
+The engineering skill orchestrates slicing and test-planning with review gates between them. Slice specs go in `spec/`.
 
 ### Opportunity Evaluation
 ```

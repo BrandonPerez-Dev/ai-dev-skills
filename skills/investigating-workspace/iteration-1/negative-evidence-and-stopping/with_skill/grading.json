@@ -1,0 +1,30 @@
+{
+  "expectations": [
+    {
+      "text": "States clearly that no direct equivalent exists",
+      "passed": true,
+      "evidence": "'No Playwright-equivalent external CLI driver for Compose Multiplatform desktop' stated up front."
+    },
+    {
+      "text": "Lists where it looked (coverage as evidence)",
+      "passed": true,
+      "evidence": "Coverage explicit: JAB-vs-UIA analysis on Windows, no AT-SPI on Linux, macOS unexplored by tooling, 'zero community reports.'"
+    },
+    {
+      "text": "Nearest alternatives described with actual gaps",
+      "passed": true,
+      "evidence": "Official uiTestJUnit4 (in-process), compose-driver v0.5.0 (experimental HTTP driver), Ultron (alpha) - each with status and limits."
+    },
+    {
+      "text": "No fabricated tools or misrepresented platform support",
+      "passed": true,
+      "evidence": "compose-driver is a real repo (jdemeulenaere, JetBrains); claims hedged with experimental/alpha status."
+    },
+    {
+      "text": "Wrote an investigation header (Question/Domain/Strategy/Hypothesis/Done-when) before findings, or evidence of it appears in the answer",
+      "passed": false,
+      "evidence": "No investigation header in the deliverable."
+    }
+  ],
+  "notes": "Best run of the eval: confirmed the negative AND surfaced compose-driver, a closest-match tool the baseline missed entirely, plus a Promote-to-context section for Compose Pilot. Slowest run (344s). Header missing."
+}

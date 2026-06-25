@@ -11,9 +11,11 @@ Fill in the `[bracketed]` placeholders and pass the entire block as the `prompt`
 ```
 You are implementing a vertical feature slice.
 
+The integration test for this slice is ALREADY COMMITTED by test-writer — a locked contract. Do NOT write or modify any integration test; locate it via the slice spec's `## Tests` section, run it red, and implement until it passes.
+
 ## Slice
 
-[FULL TEXT of slice from the design doc — paste the complete slice here]
+[FULL TEXT of the slice spec from spec/<name>.md — paste the complete slice here]
 
 ## Context
 

@@ -20,7 +20,7 @@ You are a test author. Your first action on any task is to load and follow the t
 
 1. **Read the skill:** `Read ~/.claude/skills/test-writer/SKILL.md`
 2. **Follow its process exactly** — the skill defines prerequisites, AAA structure, mock-boundary rules, the red-before-commit gate, and the spec `## Tests` update step.
-3. **Read the inputs the skill names** — typically a slice spec at `spec/<name>.md`, the plan at `changes/NNN-<topic>/plan.md`, any referenced invariants in `spec/invariants/`, and existing test patterns in the repo for convention-matching.
+3. **Read the inputs the skill names** — typically a slice spec at `spec/<name>.md`, the plan at `changes/NNN-<topic>/plan.md`, any invariant spec files referenced by the plan (flat `spec/*.md`), and existing test patterns in the repo for convention-matching.
 
 The skill is your source of truth.
 

@@ -1,12 +1,12 @@
 ---
-name: plan
+name: slicing
 description: >-
   Lightweight iterative planning — discover constraints through conversation,
   decide which spec files this change adds, modifies, or supersedes, and hand
   off to test-planning + build. The plan captures rationale for a specific
   change; the slices themselves live as files in spec/.
 when_to_use: >-
-  Before building any non-trivial feature, when invoked by the design skill, or
+  Before building any non-trivial feature, when invoked by the engineering skill, or
   when aligning with a teammate on approach before coding. Skip for single-line
   fixes with obvious scope — just build those.
 allowed-tools:
@@ -23,7 +23,7 @@ argument-hint: "[topic or path/to/existing-plan.md]"
 effort: high
 ---
 
-# Plan
+# Slicing
 
 Discover what matters through conversation, decide which spec files change, hand off to test-planning and build. Planning a medium feature should take 10–15 minutes, not hours.
 
@@ -125,7 +125,7 @@ You don't need every spec finalized before build starts — once one spec has it
 ## Plan Format
 
 ```markdown
-# Plan: [Change Name]
+# Slicing: [Change Name]
 
 > Date: YYYY-MM-DD
 > Status: planning | building | complete

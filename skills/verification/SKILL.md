@@ -63,7 +63,7 @@ Different work requires different verification. Use the right checklist.
 6. □ Linter clean
 7. □ Manually test in running system (feature actually works)
 8. □ Test happy path + 2-3 realistic edge cases
-9. □ Spec compliance: matches design doc exactly
+9. □ Spec compliance: matches slice spec (`spec/<name>.md`) exactly
 10. □ Error handling verified (not just happy path)
 ```
 
@@ -119,7 +119,7 @@ Run in this order. If any step fails, stop — fix and re-verify from that step.
 3. Regression check   → ALL previous tests still green
 4. Manual test        → Feature works in running system
 5. Edge cases         → Boundary conditions, error paths handled
-6. Spec compliance    → Matches design doc / acceptance criteria
+6. Spec compliance    → Matches slice spec (`spec/<name>.md`) / acceptance criteria
 7. Documentation      → Docs updated if behavior changed
 ```
 
@@ -157,12 +157,12 @@ You don't need ALL of these every time. Pick the ones relevant to your change. B
 
 Before claiming a feature matches the design:
 
-1. Re-read the design doc section for this feature
+1. Re-read the slice spec (`spec/<name>.md`) section for this feature
 2. List each acceptance criterion
 3. For each criterion: is there a passing test that proves it?
 4. For any deviation from the design: document WHY
 
-If there's no design doc, verify against the user's original request. Quote the requirement, show the evidence.
+If there's no slice spec (`spec/<name>.md`), verify against the user's original request. Quote the requirement, show the evidence.
 
 ## Cognitive Bias Guards
 

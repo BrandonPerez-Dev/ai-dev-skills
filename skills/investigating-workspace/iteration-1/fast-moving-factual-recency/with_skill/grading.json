@@ -1,0 +1,30 @@
+{
+  "expectations": [
+    {
+      "text": "Cites a primary Anthropic source (docs/platform), not only blogs",
+      "passed": true,
+      "evidence": "Sourced directly from platform.claude.com/docs; 3 URLs all primary."
+    },
+    {
+      "text": "States when claims were verified / source dates (recency discipline)",
+      "passed": true,
+      "evidence": "11 dated claim lines; explicit 'as of June 9-10, 2026' framing and deprecation date (June 15, 2026) for Sonnet 4."
+    },
+    {
+      "text": "Gives one concrete default recommendation",
+      "passed": true,
+      "evidence": "claude-sonnet-4-6 named as the default for tool-calling, with reasoning from Anthropic's selection matrix."
+    },
+    {
+      "text": "Output includes a Sources section",
+      "passed": true,
+      "evidence": "Sources section present."
+    },
+    {
+      "text": "Wrote an investigation header (Question/Domain/Strategy/Hypothesis/Done-when) before findings, or evidence of it appears in the answer",
+      "passed": false,
+      "evidence": "No Question/Domain/Strategy/Hypothesis header appears in the deliverable."
+    }
+  ],
+  "notes": "Strong recency work: caught the dateless-ID-is-pinned-snapshot gotcha and the June 15 deprecation. Header artifact missing from the answer."
+}

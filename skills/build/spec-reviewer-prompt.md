@@ -55,7 +55,7 @@ DO:
 
 ## Check: TDD Compliance
 
-- Does an integration test exist that matches the design doc outline?
+- Does the locked integration test (committed by test-writer, linked from the spec's ## Tests section) pass for this slice?
 - Does the integration test use real controlled deps and mock uncontrolled deps?
 - Do unit tests exist at each implemented layer?
 - Do tests verify behavior (not implementation details)?

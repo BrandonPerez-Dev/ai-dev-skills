@@ -1,0 +1,30 @@
+{
+  "expectations": [
+    {
+      "text": "Identifies Supabase Auth with JWT and RLS policy enforcement (verifiable)",
+      "passed": true,
+      "evidence": "custom_access_token_hook + JWKS verification + single ownership-scoped RLS policy all verified against the repo (schema.sql:72, src/plugins/auth.ts)."
+    },
+    {
+      "text": "Every architectural claim cites a file path that exists",
+      "passed": true,
+      "evidence": "All 8 cited paths verified to exist (src/plugins/auth.ts, supabase/config.toml, migrations, etc.)."
+    },
+    {
+      "text": "Directly answers API-layer vs database-layer question",
+      "passed": true,
+      "evidence": "Leads with 'API-layer-only for role enforcement.'"
+    },
+    {
+      "text": "No fabricated file paths or invented middleware",
+      "passed": true,
+      "evidence": "Spot-checked claims (requireRole, token hook) match file contents."
+    },
+    {
+      "text": "Wrote an investigation header (Question/Domain/Strategy/Hypothesis/Done-when) before findings, or evidence of it appears in the answer",
+      "passed": false,
+      "evidence": "No investigation header in the deliverable."
+    }
+  ],
+  "notes": "Found the highest-value insight of either run: Drizzle uses the service-role connection so RLS is bypassed entirely - the DB will not catch forgotten API-layer checks. Header missing."
+}

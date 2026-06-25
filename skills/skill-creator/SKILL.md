@@ -1,452 +1,170 @@
-
 ---
 name: skill-creator
 description: >-
-  Create or improve skills following agent-building best practices. Use when you need to
-  create a new reusable skill, rewrite a weak skill, or evaluate skill quality. Covers
-  the full lifecycle: research, gap analysis, tool discovery, prompt design, structural
-  DNA, and quality scoring.
+  Create new skills, improve existing skills, and measure skill performance
+  with baseline-vs-with-skill evals. ALWAYS invoke when the user wants to
+  create a skill, turn a workflow into a skill, edit or optimize an existing
+  skill, run or design skill evals, benchmark a skill, optimize a skill's
+  description for triggering, or diagnose a skill that isn't activating or
+  isn't being followed. Do not draft or edit SKILL.md files without this
+  skill.
 allowed-tools:
   - Read
   - Write
   - Edit
-  - Bash
   - Glob
   - Grep
+  - Bash
+  - Agent
+  - Skill
   - WebSearch
   - WebFetch
-  - Task
-  - Skill
   - AskUserQuestion
+effort: high
 ---
 
 # Skill Creator
 
-Create skills that teach Claude something it doesn't already know.
+Create skills that measurably improve agent output, and prove it with evals.
 
-## The Central Question
+## The core loop
 
-**"What does this skill add that the model can't already do?"**
+Skill quality is established by measurement, not by authoring care. The loop:
 
-Claude is already a strong generalist. A skill earns its context window cost only when it provides one or more of:
+1. **Capture intent** — what should the skill enable, when should it trigger, what does good output look like? If the current conversation already contains the workflow ("turn this into a skill"), extract from history first.
+2. **Research the domain** — verify the methodology and facts the skill will encode before drafting. A skill built from unverified assumptions ships those assumptions to every future session.
+3. **Draft minimal** — write the smallest skill that plausibly closes the gap.
+4. **Run evals** — 3-5 realistic test prompts, each run twice in parallel: once with the skill, once baseline (no skill, or the old version when improving). Subagents, same turn.
+5. **Review with the human** — show outputs side by side; collect per-case feedback.
+6. **Improve and re-run** — generalize from feedback, keep the prompt lean, repeat until the user is satisfied or progress stalls.
 
-- **A methodology** — a structured process for thinking through a class of problem (not a checklist of things to check, but a sequence of phases with entry/exit criteria, decision points, and failure modes)
-- **Institutional knowledge** — domain-specific facts, schemas, conventions, or constraints Claude has no way to know (your company's API, your team's deployment process, your industry's regulatory requirements)
-- **Deterministic operations** — scripts and templates that must execute the same way every time (file format conversion, project scaffolding)
-- **Orchestration logic** — how skills, tools, and agents connect in your specific workflow (what invokes what, in what order, with what gates)
+The eval mechanics, schemas, and viewer live in `harness/` (vendored from Anthropic's official skill-creator). Usage in "Running the harness" below.
 
-If a skill restates what Claude already knows ("check for SQL injection," "use semantic HTML," "write clear variable names"), it's wasting context window for zero value.
+## Is the skill worth it? Measure, don't guess
 
-## Skills Are Agents
+Judge a skill by its **measured delta over baseline**, weighed against its context cost. Don't ask "can the model already do this?" — capability is a guess, and that question systematically rejects skills whose value is consistency rather than capability. A Python-conventions skill fails the capability test (the model can write Python) and passes the delta test (output quality and consistency measurably improve). The baseline runs in step 4 answer the worth-it question empirically: no delta after honest iteration means cut it; a real delta justifies the tokens regardless of what the model "could" do alone.
 
-A skill is an agent definition. The mapping is direct:
+The same logic governs every paragraph inside a skill: content earns its place by changing behavior, not by being true. The context window is shared; prefer the smallest set of high-signal tokens.
 
-| Agent Concept | Skill Equivalent |
-|---------------|-----------------|
-| System prompt | SKILL.md body |
-| Tool list | `allowed-tools` in frontmatter |
-| Knowledge base | `references/` directory |
-| Deterministic tools | `scripts/` directory |
-| Agent chaining | Invoking other skills via `Skill` tool |
-| Subagent spawning | Using `Task`/`Agent` tool within a skill |
-| Model selection | `model` field in frontmatter |
-| Isolated execution | `context: fork` in frontmatter |
+## Two failure modes, two different fixes
 
-This means agent-building best practices apply directly to skill creation. Five dimensions, all interconnected:
+Skills fail silently — no error, the agent just proceeds without the skill and output looks plausible. The failures split into two distinct problems. Diagnose which one you have before fixing anything.
 
-**Prompt design (the SKILL.md body).** This is the agent's system prompt. The structural DNA patterns in this skill — central thesis, hard gates, method selection, checkpoints, bias guards — are context engineering techniques that shape how the agent processes information and makes decisions. Structure matters as much as content: the same instructions reorganized can produce dramatically different behavior.
+**Activation failure: the skill never triggers.** Triggering is decided entirely by the frontmatter description, and Claude under-triggers by design — it skips skills for tasks it believes it can handle alone. Empirical data (650-trial community study, 2026): directive descriptions ("ALWAYS invoke when… Do not X directly") reached 100% activation; passive "Use when…" descriptions reached 37-77%. Write descriptions pushy:
 
-**Tool design (the allowed-tools list).** Tools are where the agent takes action. Anthropic's own agent work found that optimizing tool descriptions alone improved task completion by 40%. Before writing the prompt, ask: what tools would make this agent more capable? Are there MCP servers to install, scripts to write, or existing tools to add? A research skill with `WebSearch` + `WebFetch` + `Context7` is fundamentally different from one without.
+- Name the domain, then the trigger contexts, then the bypass to forbid: `<What it does>. ALWAYS invoke when <concrete trigger phrases and situations>. Do not <do the thing> directly.`
+- Put the most important trigger first — the skill listing shares a budget (~1% of context window) and over-budget descriptions get silently dropped (check `/doctor`).
+- Also rule out the mundane causes: wrong directory, no restart after adding a new top-level skills dir, name collision with a bundled skill.
 
-**Context engineering (references/ and progressive disclosure).** Anthropic's research shows context window management explains more performance variance than prompt wording in complex tasks. `references/` files are the skill's knowledge base — loaded on demand, not always in context. Design them like a retrieval system: organized by topic, clearly indexed from SKILL.md, with guidance on when each is relevant.
+**Execution failure: the skill loads but steps get skipped.** The skill body is one frozen message — it is not re-read during the session — and the user's latest request always has the attention advantage. Steps that delay output without producing visible content get rationalized away. Fixes that hold:
 
-**Orchestration (skill chaining and subagents).** Skills can invoke other skills (agent chaining). A design skill that orchestrates research → architecture → test-planning is more reliable than one that tries to do all three inline. But orchestration has costs — coordination overhead, latency, failure modes. Default to single skill with tools; add orchestration only when a single skill demonstrably fails.
+- **Make procedural steps emit visible artifacts.** "Verify the output" gets skipped; "write a verification block mapping each requirement to where the output satisfies it" doesn't, because skipping it is now visible.
+- **Write standing instructions, not one-time steps.** "Throughout this task, run the linter after each edit" survives; "Step 3: run the linter" decays once step 3 scrolls past.
+- **Push must-not-skip behavior into scripts and hooks.** A bundled script runs the same way every time and costs no attention. Hooks enforce at the tool-call layer — but verify them; they can fail silently.
+- **Front-load durable rules.** On compaction, each skill keeps only its first ~5,000 tokens (25,000 combined across skills, most-recent-first), and summarization dilutes prose constraints ("when preconditions hold, plan the work" becomes "plans work"). Anything load-bearing past the first 5k can vanish mid-session. A skill can be re-invoked after compaction to restore it.
 
-**Tool count discipline.** Agents degrade above ~15 tools. If a skill needs many tools, consider splitting into an orchestrator that delegates to focused sub-skills. `allowed-tools` isn't just a permission list — it's a cognitive budget for the agent.
+## Prescriptiveness: split by layer
 
-When creating a skill, always ask: *"If I were building this as a standalone agent, what system prompt would I write, what tools would I give it, what knowledge would I preload, and what other agents would it delegate to?"* The answer maps directly to your skill design. Consult the **ai-agent-building** skill for deeper patterns.
+- **Description field**: directive emphasis, including ALWAYS — empirically justified for triggering.
+- **Single structural gates**: one hard gate that produces an artifact (a failing test, a written plan, a checklist file) is effective.
+- **Body behavior**: explain the why instead of stacking MUSTs. Models generalize from motivated rules to cases the skill didn't enumerate; bare imperatives don't survive compaction and read as noise to skip. Scattered all-caps in the body is a yellow flag — reframe with reasoning.
+- **Fragile deterministic steps**: don't explain, script. Exact commands, "run this, don't modify."
 
-<HARD-GATE>
-Before creating any skill, invoke the **research** skill to investigate the problem space. Research best practices, existing approaches, prior art, and what gaps your skill should fill. Better input = better skill. Do not skip this step.
-</HARD-GATE>
+Match freedom to fragility: open-field judgment gets principles; narrow-bridge operations get scripts.
 
-## Structural DNA — What Makes a Skill Work
+## Designing the skill
 
-The best skills share a structural pattern. The weak ones are missing most of it. When creating a skill, build with these elements:
+A skill is an agent definition: the body is its system prompt, `allowed-tools` its grants, `references/` its knowledge base, `scripts/` its deterministic tools. Design accordingly:
 
-### 1. Central Thesis
+- **One central thesis.** The single sentence that survives if everything else is cut. A skill without one is a tip list.
+- **Method selection over uniform process.** If different inputs need different approaches, lead with a decision table; don't let the model default to one path for everything. Output homogeneity is the tell: when every output of a skill has the same shape regardless of input, the skill is over-prescribing — convert mandates into a technique menu with selection criteria, and make the output justify its choice.
+- **Bias guards for the skill's domain.** The rationalizations the model actually produces mid-task ("this case is simple, skip the process"), each paired with the counter-move. Specific beats generic.
+- **Output format.** Show what done looks like; it anchors quality.
+- **References one level deep**, with a line in SKILL.md saying when to read each. Files over ~100 lines get a table of contents. Nested references get half-read and missed.
+- **Scripts for repeated work.** If eval transcripts show every run independently writing the same helper, bundle it in `scripts/` and point to it.
+- **Structure budget**: SKILL.md under 500 lines, ideally well under; durable rules in the first 5k tokens; gerund naming (`processing-pdfs`); no time-sensitive facts in the body.
+- **`allowed-tools` is a grant, not a fence.** It pre-approves tools; it does not restrict unlisted ones. To actually block, use `disallowed-tools` or permission deny rules.
+- **No meta-narrative.** State the rule and its reason. Project history and audit stories belong in planning docs, not skills.
 
-One sentence that anchors the entire skill. Everything flows from it. If the skill were reduced to a single instruction, this is what survives.
+## Writing evals
 
-- research: *"Investigate before you act. Form hypotheses and test them — don't passively read."*
-- systematic-debugging: *"Find the root cause before you touch the code."*
-- verification: *"Evidence before assertions. Every time. No exceptions."*
+Save cases to `evals/evals.json` inside the skill directory (schema: `references/eval-schemas.md`). 3-5 cases to start; expand once the loop stabilizes.
 
-A skill without a central thesis wanders. It becomes a list of tips instead of a coherent methodology.
+- **Realistic prompts** — what a user would actually type, with file paths, messy phrasing, concrete detail. Not abstract task descriptions.
+- **Substantive tasks** — simple one-step prompts won't trigger skills at all and test nothing.
+- **Write cases the baseline visibly fails.** If baseline and with-skill both clear every assertion, the eval measures nothing — the discriminating signal hides in qualities the assertions didn't capture. Calibrate difficulty until the baseline fails at least some assertions, and prefer assertions that encode the skill's specific behavioral rules (artifacts produced, sourcing discipline) over generic quality bars both versions meet.
+- **Assertions objectively verifiable** where possible, with descriptive names and a short id (the id becomes the assessment column name in MLflow). Check programmatically (a script) over eyeballing.
+- **Subjective-quality skills** (writing style, pedagogy, design): assertions cover the structural floor (format, required elements, banned patterns); real quality judgment comes from human review of outputs against **golden references** — exemplar outputs the user has personally vetted. Build the golden set as the user reviews; it compounds.
+- Keep per-case results as a score plus textual feedback. That format feeds both human review now and automated optimization later.
 
-### 2. Hard Gates
+When a skill failure surfaces in real use, add it as an eval case before fixing it. The suite accretes regression coverage the same way a test suite does.
 
-Explicit `<HARD-GATE>` blocks that prevent the single most damaging failure mode. These are non-negotiable constraints — the one thing that, if violated, makes the skill worthless.
+## Running the harness
 
-```markdown
-<HARD-GATE>
-Do NOT [the thing that ruins everything] without [the thing that must happen first].
-[Why this matters in one sentence.]
-</HARD-GATE>
+All commands run from the skill-creator directory; the harness lives in `harness/`.
+
+**1. Spawn runs — all cases, with-skill AND baseline, same turn:**
+
+For each case, two subagents in parallel: one pointed at the skill, one at the baseline (no skill for new skills; a snapshot copy of the old version for improvements — `cp -r <skill> <workspace>/skill-snapshot/` before editing). Outputs to `<skill-name>-workspace/iteration-N/<eval-name>/{with_skill,without_skill|old_skill}/outputs/`. Write `eval_metadata.json` per case. Capture `total_tokens` and `duration_ms` from each task notification into `timing.json` immediately — the notification is the only place that data exists.
+
+**2. While runs execute, draft or review assertions.** Update `evals/evals.json`.
+
+**3. Grade and aggregate:**
+
+- Grade each run against assertions per `harness/agents/grader.md`; results to `grading.json` (fields: `text`, `passed`, `evidence` — the viewer depends on these exact names).
+- Aggregate: `cd harness && python -m scripts.aggregate_benchmark <workspace>/iteration-N --skill-name <name>` → `benchmark.json` with pass rate, time, tokens, mean ± stddev, delta vs baseline.
+- Analyst pass per `harness/agents/analyzer.md`: non-discriminating assertions, high-variance cases, time/token tradeoffs.
+
+**4. Log to MLflow (canonical record), then human review:**
+
+```bash
+python3 scripts/log_to_mlflow.py <workspace>/iteration-N --skill-name <name> \
+  --skill-path <skill>/SKILL.md
 ```
 
-Use sparingly — one or two per skill. If everything is a hard gate, nothing is.
+Logs to the local tracking server (`http://127.0.0.1:5000`, systemd user service `mlflow.service`):
+- one nested run per case x variant (pass rates, tokens, duration, answer/grading artifacts)
+- one **trace** per run (eval prompt in, answer out) with a per-assertion **assessment** (pass/fail + evidence) — this populates the GenAI view's Traces tab and run drawers
+- with `--skill-path`, the SKILL.md is registered in the **Prompt Registry** as `skill_<name>` (new version only when the text changed) — the versioned, diffable evolution ledger GEPA later reads
 
-### 3. Method Selection
+The user reviews in the MLflow UI: the experiment's Traces tab shows answers with per-assertion pass columns, and they can attach their own feedback to traces there. Note the UI's two view modes (GenAI vs Model training toggle in the sidebar): traces/assessments live in GenAI view; classic run tables in Model training view. The vendored HTML viewer (`harness/eval-viewer/generate_review.py --static`) remains a fallback for offline side-by-side review.
 
-Different inputs need different approaches. A decision table at the top prevents the model from defaulting to one approach for everything.
+**5. Improve:** generalize from feedback rather than patching the specific case; read the transcripts, not just outputs — cut skill content that sends runs down unproductive paths; bundle scripts for work repeated across runs; explain the why behind new rules. Then re-run into `iteration-N+1`.
 
-```markdown
-| Situation | Approach | Why |
-|-----------|----------|-----|
-| Known question, one source | Quick lookup | Don't over-investigate |
-| Multiple valid approaches | Deep investigation | Need evidence for trade-offs |
-| Regression bug | git bisect | Temporal search beats code reading |
+**Description optimization** (after the body stabilizes): generate ~20 trigger eval queries (8-10 should-trigger across phrasings, 8-10 near-miss should-NOT-trigger — adjacent domains and keyword overlaps, not obviously-irrelevant strawmen). Review the set with the user (`harness/assets/eval_review.html`), then:
+
+```bash
+cd harness && python -m scripts.run_loop --eval-set <eval.json> \
+  --skill-path <skill> --model <current-session-model-id> --max-iterations 5 --verbose
 ```
 
-This is what separates a methodology from a checklist. A checklist says "do these things." A method selection says "assess the situation, then choose the right approach."
+Train/test split is built in; apply `best_description` (selected on held-out score, which resists overfitting).
 
-### 4. Checkpoints
+**Blind A/B** (optional, "is v2 actually better?"): `harness/agents/comparator.md` + `analyzer.md`.
 
-Built-in pause points where the human validates direction before the model continues. Prevents the model from disappearing for 10 minutes and returning with a finished product built on wrong assumptions.
+## Continuous improvement and GEPA
 
-```markdown
-### Step 3: Check In
+The loop above run by hand — score, read feedback, propose an edit, accept only what improves held-out cases — is manual reflective iteration, and it's the right default. A skill graduates to automated optimization — `mlflow.genai.optimize_prompts()` with the GEPA optimizer (tracked on the same local MLflow server), or the standalone `gepa` library — only when all three hold:
 
-**CHECKPOINT: Do NOT skip this step.**
+1. Its metric is trustworthy (assertions plus a reference-anchored judge that has tracked the user's actual judgments).
+2. Manual iteration has plateaued.
+3. Someone will diff and approve the winning candidate — never auto-merge an optimized skill.
 
-"Here's what I'm finding so far:
-- [Key observation]
-- [Surprise or contradiction]
+Guardrails from the optimization literature: mutate on train cases, select on held-out validation; penalize length (optimizers bloat instructions with edge cases); keep a frozen set of human-judged outputs and reject the run if judge scores stop correlating with them.
 
-Does this match your intuition, or should I adjust?"
-```
+## Self-review before shipping a skill
 
-Checkpoints are especially important in multi-step skills (design, opportunity-research). Utility skills (commit-and-pr, file tools) may not need them.
+- Description: directive, trigger-first, under budget, near-miss negatives considered
+- Central thesis stated; every section serves it
+- Why explained for judgment rules; scripts for fragile steps; no all-caps stacking in the body
+- Procedural/verification steps emit visible artifacts; standing-instruction phrasing
+- Durable rules in the first 5k tokens
+- References one level deep; TOCs on long files; scripts bundled for repeated work
+- `evals/evals.json` exists with realistic cases; baseline delta measured, not assumed
+- No meta-narrative, no time-sensitive facts, no content that merely restates model knowledge
 
-### 5. Bias and Rationalization Guards
+## References
 
-A table of "if you're thinking X, stop — because Y." These catch the model's most common failure modes for this type of work.
-
-```markdown
-| Thought | Reality | Do Instead |
-|---------|---------|------------|
-| "This is simple, skip the process" | Simple problems have root causes too | Follow the process — it's fast for simple cases |
-| "I know the answer already" | First impressions anchor you | Search for disconfirming evidence |
-```
-
-The best guards are specific to the skill's domain, not generic advice.
-
-### 6. Structured Output Format
-
-A template showing exactly what the skill produces. This anchors quality — the model knows what "done" looks like.
-
-```markdown
-## Output Format
-
-## Answer
-[Direct answer — 1-3 sentences]
-
-## Key Findings
-1. **Finding** — Evidence with source reference. [Confidence: high/medium/low]
-
-## Open Questions
-[What's still unclear]
-```
-
-### 7. Communication Design (User-Facing Skills Only)
-
-Skills that produce multi-step output with user decisions need to design how they talk to the user. This applies to methodology and orchestrator skills (design, write-spec, research, etc.) — not utilities (commit-and-pr, verification).
-
-Follow the **communication-protocol** skill. The key rules to build into the skill's process:
-
-- **One topic per message.** Don't combine findings + decisions in one output.
-- **Max 3-4 items per group.** If presenting more, cluster into named groups.
-- **Lead with the point.** Conclusion first, evidence second. Name what you need: FYI, Validate, or Decide.
-- **Scale decisions to stakes.** Low-stakes: recommend and move. High-stakes: pairwise comparison.
-- **Progressive disclosure.** Layer 1 is a 30-second scan. Layer 2 is the evidence locker.
-
-If a skill has checkpoints (structural DNA #4), each checkpoint should follow these rules. A checkpoint that dumps 500 words defeats its purpose.
-
-### 8. Anti-Patterns Table
-
-What the skill prevents. These are the specific failure modes this skill exists to stop.
-
-```markdown
-| Anti-Pattern | What Happens | This Skill Prevents It By |
-|--------------|-------------|--------------------------|
-| Info dump | 2,000 words, no structure | Chunking + lead with point |
-| Guess and check | Random fixes, no root cause | Phased investigation |
-```
-
-## Context Economics
-
-The context window is a shared resource. Every token your skill consumes is a token unavailable for conversation history, other skills, and the actual work.
-
-**Budget guideline:** SKILL.md body should stay under 500 lines. If approaching this limit, split content into reference files.
-
-### Progressive Disclosure
-
-Skills load in three levels:
-
-1. **Metadata** (name + description) — always in context (~100 words). This is the ONLY thing that determines whether the skill triggers. All "when to use" information must be in the description, not the body.
-2. **SKILL.md body** — loaded when the skill triggers (<5k words target)
-3. **Bundled resources** — loaded only when Claude determines they're needed (unlimited, since scripts can execute without reading into context)
-
-### When to Split into Reference Files
-
-Move content to `references/` when:
-- Variant-specific details (AWS vs GCP vs Azure deployment patterns)
-- Domain-specific schemas (finance.md, sales.md, product.md)
-- Detailed API documentation or code examples
-- Advanced techniques only needed in specific situations
-
-Always reference split files from SKILL.md with clear guidance on when to read them:
-
-```markdown
-## Advanced Features
-- **Form filling**: See [forms.md](forms.md) for the complete guide
-- **Tracked changes**: See [redlining.md](redlining.md) when editing existing documents
-```
-
-Keep references one level deep from SKILL.md — no nested references.
-
-### Degrees of Freedom
-
-Match instruction specificity to task fragility:
-
-| Freedom Level | When | Example |
-|---------------|------|---------|
-| **High** (prose guidance) | Multiple valid approaches, context-dependent | Research methodology, design decisions |
-| **Medium** (pseudocode, parameterized) | Preferred pattern exists, some variation OK | API integration, test structure |
-| **Low** (specific scripts, exact steps) | Fragile, error-prone, consistency critical | File format manipulation, deployment scripts |
-
-Think of it as a bridge: narrow with cliffs needs guardrails (low freedom). Open field allows many routes (high freedom).
-
-## Creation Process
-
-### 1. Research the Problem Space
-
-Invoke the **research** skill. Investigate:
-- What methodologies exist for this type of work?
-- What are the common failure modes?
-- What prior art exists (other skills, tools, processes)?
-- What does Claude already know vs. what is genuinely additive?
-
-### 2. Identify the Gap
-
-Answer concretely:
-- What does this skill add that Claude can't already do?
-- What failure modes does it prevent?
-- What decisions does it make easier?
-- Who is the audience — another Claude instance, not a human reader?
-
-If you can't articulate the gap, the skill isn't needed. This is the kill switch.
-
-### 3. Discover Tools
-
-Invoke the **tool-discovery** skill. This is where skills gain capabilities nobody else has.
-
-Don't just list which built-in tools the skill needs — that's the minimum. Tool discovery searches three layers:
-
-1. **Existing MCP servers** — ready to install from registries, npm, GitHub
-2. **APIs worth wrapping** — services with good APIs but no MCP server yet (route to **mcp-builder**)
-3. **Software worth adopting** — systems worth installing *because* of their API, even if the user doesn't use them yet
-
-The tool-discovery skill handles the full search and presents recommendations. After discovery, also consider:
-- Custom scripts (`scripts/`) for deterministic operations
-- Whether the skill needs to invoke other skills (add `Skill` to tools)
-- Whether the skill needs subagents for parallel work (add `Task` or `Agent`)
-- Tool count discipline — agents degrade above ~15 tools
-
-### Checkpoint
-
-**CHECKPOINT: Do NOT skip this step.**
-
-Before writing the SKILL.md, present your plan to the user:
-- "Here's the gap this skill fills: [gap]"
-- "Here's what I found for tools: [tool recommendations]"
-- "Here's the skill type I'm going with: [type]"
-- "Does this match your vision, or should I adjust?"
-
-This prevents building a skill on wrong assumptions. The cost of pausing here is low; the cost of rewriting a complete skill is high.
-
-### 4. Choose the Skill Type
-
-| Type | Structure | Examples |
-|------|-----------|---------|
-| **Methodology** | Central thesis → phases → decision tables → guards | research, systematic-debugging, verification |
-| **Orchestrator** | Routing table → pipelines → sequencing | design, build, orchestrator |
-| **Domain reference** | Context + patterns + scripts/templates | docx, xlsx, mcp-builder |
-| **Utility** | Compact procedure, mostly templates | commit-and-pr, file tools |
-
-Methodologies need all the structural DNA. Utilities may only need a central thesis and output format. Match the structure to the type.
-
-### 5. Write the SKILL.md
-
-#### Frontmatter
-
-```yaml
----
-name: my-skill-name              # Required: lowercase with hyphens
-description: >-                   # Required: what it does AND when to trigger it
-  What this skill does. Use when [specific triggers].
-  Include all trigger conditions here — the body loads
-  AFTER triggering, so "When to Use" sections in the body
-  don't help with triggering.
-allowed-tools:                    # Optional: restrict tool access
-  - Read
-  - Write
-  - Bash
----
-```
-
-Other frontmatter fields:
-
-| Field | Type | When to Use |
-|-------|------|-------------|
-| `disallowed-tools` | list | Block specific tools |
-| `model` | haiku/sonnet/opus/inherit | Override model for this skill |
-| `context` | fork | Run in isolated subagent |
-| `disable-model-invocation` | bool | Manual `/skill` only |
-| `user-invocable` | bool | Hide from slash-command menu |
-| `argument-hint` | string | Help text (e.g., "[issue-number]") |
-
-#### Body Structure
-
-Follow this skeleton, adapting to the skill type:
-
-```markdown
-# Skill Title
-
-[Central thesis — one sentence]
-
-<HARD-GATE>
-[The one thing that must not be violated]
-</HARD-GATE>
-
-## [Method Selection / Scoping Table]
-[Decision table matching situations to approaches]
-
-## Process
-[Phased methodology with clear entry/exit criteria per phase]
-
-### Phase N: [Name]
-[What to do, when to stop, what comes next]
-
-### Checkpoint
-[Pause for human validation — especially in multi-step skills]
-
-## Output Format
-[Template for what this skill produces]
-
-## [Bias Guards / Rationalization Prevention / Red Flags]
-[Table of failure modes specific to this domain]
-
-## Anti-Patterns
-[What this skill exists to prevent]
-
-## Guidelines
-[Opinionated principles — not generic advice, but specific defended positions]
-```
-
-Not every skill needs every section. Utilities may skip checkpoints and bias guards. Methodologies should have all of them.
-
-#### Apply Prompt Engineering
-
-The SKILL.md body is a system prompt. The frontmatter description is a routing description. Both benefit from the **prompt-engineering** skill's techniques.
-
-Invoke **prompt-engineering** for:
-- **The frontmatter description** — this determines whether the skill triggers at all. Test it: "If I read only this description, would I know when to use this skill?"
-- **The SKILL.md body** — apply context positioning (hard gates at edges), motivation-based rules (explain WHY), XML sections for structure, and the altitude principle (neither too specific nor too vague)
-- **Tool descriptions** — if the skill creates or wraps tools, optimize their descriptions (40%+ improvement measured)
-
-Run the prompt-engineering self-check before finalizing.
-
-### 6. Add Bundled Resources (if needed)
-
-```
-skill-name/
-├── SKILL.md              # Required
-├── references/           # Documentation loaded on demand
-│   └── advanced.md
-├── scripts/              # Executable code (deterministic operations)
-│   └── process.py
-└── assets/               # Files used in output (templates, images)
-    └── template.html
-```
-
-**Do NOT create:** README.md, INSTALLATION_GUIDE.md, CHANGELOG.md, or any documentation about the skill itself. The skill contains instructions for Claude, not documentation for humans.
-
-### 7. Evaluate Against the Quality Rubric
-
-Use the two-phase scoring methodology in `references/scoring-methodology.md`:
-
-1. **Phase 1 (automated):** Run `scripts/generate-fact-sheet.sh <skill-name>` to produce an objective structural fact sheet. This detects hard gates, delegation, anti-patterns, and other markers that subjective evaluation can miss.
-2. **Phase 2 (subjective):** Score the 7 dimensions using the rubric below, with the fact sheet as input. Every score must quote evidence. Scores that contradict the fact sheet must be explained.
-
-Score the skill on all 7 dimensions before considering it done. Be honest — a skill that scores 6 and ships is worse than one that scores 6 and gets improved.
-
-For each dimension scoring below 2, identify what's missing and fix it. Common gaps:
-- **Additive value = 0**: The skill restates what Claude knows. Add methodology or institutional knowledge.
-- **Central thesis = 0**: No anchoring principle. Write one sentence that everything else flows from.
-- **Failure prevention = 0**: No gates or guards. Identify the single worst failure mode and add a hard gate.
-- **Decision support = 0**: Linear "do these steps." Add a method selection table.
-- **Tool design = 0**: Default tools, no discovery done. Run the tool-discovery skill.
-
-### 8. Test and Iterate
-
-Invoke the **skill-eval** skill to validate. It runs the skill against realistic test prompts and compares results — with-skill vs baseline (new skill) or old vs new (improvement). Includes blind A/B comparison to remove bias.
-
-If you're short on time, at minimum use `/my-skill` on real tasks and watch for:
-- Does it trigger correctly? (Test: describe a task that should invoke it — does the description match?)
-- Does it produce the right output format?
-- Does it catch the failure modes it's designed to prevent?
-- Does it waste tokens on things Claude already knows?
-
-If the skill fails, diagnose which component is weak (prompt, tools, context, orchestration) and fix that specific component. Don't rewrite the whole skill when one section needs adjustment.
-
-## Quality Rubric
-
-Score each dimension 0-2. A skill should score 8+ to ship.
-
-| Dimension | 0 (Weak) | 1 (Adequate) | 2 (Strong) |
-|-----------|----------|--------------|------------|
-| **Additive value** | Restates what Claude knows | Adds some domain context | Teaches a methodology or provides knowledge Claude can't have |
-| **Central thesis** | No anchoring principle | Has a principle but buried | Clear thesis in the opening, everything flows from it |
-| **Failure prevention** | No guards or gates | Has output format but no gates | Hard gates + bias guards + anti-patterns |
-| **Decision support** | "Do these steps" | Some conditional logic | Method selection table matching situations to approaches |
-| **Structure** | Wall of text or generic checklist | Organized sections | Phased process with entry/exit criteria and checkpoints. For user-facing skills: output paced per communication-protocol (chunking, progressive disclosure, decision scaling) |
-| **Tool design** | Default tools, no thought given | Tools match the task | Tools actively researched; MCP servers, scripts, or custom tools considered |
-| **Context efficiency** | 500+ lines of generic advice | Right length but some filler | Every paragraph justifies its token cost |
-
-**Score interpretation** (7 dimensions, max 14):
-- **12-14:** Top tier — ships as-is
-- **9-11:** Solid — minor polish needed
-- **5-8:** Needs work — missing structural elements
-- **0-4:** Rethink — may not be worth the context cost
-
-## Anti-Patterns
-
-| Anti-Pattern | Example | Fix |
-|--------------|---------|-----|
-| **The Generic Checklist** | "Check for security issues, performance, maintainability" | Teach a process for HOW to check, not WHAT to check |
-| **The Reference Card** | Tech stack list with code snippets Claude already knows | Only include what's genuinely unknown (your conventions, your schemas) |
-| **The Process Narration** | "First we'll research, then we'll plan, then we'll build" | Each phase needs entry/exit criteria, not just a name |
-| **The Knowledge Dump** | 600 lines covering every possible scenario | Split into SKILL.md (methodology) + references/ (details on demand) |
-| **The Sycophant** | "You are an expert X" followed by basic tips | Skip the flattery. Teach the methodology. |
-| **Missing Triggers** | "When to Use" section in the body but vague description | All trigger logic in the frontmatter description |
-
-## Guidelines
-
-- **Methodology over checklist.** A checklist says "check X." A methodology says "here's how to think about X, here's how to choose your approach, here's how to know when you're done, and here's how to catch yourself when you're wrong."
-- **Kill switch at step 2.** If you can't articulate what the skill adds beyond Claude's baseline, don't create it. Not every task needs a skill.
-- **Description is the trigger.** The body loads AFTER the skill activates. If "when to use" information is only in the body, the skill will never trigger correctly.
-- **Write for the reader, not the author.** The audience is a future Claude instance executing a task. Cut everything that doesn't help that instance do the job better.
-- **Score before shipping.** Run the quality rubric. If it's below 8, improve it. If it can't reach 8, question whether it should exist.
-- **Think like an agent builder.** Skills are agents. Consider all five dimensions: prompt design, tool selection, context engineering, orchestration, and evaluation. They're interconnected — improving one often reveals what's missing in another.
+- `references/eval-schemas.md` — exact JSON schemas for evals, grading, benchmark files (read before writing any harness file)
+- `references/scoring-methodology.md` — scoring rubric for auditing existing skills
+- `harness/agents/{grader,comparator,analyzer}.md` — subagent instructions for grading, blind A/B, analysis (read when spawning each)

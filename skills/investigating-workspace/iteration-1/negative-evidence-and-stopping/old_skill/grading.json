@@ -1,0 +1,25 @@
+{
+  "expectations": [
+    {
+      "text": "States clearly that no direct equivalent exists",
+      "passed": true,
+      "evidence": "'No Playwright equivalent for Compose Desktop exists' stated as the answer."
+    },
+    {
+      "text": "Lists where it looked (coverage as evidence)",
+      "passed": true,
+      "evidence": "'What definitively does not work' list (Maestro, Appium, Playwright, Paparazzi, UI Automator) documents coverage."
+    },
+    {
+      "text": "Nearest alternatives described with actual gaps",
+      "passed": true,
+      "evidence": "compose-ui-test, Ultron (alpha), AWT Robot, accessibility APIs - each with honest limitations."
+    },
+    {
+      "text": "No fabricated tools or misrepresented platform support",
+      "passed": true,
+      "evidence": "Matches known ground truth from the prior Compose Pilot research; YouTrack COMPOSE-1371 status honestly flagged as unclear."
+    }
+  ],
+  "notes": "Solid negative-evidence handling, but missed compose-driver - the one genuinely new development since the user's earlier research."
+}

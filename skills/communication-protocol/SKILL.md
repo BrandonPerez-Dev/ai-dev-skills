@@ -127,8 +127,8 @@ These are the specific things this protocol prevents:
 
 **Don't just footnote this protocol.** A single line at the bottom doesn't change behavior. Skills that need communication design should build the rules into their process:
 
-- **Methodology skills** (design, write-spec, research, systematic-debugging): Build chunking and decision scaling into each phase's checkpoint. Each checkpoint should follow one-topic-per-message and lead-with-the-point.
-- **Orchestrator skills** (design, build): Apply progressive disclosure at transitions between sub-skills. Summarize what just happened before asking what's next.
+- **Methodology skills** (engineering, slicing, investigating, systematic-debugging): Build chunking and decision scaling into each phase's checkpoint. Each checkpoint should follow one-topic-per-message and lead-with-the-point.
+- **Orchestrator skills** (engineering, build): Apply progressive disclosure at transitions between sub-skills. Summarize what just happened before asking what's next.
 - **Decision-heavy skills** (architecture, opportunity-research): Use decision scaling tables at every choice point. Never stack decisions.
 
 **Utility skills** (commit-and-pr, verification, git-worktrees) don't need this — their output is short and procedural.

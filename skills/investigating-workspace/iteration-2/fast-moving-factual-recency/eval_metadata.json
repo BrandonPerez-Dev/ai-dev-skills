@@ -1,0 +1,11 @@
+{
+  "eval_id": 1,
+  "eval_name": "fast-moving-factual-recency",
+  "prompt": "what are the current claude model ids and which one should i default to for an agent that mostly does tool calling? i keep seeing different names in blog posts and half of them seem outdated",
+  "assertions": [
+    "Cites a primary Anthropic source (docs.anthropic.com / platform.claude.com / anthropic.com), not only blogs or aggregators",
+    "States when each claim was verified or the publication date of sources (recency discipline)",
+    "Gives one concrete default recommendation rather than an undifferentiated list",
+    "Output includes a Sources section with working references"
+  ]
+}

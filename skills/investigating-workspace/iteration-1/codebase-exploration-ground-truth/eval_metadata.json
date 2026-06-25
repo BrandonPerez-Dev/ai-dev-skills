@@ -1,0 +1,11 @@
+{
+  "eval_id": 2,
+  "eval_name": "codebase-exploration-ground-truth",
+  "prompt": "how does auth actually work in ~/Projects/arboreus-api? like where do roles get enforced - is it the API layer or the database? I need to know before I add a new reviewer-only endpoint",
+  "assertions": [
+    "Identifies Supabase Auth with JWT and RLS policy enforcement (verifiable against the repo)",
+    "Every architectural claim cites a file path that actually exists in the repo",
+    "Directly answers the API-layer vs database-layer question rather than describing both vaguely",
+    "No fabricated file paths or invented middleware names"
+  ]
+}

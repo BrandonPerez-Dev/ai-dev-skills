@@ -1,0 +1,30 @@
+{
+  "expectations": [
+    {
+      "text": "Represents both positions with at least one source each",
+      "passed": true,
+      "evidence": "Safe-now camp (CNPG maturity, Tesla/GEICO/300+ clusters) and still-risky camp (ops overhead, K8s failure modes) both sourced."
+    },
+    {
+      "text": "Explains the context-dependence that resolves the contradiction",
+      "passed": true,
+      "evidence": "Frames the two camps as answering different questions (operator tech vs small-team ops capacity)."
+    },
+    {
+      "text": "Gives a concrete recommendation for the stated context",
+      "passed": true,
+      "evidence": "If K8s already in stack with an owner: CNPG (3 instances, WAL to object storage); else managed service."
+    },
+    {
+      "text": "Sources dated or recency-checked",
+      "passed": true,
+      "evidence": "23 dated lines; flags the 'don't do it' consensus as 3-4 years stale."
+    },
+    {
+      "text": "Wrote an investigation header (Question/Domain/Strategy/Hypothesis/Done-when) before findings, or evidence of it appears in the answer",
+      "passed": false,
+      "evidence": "No investigation header in the deliverable."
+    }
+  ],
+  "notes": "Added operator-specific safety detail (Bitnami split-brain bug, Zalando WAL issues) the baseline lacked. Highest token cost of any run (120k, 2.5x its baseline). Header missing."
+}

@@ -1,0 +1,25 @@
+{
+  "expectations": [
+    {
+      "text": "Cites a primary Anthropic source (docs/platform), not only blogs",
+      "passed": true,
+      "evidence": "Official Anthropic docs cited; 4 URLs."
+    },
+    {
+      "text": "States when claims were verified / source dates (recency discipline)",
+      "passed": true,
+      "evidence": "'As of June 10, 2026' statement; 6 dated lines (about half the with_skill density)."
+    },
+    {
+      "text": "Gives one concrete default recommendation",
+      "passed": true,
+      "evidence": "claude-sonnet-4-6 recommended explicitly."
+    },
+    {
+      "text": "Output includes a Sources section",
+      "passed": true,
+      "evidence": "Sources section present."
+    }
+  ],
+  "notes": "Correct and well-sourced. Slightly less dating density and no deprecation-date specifics, but clears every bar."
+}

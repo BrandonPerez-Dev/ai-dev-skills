@@ -1,0 +1,11 @@
+{
+  "eval_id": 4,
+  "eval_name": "contested-question-contradiction-handling",
+  "prompt": "is it actually safe to run postgres in kubernetes for production in 2026 or is that still a bad idea? getting conflicting advice from my team. we're a 3 person startup, ~50GB database",
+  "assertions": [
+    "Represents both positions with at least one source each (does not flatten the controversy)",
+    "Explains the context-dependence (team size, ops maturity, data size) that resolves the contradiction",
+    "Gives a concrete recommendation for the stated context (3-person startup, 50GB)",
+    "Sources are dated or recency-checked (operator landscape changed substantially 2023-2026)"
+  ]
+}

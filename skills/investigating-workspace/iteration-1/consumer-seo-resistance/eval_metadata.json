@@ -1,0 +1,11 @@
+{
+  "eval_id": 3,
+  "eval_name": "consumer-seo-resistance",
+  "prompt": "my wrists hurt after long coding sessions. looking for a split ergonomic keyboard, ideally under $250, that real people have used for a year plus and still recommend. not interested in whatever amazon is pushing",
+  "assertions": [
+    "At least one source is a specialist community or long-term user report (forum, subreddit, enthusiast blog), not a commerce/SEO listicle",
+    "Each recommended product is supported by 2+ independent sources",
+    "Findings carry confidence levels and a Sources section",
+    "Addresses the longevity criterion (year-plus ownership signal) rather than launch reviews"
+  ]
+}

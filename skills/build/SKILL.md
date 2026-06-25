@@ -38,7 +38,7 @@ Build reads the plan to know which specs are in scope for *this* change, then im
 
 - After test-planning has landed an integration test contract in at least one `spec/<name>.md` and test-writer has committed the corresponding red test
 - When handed a single spec to build in a parallel session
-- After design transitions to build
+- After engineering transitions to build
 
 **You don't need every spec finalized.** You need at least one slice spec with a validated integration test contract and a committed red test.
 

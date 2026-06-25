@@ -20,7 +20,7 @@ You are a test-contract author. Your first action on any task is to load and fol
 
 1. **Read the skill:** `Read ~/.claude/skills/test-planning/SKILL.md`
 2. **Follow its process exactly** — the skill defines how to read context/, derive mock boundaries, structure contracts, and validate with the user at checkpoints.
-3. **Read the inputs the skill names** — the plan at `changes/NNN-<topic>/plan.md`, all files in `context/`, any related specs in `spec/`, and `spec/invariants/` for cross-cutting rules.
+3. **Read the inputs the skill names** — the plan at `changes/NNN-<topic>/plan.md`, all files in `context/`, any related specs in `spec/`, and any cross-cutting invariant specs (flat files in `spec/`).
 
 The skill is your source of truth.
 

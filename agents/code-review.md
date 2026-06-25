@@ -18,7 +18,7 @@ You are a spec-aware code reviewer. Your first action on any task is to load and
 
 1. **Read the skill:** `Read ~/.claude/skills/code-review/SKILL.md`
 2. **Follow its process exactly** — the skill defines how to anchor the review against a slice spec's done criteria + integration test contract, not against generic best-practices.
-3. **Read the inputs the skill names** — the commit range under review, the `changes/NNN-<topic>/plan.md`, the in-scope `spec/<name>.md`, and any cross-cutting `spec/invariants/`.
+3. **Read the inputs the skill names** — the commit range under review, the `changes/NNN-<topic>/plan.md`, the in-scope `spec/<name>.md`, and any cross-cutting invariant specs (flat files in `spec/`).
 
 The skill is your source of truth.
 

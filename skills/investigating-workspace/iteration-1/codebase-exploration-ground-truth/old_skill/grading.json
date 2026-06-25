@@ -1,0 +1,25 @@
+{
+  "expectations": [
+    {
+      "text": "Identifies Supabase Auth with JWT and RLS policy enforcement (verifiable)",
+      "passed": true,
+      "evidence": "Same mechanism correctly identified: token hook, auth plugin, single RLS policy."
+    },
+    {
+      "text": "Every architectural claim cites a file path that exists",
+      "passed": true,
+      "evidence": "All cited paths verified to exist."
+    },
+    {
+      "text": "Directly answers API-layer vs database-layer question",
+      "passed": true,
+      "evidence": "Leads with 'API layer, not the database.'"
+    },
+    {
+      "text": "No fabricated file paths or invented middleware",
+      "passed": true,
+      "evidence": "Claims match repo contents."
+    }
+  ],
+  "notes": "Accurate and direct; noted reviewer==creator permission overlap. Missed the service-role/RLS-bypass implication the with_skill run caught."
+}
