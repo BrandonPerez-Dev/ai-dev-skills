@@ -1,4 +1,4 @@
-# Chain Creator Design
+# Forge & Gyre Design
 
 > Date: 2026-06-24
 > Status: Draft
@@ -6,16 +6,16 @@
 
 ## What This Is
 
-A **flow of skills** — not a single skill — that reads a repo and produces a **repo-specific agent chain**: a customized set of skills, agents, and a CLAUDE.md that an autonomous agent uses to plan, test, and build in that particular codebase. The auto-* skills (auto-plan-grill, auto-test-planning, auto-build) are the generic templates (L0). The chain creator flow (L1) adapts them into repo-specific skills (L2) that know the project's language, conventions, test infrastructure, and architectural patterns.
+A **flow of skills** — not a single skill — that reads a repo and produces a **repo-specific gyre**: a customized set of skills, agents, and a CLAUDE.md that an autonomous agent uses to plan, test, and build in that particular codebase. The auto-* skills (auto-plan-grill, auto-test-planning, auto-build) are the generic templates (L0). The forge (L1) adapts them into repo-specific skills (L2) that know the project's language, conventions, test infrastructure, and architectural patterns.
 
-The chain creator is itself a pipeline of four skills:
+The forge is itself a pipeline of four skills:
 
-1. **`chain-survey`** — Reads the target repo systematically. Extracts language, build commands, test infrastructure, project structure, CI/CD, conventions, and patterns. Verifies commands by running them. Produces `.claude/chain/survey.md`.
-2. **`chain-plan`** — Reads the survey, compares against what a complete agent chain requires, grills the findings for accuracy and coverage gaps, and produces a generation plan specifying which L2 skills to create and what repo-specific knowledge to inject. Produces `.claude/chain/plan.md`.
-3. **`chain-generate`** — Reads the plan + survey + L0 auto-* templates. Produces fully self-contained L2 skills in `.claude/skills/`, a CLAUDE.md (if missing), and an `agent-chain.yaml` manifest. L2 skills contain no references back to L0.
-4. **`chain-verify`** — Smoke tests the generated chain. Runs every referenced command, checks every file path, validates skill structure, and tests internal consistency. Produces `.claude/chain/verification.md`.
+1. **`forge-survey`** — Reads the target repo systematically. Extracts language, build commands, test infrastructure, project structure, CI/CD, conventions, and patterns. Verifies commands by running them. Produces `.claude/forge/survey.md`.
+2. **`forge-plan`** — Reads the survey, compares against what a complete gyre requires, grills the findings for accuracy and coverage gaps, and produces a generation plan specifying which L2 skills to create and what repo-specific knowledge to inject. Produces `.claude/forge/plan.md`.
+3. **`forge-generate`** — Reads the plan + survey + L0 auto-* templates. Produces fully self-contained L2 skills in `.claude/skills/`, a CLAUDE.md (if missing), and an `gyre.yaml` manifest. L2 skills contain no references back to L0.
+4. **`forge-verify`** — Smoke tests the generated gyre. Runs every referenced command, checks every file path, validates skill structure, and tests internal consistency. Produces `.claude/forge/verification.md`.
 
-These skills live in `ai-workflow-config/skills/chain-*/` alongside the L0 auto-* templates. The chain creator understands the framework we build around repos and knows how to break that down into optimizable skills and agents.
+These skills live in `ai-workflow-config/skills/forge-*/` alongside the L0 auto-* templates. The forge understands the framework we build around repos and knows how to break that down into optimizable skills and agents.
 
 ## Why Not Just Use Generic Skills
 
@@ -29,9 +29,9 @@ Generic skills work but produce mediocre results because they guess at:
 - Error handling patterns (anyhow? thiserror? custom? exceptions?)
 - CI expectations (what checks must pass before merge?)
 
-An agent that guesses gets corrected, which costs human time — the exact thing the autonomous loop is meant to save. A repo-specific chain knows these answers on day one.
+An agent that guesses gets corrected, which costs human time — the exact thing the autonomous loop is meant to save. A repo-specific gyre knows these answers on day one.
 
-## What the Chain Creator Reads
+## What the Forge Reads
 
 ### From the repo (automated survey)
 
@@ -59,9 +59,9 @@ Some things can't be derived from code:
 - External service access (which APIs have test environments?)
 - Quality bar expectations (how thorough should testing be?)
 
-If `context/` already documents these, the chain creator reads them directly. If not, these become the chain creator's first open questions.
+If `context/` already documents these, the forge reads them directly. If not, these become the forge's first open questions.
 
-## What the Chain Creator Produces
+## What the Forge Produces
 
 ### 1. CLAUDE.md (if missing or incomplete)
 
@@ -116,7 +116,7 @@ Auto-build adapted with:
 
 #### Domain skills (deeply repo-specific)
 
-Beyond process skills, the chain creator also produces domain skills — knowledge about *this specific codebase* that isn't about process:
+Beyond process skills, the forge also produces domain skills — knowledge about *this specific codebase* that isn't about process:
 
 - **Language/runtime skill** (e.g., `.claude/skills/rust-ostia/SKILL.md`) — Rust patterns specific to this project: how `anyhow` is used, how traits are organized, how `nix` FFI is wrapped, naming conventions
 - **Data interaction skill** (e.g., `.claude/skills/sandbox-rules/SKILL.md`) — rules for interacting with specific subsystems: "always validate Landlock rules before applying", "never bypass namespace isolation in tests", "always make backups before modifying credential stores"
@@ -132,18 +132,18 @@ CI/CD is critical for determinism and consistency. Every project should have it.
 - Dependency installation
 - Context/ and spec/ bootstrapping
 
-For existing projects without CI, the chain creator flags this as a gap and the foundation skill creates it as a first step before any feature work.
+For existing projects without CI, the forge flags this as a gap and the foundation skill creates it as a first step before any feature work.
 
-### 3. Agent chain config
+### 3. Gyre config
 
 A manifest that ties the skills together and defines the execution order:
 
 ```yaml
-# .claude/agent-chain.yaml
+# .claude/gyre.yaml
 name: ostia-agent
 description: Autonomous dev agent for Ostia (Rust MCP sandbox)
 
-chain:
+skills:
   - skill: plan-grill
     triggers: [issue-created, manual]
     outputs: [plan, open-questions, spec-stubs]
@@ -189,28 +189,28 @@ verification:
   format_check: "cargo fmt --check"
 ```
 
-## How the Chain Creator Works
+## How the Forge Works
 
-### Phase 1: Survey → `chain-survey`
+### Phase 1: Survey → `forge-survey`
 
 Read the repo systematically. For each category in the "What to extract" table above:
 1. Find the relevant files (build config, test files, CI config, etc.)
 2. Extract the specific information
 3. Verify by running commands (e.g., `cargo test --workspace` to confirm it works)
-4. Record findings in `.claude/chain/survey.md`
+4. Record findings in `.claude/forge/survey.md`
 
-See `skills/chain-survey/SKILL.md` for the full extraction process.
+See `skills/forge-survey/SKILL.md` for the full extraction process.
 
-### Phase 2: Gap Analysis + Grill → `chain-plan`
+### Phase 2: Gap Analysis + Grill → `forge-plan`
 
-Compare what was found against what a complete agent chain needs:
+Compare what was found against what a complete gyre needs:
 
 | Required | Found | Gap |
 |---|---|---|
 | Build commands | ✅ cargo build/test | — |
 | Test infrastructure | ✅ integration tests, McpClient helper | — |
 | CI/CD | ❌ No GitHub Actions | Agent needs to know there's no CI to check |
-| CLAUDE.md | ❌ Missing | Chain creator will generate one |
+| CLAUDE.md | ❌ Missing | Forge will generate one |
 | context/ docs | ✅ 6 files | — |
 | spec/ docs | ✅ 8 files | — |
 | Mock boundaries | ✅ Documented in testing-strategy.md | — |
@@ -218,13 +218,13 @@ Compare what was found against what a complete agent chain needs:
 Then grill the survey findings for accuracy, coverage gaps, and assumption risks. Each finding becomes an ADR.
 
 Gaps become either:
-- Things chain-generate fills (CLAUDE.md, skill files)
+- Things forge-generate fills (CLAUDE.md, skill files)
 - Open questions for the human (external service access, team conventions)
 - Foundation skill triggers (CI setup, missing infrastructure)
 
-Output: `.claude/chain/plan.md`. See `skills/chain-plan/SKILL.md`.
+Output: `.claude/forge/plan.md`. See `skills/forge-plan/SKILL.md`.
 
-### Phase 3: Generate → `chain-generate`
+### Phase 3: Generate → `forge-generate`
 
 For each L2 skill:
 1. Start from the corresponding L0 template (auto-plan-grill, auto-test-planning, etc.)
@@ -233,21 +233,21 @@ For each L2 skill:
 4. Validate that the skill references real files, real commands, real patterns
 5. Commit and push to branch
 
-L2 skills are fully self-contained — no runtime references back to L0. See `skills/chain-generate/SKILL.md`.
+L2 skills are fully self-contained — no runtime references back to L0. See `skills/forge-generate/SKILL.md`.
 
-### Phase 4: Verify → `chain-verify`
+### Phase 4: Verify → `forge-verify`
 
 Smoke test every generated artifact:
-- Run every command referenced in skills, CLAUDE.md, and agent-chain.yaml
+- Run every command referenced in skills, CLAUDE.md, and gyre.yaml
 - Check every file path referenced in generated skills
 - Validate skill structure (frontmatter, hard gates, anti-patterns)
 - Test internal consistency across all generated artifacts
 
-Output: `.claude/chain/verification.md`. See `skills/chain-verify/SKILL.md`.
+Output: `.claude/forge/verification.md`. See `skills/forge-verify/SKILL.md`.
 
 ## The Foundation Skill
 
-The "untestable vertical" — project initialization and structural scaffolding. This is conditional: it runs when the chain detects greenfield or major structural additions.
+The "untestable vertical" — project initialization and structural scaffolding. This is conditional: it runs when the gyre detects greenfield or major structural additions.
 
 What it handles:
 - **Greenfield:** cargo init / npm init, directory structure, CI config, initial context/ and spec/ setup, dependency installation, linting config
@@ -262,37 +262,37 @@ The foundation skill runs BEFORE plan-grill when triggered, and its output is th
 
 ### What to evolve via GEPA
 
-The chain creator itself is the primary GEPA target. Evolving it improves every chain it produces.
+The forge itself is the primary GEPA target. Evolving it improves every gyre it produces.
 
-**Eval tasks for the chain creator:**
+**Eval tasks for the forge:**
 - **Input:** A repo (or a snapshot of one)
-- **Grader:** Does the produced chain work? (build passes, test commands work, skill files reference real patterns, CLAUDE.md is accurate)
-- **Feedback:** LLM judge comparing the produced chain to an expert-written chain for the same repo
+- **Grader:** Does the produced gyre work? (build passes, test commands work, skill files reference real patterns, CLAUDE.md is accurate)
+- **Feedback:** LLM judge comparing the produced gyre to an expert-written gyre for the same repo
 
-**What GEPA optimizes:** The chain creator's survey strategy (what to look at, in what order), its gap analysis (what counts as a gap), and its generation templates (how to adapt L0 skills to L2).
+**What GEPA optimizes:** The forge's survey strategy (what to look at, in what order), its gap analysis (what counts as a gap), and its generation templates (how to adapt L0 skills to L2).
 
 ### What to evolve via gskill (later)
 
 Once repos have clean commit history from autonomous work:
 - gskill produces repo-specific coding skills (not planning/testing skills)
-- These complement the L2 chain by adding "how to write code in this specific codebase" knowledge
-- gskill evolves the build skill; the chain creator evolves the planning/testing skills
+- These complement the gyre by adding "how to write code in this specific codebase" knowledge
+- gskill evolves the build skill; the forge evolves the planning/testing skills
 
 ### Correction feedback loop
 
 When the human corrects an L2 skill:
 - If the correction is repo-specific → update the L2 skill in the repo
 - If the correction reveals a gap in the L0 template → update the L0 auto-* skill
-- If the correction reveals a gap in the chain creator → update the chain creator's survey/generation logic
+- If the correction reveals a gap in the forge → update the forge's survey/generation logic
 
 This three-level correction routing is what makes the system self-improving across projects, not just within one.
 
 ## What This Does NOT Do
 
-- **Run the chain.** The chain creator produces skills and config. The supervisor/trigger system runs them.
-- **Replace interactive skills.** The chain creator only produces autonomous L2 skills. Interactive skills remain for when you're pair-programming.
-- **Guess at business logic.** The chain creator extracts conventions and infrastructure patterns. It doesn't decide what features to build — that comes from the kickoff/issue.
-- **Skip human review of generated chains.** The first chain for a repo always gets human review. GEPA optimization reduces the need for corrections over time, but the human gate stays.
+- **Run the gyre.** The forge produces skills and config. The supervisor/trigger system runs them.
+- **Replace interactive skills.** The forge only produces autonomous L2 skills. Interactive skills remain for when you're pair-programming.
+- **Guess at business logic.** The forge extracts conventions and infrastructure patterns. It doesn't decide what features to build — that comes from the kickoff/issue.
+- **Skip human review of generated gyres.** The first gyre for a repo always gets human review. GEPA optimization reduces the need for corrections over time, but the human gate stays.
 
 ## Multi-Repo Hub Pattern
 
@@ -305,24 +305,24 @@ hub-repo/                          # Shared context and orchestration
 ├── .claude/skills/                # Hub-level orchestration skills
 ├── README.md                      # Setup: cloning all related repos
 └── repos/                         # Convention: related repos cloned here
-    ├── backend/                   # Each has its own L2 chain
+    ├── backend/                   # Each has its own gyre
     ├── frontend/
     └── shared-types/
 ```
 
 The hub repo's README contains clone instructions that set up all related repos in the same parent directory. The hub's `.claude/skills/` contain orchestration skills that understand the cross-repo dependency graph and can coordinate work across repos.
 
-This pattern gives us **near-infinite hierarchy** — hubs can reference other hubs, creating an org-chart-like structure for large projects. Each level has its own context/, spec/, and skill chain scoped to that level's concerns.
+This pattern gives us **near-infinite hierarchy** — hubs can reference other hubs, creating an org-chart-like structure for large projects. Each level has its own context/, spec/, and skill gyre scoped to that level's concerns.
 
-The chain creator at the hub level produces:
+The forge at the hub level produces:
 - Cross-repo context/ (shared architectural decisions)
 - Orchestration skills (which repo to modify for a given change, how to coordinate cross-repo PRs)
-- References to each sub-repo's L2 chain
+- References to each sub-repo's gyre
 
 ## Open Questions
 
-1. **Where does the agent-chain.yaml live?** Options: `.claude/agent-chain.yaml` in the repo (versioned, visible), or in the skill config system (centralized, not repo-versioned).
+1. **Where does the gyre.yaml live?** Options: `.claude/gyre.yaml` in the repo (versioned, visible), or in the skill config system (centralized, not repo-versioned).
 2. **How much of the L0 template shows through in L2?** Should L2 skills be fully self-contained (copy everything from L0 + add repo-specific), or should they reference L0 and only override the repo-specific parts? Self-contained is more robust but harder to update when L0 improves.
-3. **How does the chain creator handle multi-language repos?** One chain with a diverging path for languages seems viable (e.g., shared grill+plan, language-specific test-write+build). May need trial and error — the remote-terminal project (Go + TypeScript + Proto) will be a natural test case.
-4. ~~**Should the foundation skill be part of the chain or a pre-chain step?**~~ Resolved: foundation is part of the chain, triggered conditionally. CI/CD is non-optional for new projects.
-5. **Hub-level chain creator:** How does the L1 flow work at the hub level? Does it survey all sub-repos and produce a hub-level orchestration chain, or does it delegate to per-repo chain creators and only add the cross-repo coordination layer?
+3. **How does the forge handle multi-language repos?** One gyre with a diverging path for languages seems viable (e.g., shared grill+plan, language-specific test-write+build). May need trial and error — the remote-terminal project (Go + TypeScript + Proto) will be a natural test case.
+4. ~~**Should the foundation skill be part of the gyre or a pre-gyre step?**~~ Resolved: foundation is part of the gyre, triggered conditionally. CI/CD is non-optional for new projects.
+5. **Hub-level forge:** How does the L1 flow work at the hub level? Does it survey all sub-repos and produce a hub-level orchestration gyre, or does it delegate to per-repo forges and only add the cross-repo coordination layer?

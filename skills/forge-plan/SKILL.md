@@ -1,14 +1,14 @@
 ---
-name: chain-plan
+name: forge-plan
 description: >-
-  L1 chain creator — Phase 2. Reads chain-survey output, compares against
-  what a complete autonomous agent chain requires, grills the survey for
+  L1 forge — Phase 2. Reads forge-survey output, compares against
+  what a gyre requires, grills the survey for
   gaps and wrong conclusions, and produces a generation plan specifying
   which L2 skills to create and what repo-specific knowledge to inject.
   Posts open questions to GitHub when blocked.
 when_to_use: >-
-  Use after chain-survey has produced .claude/chain/survey.md in the
-  target repo. Takes the survey and produces a plan for chain-generate.
+  Use after forge-survey has produced .claude/forge/survey.md in the
+  target repo. Takes the survey and produces a plan for forge-generate.
   Do NOT use without a completed survey — planning without data produces
   guesswork.
 allowed-tools:
@@ -23,33 +23,33 @@ argument-hint: "[path/to/target-repo]"
 effort: high
 ---
 
-# Chain Plan
+# Forge Plan
 
 Read the survey. Compare against requirements. Grill the findings. Plan what to generate. This skill bridges raw survey data and actual L2 skill generation.
 
 <HARD-GATE>
-Do not write L2 skills, CLAUDE.md, or agent-chain.yaml. This skill
-produces the plan. chain-generate writes from it.
+Do not write L2 skills, CLAUDE.md, or gyre.yaml. This skill
+produces the plan. forge-generate writes from it.
 </HARD-GATE>
 
 <HARD-GATE>
-Do not plan without reading the survey. If `.claude/chain/survey.md`
-doesn't exist, stop and run chain-survey first.
+Do not plan without reading the survey. If `.claude/forge/survey.md`
+doesn't exist, stop and run forge-survey first.
 </HARD-GATE>
 
 ## Input
 
-Target repo path (same repo where chain-survey wrote `survey.md`).
+Target repo path (same repo where forge-survey wrote `survey.md`).
 
 ## Process
 
 ### 0. Load Survey
 
-Read `.claude/chain/survey.md`. Also re-read `context/` and `spec/` if they exist — the survey summarizes them, but the plan needs the detail.
+Read `.claude/forge/survey.md`. Also re-read `context/` and `spec/` if they exist — the survey summarizes them, but the plan needs the detail.
 
 ### 1. Requirements Matrix
 
-For each L2 skill the chain can produce, check what the survey provides vs what the skill needs:
+For each L2 skill the gyre can include, check what the survey provides vs what the skill needs:
 
 #### Process Skills (from L0 auto-* templates)
 
@@ -77,11 +77,11 @@ For each gap:
 
 | Gap | Impact | Resolution |
 |---|---|---|
-| [what's missing] | [which L2 skill is degraded without it] | [can chain-generate infer it? needs human input? skip the skill?] |
+| [what's missing] | [which L2 skill is degraded without it] | [can forge-generate infer it? needs human input? skip the skill?] |
 
 Classify each gap:
 
-- **Fillable** — chain-generate can infer from codebase patterns even though the survey didn't capture it explicitly. (e.g., "assertion style not recorded" → chain-generate reads test files directly)
+- **Fillable** — forge-generate can infer from codebase patterns even though the survey didn't capture it explicitly. (e.g., "assertion style not recorded" → forge-generate reads test files directly)
 - **Needs human** — can't be derived from code. (e.g., "which APIs have test environments?" → open question)
 - **Skip** — the gap means a specific domain skill isn't warranted. (e.g., "no security-critical patterns" → no security domain skill)
 - **Foundation trigger** — the gap is infrastructure that needs to be created. (e.g., "no CI" → foundation skill creates it)
@@ -158,11 +158,11 @@ If the survey found infrastructure gaps:
   - Action: [bootstrap or skip]
 ```
 
-### 6. Plan the Agent Chain Config
+### 6. Plan the Agent Gyre Config
 
 ```markdown
-## Chain Config
-- **Chain name:** [project]-agent
+## Gyre Config
+- **Gyre name:** [project]-agent
 - **Trigger sources:** [issues, manual, scheduled]
 - **Build command:** [from survey, verified]
 - **Test command:** [from survey, verified]
@@ -189,17 +189,17 @@ Collect all medium and low-confidence items:
 
 ### 8. Save and Push
 
-1. Write `.claude/chain/plan.md` to the target repo
-2. Commit to the chain setup branch
+1. Write `.claude/forge/plan.md` to the target repo
+2. Commit to the forge setup branch
 3. Post open questions as PR comments if a PR exists
 
 ## Plan Format
 
 ```markdown
-# Chain Plan: [project-name]
+# Forge Plan: [project-name]
 
 > Date: YYYY-MM-DD
-> Survey: .claude/chain/survey.md
+> Survey: .claude/forge/survey.md
 > Status: planning
 
 ## Requirements Matrix
@@ -235,7 +235,7 @@ Collect all medium and low-confidence items:
 ## Foundation Work
 [From step 5]
 
-## Chain Config
+## Gyre Config
 [From step 6]
 
 ## Open Questions
@@ -243,28 +243,28 @@ Collect all medium and low-confidence items:
 
 ## Generation Order
 
-The recommended order for chain-generate:
+The recommended order for forge-generate:
 1. Foundation (if needed) — infrastructure first
 2. CLAUDE.md — project-level knowledge
 3. Domain skills — codebase knowledge that process skills reference
 4. Process skills — plan-grill → test-planning → test-writer → build
-5. agent-chain.yaml — ties it all together
+5. gyre.yaml — ties it all together
 ```
 
 ## Anti-Patterns
 
 | Anti-Pattern | Fix |
 |---|---|
-| **Planning without a survey** | Hard gate. Run chain-survey first. |
+| **Planning without a survey** | Hard gate. Run forge-survey first. |
 | **Marking all gaps as blocking** | Most gaps are fillable from code. Block only when wrong answers are expensive. |
 | **Skipping the grill** | The grill catches survey errors before they become skill errors. |
 | **Planning skills for things the project doesn't need** | No security skill for a static site. No data interaction skill for a CLI tool with no persistence. |
 | **Ignoring the survey's failed commands** | A failing test suite shapes the plan — maybe foundation needs to fix it first. |
-| **Writing L2 skills in this step** | Plan only. chain-generate writes. |
+| **Writing L2 skills in this step** | Plan only. forge-generate writes. |
 
 ## Handoff
 
 After this skill completes:
-- **chain-generate** reads plan.md + survey.md + L0 templates and produces L2 skills
+- **forge-generate** reads plan.md + survey.md + L0 templates and produces L2 skills
 - The human can review the plan before generation starts
 - Open questions may need answers before certain L2 skills can be generated with confidence

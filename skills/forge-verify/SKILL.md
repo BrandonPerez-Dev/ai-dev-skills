@@ -1,14 +1,14 @@
 ---
-name: chain-verify
+name: forge-verify
 description: >-
-  L1 chain creator — Phase 4. Smoke tests a generated L2 agent chain by
+  L1 forge — Phase 4. Smoke tests a generated L2 gyre by
   running every referenced command, checking every referenced file path,
   validating skill structure, and testing internal consistency. Reports
   pass/fail per check with actionable fixes for failures.
 when_to_use: >-
-  Use after chain-generate has produced L2 skills in the target repo's
-  .claude/skills/. Validates that the generated chain is correct and
-  ready for autonomous use. Also use to audit an existing chain after
+  Use after forge-generate has produced L2 skills in the target repo's
+  .claude/skills/. Validates that the generated gyre is correct and
+  ready for autonomous use. Also use to audit an existing gyre after
   repo changes that might have broken skill references.
 allowed-tools:
   - Read
@@ -22,19 +22,19 @@ argument-hint: "[path/to/target-repo]"
 effort: medium
 ---
 
-# Chain Verify
+# Forge Verify
 
-Smoke test the generated chain. Every command must run. Every file reference must resolve. Every pattern must exist in the codebase. Report what passes and what's broken.
+Smoke test the generated gyre. Every command must run. Every file reference must resolve. Every pattern must exist in the codebase. Report what passes and what's broken.
 
 <HARD-GATE>
-Do not fix problems found during verification. Report them. chain-generate
+Do not fix problems found during verification. Report them. forge-generate
 (or the human) fixes them. Verification that also fixes is untrustworthy
 verification.
 </HARD-GATE>
 
 ## Input
 
-Target repo path (same repo where chain-generate wrote L2 skills).
+Target repo path (same repo where forge-generate wrote L2 skills).
 
 ## Process
 
@@ -46,28 +46,28 @@ List everything that was generated:
 # L2 skills
 find .claude/skills -name 'SKILL.md' -type f
 
-# Chain config
-cat .claude/agent-chain.yaml
+# Gyre config
+cat .claude/gyre.yaml
 
 # CLAUDE.md
 cat CLAUDE.md
 
-# Chain artifacts
-ls .claude/chain/
+# Forge artifacts
+ls .claude/forge/
 ```
 
 Record the inventory — this defines what gets checked.
 
 ### 2. Command Verification
 
-For every command referenced in any generated artifact (CLAUDE.md, skills, agent-chain.yaml):
+For every command referenced in any generated artifact (CLAUDE.md, skills, gyre.yaml):
 
 | Command | Source | Status | Output |
 |---|---|---|---|
-| `[build cmd]` | CLAUDE.md, agent-chain.yaml | ✅/❌ | [summary] |
-| `[test cmd]` | CLAUDE.md, agent-chain.yaml | ✅/❌ | [summary] |
-| `[lint cmd]` | CLAUDE.md, agent-chain.yaml | ✅/❌ | [summary] |
-| `[format cmd]` | CLAUDE.md, agent-chain.yaml | ✅/❌ | [summary] |
+| `[build cmd]` | CLAUDE.md, gyre.yaml | ✅/❌ | [summary] |
+| `[test cmd]` | CLAUDE.md, gyre.yaml | ✅/❌ | [summary] |
+| `[lint cmd]` | CLAUDE.md, gyre.yaml | ✅/❌ | [summary] |
+| `[format cmd]` | CLAUDE.md, gyre.yaml | ✅/❌ | [summary] |
 
 Run each command. A command that fails is a verification failure even if the survey said it worked — the repo may have changed since the survey.
 
@@ -110,9 +110,9 @@ For each generated L2 skill:
 | No generic placeholders remaining (`[placeholder]`) | ✅/❌ |
 | No references to L0 templates | ✅/❌ |
 
-### 6. Chain Config Verification
+### 6. Gyre Config Verification
 
-For agent-chain.yaml:
+For gyre.yaml:
 
 | Check | Status |
 |---|---|
@@ -138,17 +138,17 @@ Cross-check between generated artifacts:
 | Check | Status |
 |---|---|
 | Skills reference same commands as CLAUDE.md | ✅/❌ |
-| Skills reference same commands as agent-chain.yaml | ✅/❌ |
+| Skills reference same commands as gyre.yaml | ✅/❌ |
 | Mock boundaries consistent across test-planning and test-writer skills | ✅/❌ |
 | Naming conventions consistent across all skills | ✅/❌ |
 | Error handling pattern consistent across build and domain skills | ✅/❌ |
 
 ### 9. Report
 
-Write `.claude/chain/verification.md`:
+Write `.claude/forge/verification.md`:
 
 ```markdown
-# Chain Verification: [project-name]
+# Gyre Verification: [project-name]
 
 > Date: YYYY-MM-DD
 > Status: pass | fail | partial
@@ -171,7 +171,7 @@ Write `.claude/chain/verification.md`:
 ## Skill Structure
 [Table from step 5]
 
-## Chain Config
+## Gyre Config
 [Table from step 6]
 
 ## CLAUDE.md
@@ -202,23 +202,23 @@ Write `.claude/chain/verification.md`:
 1. Commit verification.md
 2. Post PR comment with summary:
    ```
-   📋 STATUS: Chain verification [passed/failed]
+   📋 STATUS: Gyre verification [passed/failed]
       Checks: [M]/[N] passed
       [If failures: list top 3 failures with fix suggestions]
-      [If all passed: Chain is ready for autonomous use]
+      [If all passed: Gyre is ready for autonomous use]
    ```
 
 ## Verification Severity
 
 | Severity | Meaning | Example |
 |---|---|---|
-| **Failure** | Chain will break during autonomous use | Referenced command fails, helper doesn't exist |
-| **Warning** | Chain will work but may produce suboptimal results | Assertion style mismatch, convention drift |
+| **Failure** | Gyre will break during autonomous use | Referenced command fails, helper doesn't exist |
+| **Warning** | Gyre will work but may produce suboptimal results | Assertion style mismatch, convention drift |
 | **Info** | Observation, no action needed | "Survey found 3 test patterns, skill documents 2" |
 
 ## Re-verification
 
-Chain-verify can be re-run after fixes. Compare against the previous verification.md to confirm regressions are fixed and no new ones appeared.
+Forge-verify can be re-run after fixes. Compare against the previous verification.md to confirm regressions are fixed and no new ones appeared.
 
 ## Anti-Patterns
 
@@ -232,7 +232,7 @@ Chain-verify can be re-run after fixes. Compare against the previous verificatio
 ## Handoff
 
 After this skill completes:
-- If **all checks pass**: L2 chain is ready for autonomous use. Human reviews and approves.
-- If **failures exist**: chain-generate fixes the issues, then chain-verify re-runs.
+- If **all checks pass**: gyre is ready for autonomous use. Human reviews and approves.
+- If **failures exist**: forge-generate fixes the issues, then forge-verify re-runs.
 - The verification report is committed for human review.
-- After human approval, the autonomous agent chain is operational.
+- After human approval, the gyre is operational.

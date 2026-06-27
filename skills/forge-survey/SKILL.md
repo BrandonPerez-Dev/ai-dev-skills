@@ -1,16 +1,16 @@
 ---
-name: chain-survey
+name: forge-survey
 description: >-
-  L1 chain creator — Phase 1. Systematically surveys a target repository to
+  L1 forge — Phase 1. Systematically surveys a target repository to
   extract language, build commands, test infrastructure, project structure,
   CI/CD, conventions, and patterns. Verifies commands by running them.
-  Produces a structured survey document that downstream chain-* skills
-  consume to generate repo-specific L2 agent chains.
+  Produces a structured survey document that downstream forge-* skills
+  consume to generate repo-specific L2 gyres.
 when_to_use: >-
-  Use as the first step of the L1 chain creator flow when setting up an
-  autonomous agent chain for a new repo. Input is a path to the target repo
+  Use as the first step of the L1 forge flow when setting up an
+  gyre for a new repo. Input is a path to the target repo
   (or a GitHub URL to clone). Do NOT use on repos that already have a
-  complete L2 chain — use chain-verify to audit existing chains instead.
+  gyre — use forge-verify to audit existing gyres instead.
 allowed-tools:
   - Read
   - Write
@@ -26,20 +26,20 @@ argument-hint: "[path/to/target-repo or github-url]"
 effort: high
 ---
 
-# Chain Survey
+# Forge Survey
 
-Read a repository systematically. Extract everything an autonomous agent chain needs to know. Verify by running, not guessing. Output a structured survey that chain-plan and chain-generate consume.
+Read a repository systematically. Extract everything an gyre needs to know. Verify by running, not guessing. Output a structured survey that forge-plan and forge-generate consume.
 
 <HARD-GATE>
-Do not write skills, CLAUDE.md, or chain config. This skill produces one
-artifact: the survey document. chain-plan interprets it; chain-generate
+Do not write skills, CLAUDE.md, or gyre config. This skill produces one
+artifact: the survey document. forge-plan interprets it; forge-generate
 writes from it.
 </HARD-GATE>
 
 <HARD-GATE>
 Verify commands by running them. "The test command is cargo test" is a
 guess until you've run `cargo test` and confirmed it works. A survey
-built on guesses produces a chain built on guesses.
+built on guesses produces a gyre built on guesses.
 </HARD-GATE>
 
 ## Input
@@ -149,7 +149,7 @@ If they exist:
 - Note what topics are covered (architecture, testing, security, etc.)
 - Check for gaps (architecture documented but not testing strategy? etc.)
 
-If they don't exist, record "no existing knowledge layers" — chain-generate may bootstrap them.
+If they don't exist, record "no existing knowledge layers" — forge-generate may bootstrap them.
 
 ### 8. Git Conventions
 
@@ -214,12 +214,12 @@ If the project has a security model documented in context/, summarize it. If not
 
 ## Output
 
-Write the survey to `.claude/chain/survey.md` in the target repo.
+Write the survey to `.claude/forge/survey.md` in the target repo.
 
 ### Survey Format
 
 ```markdown
-# Chain Survey: [project-name]
+# Forge Survey: [project-name]
 
 > Date: YYYY-MM-DD
 > Repo: [path or URL]
@@ -312,7 +312,7 @@ Write the survey to `.claude/chain/survey.md` in the target repo.
 - **Security-sensitive areas:** [list]
 
 ## Gaps
-[List of things that are missing or broken, mapped to which chain-* skill addresses them]
+[List of things that are missing or broken, mapped to which forge-* skill addresses them]
 ```
 
 ## Timing
@@ -326,13 +326,13 @@ The survey should take 2-5 minutes for a typical repo. Most time is spent runnin
 | **Guessing commands without running them** | Hard gate. Run every command. |
 | **Reading every source file** | Sample 3-5 representative files. Time is finite. |
 | **Cataloging every dependency** | Focus on the 5-10 that shape architecture. |
-| **Skipping the .claude/ check** | Existing setup changes what chain-generate produces. |
+| **Skipping the .claude/ check** | Existing setup changes what forge-generate produces. |
 | **Writing skills or CLAUDE.md** | Survey only. One artifact: survey.md. |
 | **Ignoring failing commands** | A failing test suite IS the survey data. Record why. |
 
 ## Handoff
 
 After this skill completes:
-- **chain-plan** reads survey.md and produces a gap analysis + generation plan
+- **forge-plan** reads survey.md and produces a gap analysis + generation plan
 - The human can review the survey if desired (it's committed to the repo)
-- If the survey reveals the repo is too complex (monorepo, multi-language), note this for chain-plan to handle
+- If the survey reveals the repo is too complex (monorepo, multi-language), note this for forge-plan to handle
