@@ -150,17 +150,7 @@ During planning, invoke utility skills as specific questions need deeper thinkin
 
 ### 3. Grill the Plan
 
-Before contracts lock, interrogate the plan instead of admiring it. The slicing conversation builds the plan up; this step tries to knock it down. Plans that skip the grill carry their wrong assumptions into locked tests, where they're expensive.
-
-Run three lenses against `context/` and the in-scope specs, raising findings **one question at a time** (never a questionnaire):
-
-- **Tensions and structure.** Concrete, structural challenges: relationships and cardinality ("does one X hold many Y?"), deletion and cascade semantics, state transitions and who owns them, ordering and idempotency under retry. Prefer questions whose answer changes a contract.
-- **Terminology collisions.** Challenge every load-bearing term against the project's existing language in `context/`. If the plan says "session" and `context/` says "connection," that's a defect now or a bug later. Sharpen fuzzy terms before they enter a spec; confirmed language writes back to `context/`.
-- **Prior-decision conflicts.** Find the existing spec contract or `context/` decision this plan contradicts or quietly re-decides. Name it explicitly: keep the old decision, or supersede it on purpose — never both implicitly.
-
-Close with one refutation attempt: state the strongest argument that the plan is wrong or oversized (simpler version, existing capability that already covers it, invariant it breaks), and resolve it.
-
-**The grill emits a visible artifact** — a `## Grill` section in the plan: each challenge raised, the resolution, and what was written back. A grill that lives only in conversation didn't happen. Write-backs follow the existing promotion rule: sharpened terms and decisions that are hard to reverse, surprising without context, or carry real trade-offs go to `context/`; the rest stays in the plan.
+Invoke **grill** on the plan. The slicing conversation builds the plan up; this step tries to knock it down. Plans that skip the grill carry wrong assumptions into locked tests, where they're expensive.
 
 Scale it like everything else: small change → one sanity question; large change → a full session. Same confidence gates as the rest of the flow.
 
@@ -232,7 +222,7 @@ User: "Add Stripe payment processing to the checkout flow"
    - `spec/checkout.md` (modified) — adds payment intent step
    - `spec/orders.md` (modified) — adds "paid" state to lifecycle
 
-4. **Grill** — "Orders spec says an order is immutable after submission; the plan adds a 'paid' state mutation. Supersede that invariant or model payment as a separate record?" → user picks separate `payment` record; `spec/orders.md` modification shrinks. Term sharpened: Stripe's "checkout session" vs our existing "cart" — glossary updated in `context/`. Grill section written into the plan.
+4. **Grill** — Invoke **grill** on the plan. Surfaces: "Orders spec says an order is immutable after submission; the plan adds a 'paid' state mutation. Supersede that invariant or model payment as a separate record?" → user picks separate `payment` record; `spec/orders.md` modification shrinks. Term sharpened: Stripe's "checkout session" vs our existing "cart" — glossary updated in `context/`. Grill section written into the plan.
 
 5. **Test Planning** — Writes integration test contract into `spec/payments-create-intent.md` (setup: cart with items; action: POST /api/payment-intents; expected: 200 + intent ID; side effects: Stripe API call with correct amount; error cases: empty cart, declined card, network error). Validates with user. Repeats for other in-scope specs.
 
