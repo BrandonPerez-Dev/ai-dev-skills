@@ -7,8 +7,8 @@ description: >-
   constraints that inform mock boundaries. On greenfield, bootstraps spec/
   from the plan. Heavy user involvement with checkpoints.
 when_to_use: >-
-  Use after plan declares which specs this change adds, modifies, or
-  supersedes — typically invoked by design between plan and test-writer. Also
+  Use after slicing declares which specs this change adds, modifies, or
+  supersedes — typically invoked by engineering between slicing and test-writer. Also
   use directly when you need to update a spec's contract without going through
   a full design pass.
 allowed-tools:
@@ -264,7 +264,7 @@ status: built       # invariants are typically already enforced; this tracks whe
 
 ## Output Format
 
-Test-planning produces edits to `spec/*.md` files (primary output) and a brief summary back to the design orchestrator:
+Test-planning produces edits to `spec/*.md` files (primary output) and a brief summary back to the engineering orchestrator:
 
 ```markdown
 ## Test Planning Summary
@@ -289,6 +289,10 @@ Test-planning produces edits to `spec/*.md` files (primary output) and a brief s
 ```
 
 The summary gets pasted into `changes/NNN/plan.md` as a "Test planning result" section. The contracts themselves live in `spec/`.
+
+## Test-less Specs Block Modification
+
+When a change touches a spec whose `## Tests` section is empty or backlogged ("none yet"), flag it before extending the contract: the slice needs characterization tests locked first, so its current behavior is pinned before it changes. Honest "no tests yet" notes beat fabricated contracts, but they are a debt marker, not a license — the debt comes due the moment the slice is reopened, not later.
 
 ## Bias Guards
 

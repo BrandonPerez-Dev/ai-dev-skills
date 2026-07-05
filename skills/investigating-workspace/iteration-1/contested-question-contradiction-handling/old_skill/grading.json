@@ -1,0 +1,25 @@
+{
+  "expectations": [
+    {
+      "text": "Represents both positions with at least one source each",
+      "passed": true,
+      "evidence": "Both camps presented with evidence (CNCF/CloudNativePG maturity vs Didi incident, failover bug, PVC data-loss scenario)."
+    },
+    {
+      "text": "Explains the context-dependence that resolves the contradiction",
+      "passed": true,
+      "evidence": "'Context mismatch, not factual dispute' framing; the do-you-already-debug-K8s test."
+    },
+    {
+      "text": "Gives a concrete recommendation for the stated context",
+      "passed": true,
+      "evidence": "Managed service unless K8s already in production for the app tier."
+    },
+    {
+      "text": "Sources dated or recency-checked",
+      "passed": true,
+      "evidence": "13 dated lines (CNCF Jan 2025, 2021-vs-2026 framing)."
+    }
+  ],
+  "notes": "Excellent contradiction handling with concrete failure incidents. Arguably the strongest old_skill run; nearly half the with_skill run's token cost."
+}

@@ -3,8 +3,10 @@
 name: ai-agent-building
 description: >-
   Building AI agents with Claude — Agent SDK, tool design, orchestration patterns,
-  and eval-driven testing. Use when designing, building, or debugging AI agent systems.
-  Covers both Claude Agent SDK programmatic agents and Claude Code skills (which are agents).
+  workflows vs agents (Anthropic's Dec 2024 framing), MCP as the production tool-calling
+  standard, adaptive thinking, and eval-driven testing. Use when designing, building, or
+  debugging AI agent systems. Covers both Claude Agent SDK programmatic agents and
+  Claude Code skills (which are agents).
 allowed-tools:
   - Read
   - Write
@@ -20,11 +22,27 @@ allowed-tools:
 
 # AI Agent Building
 
-Start with one agent and the right tools. Earn complexity.
+**Prefer the simplest pattern that works.** Most production "agent" features should be workflows, not agents. Start with one agent and the right tools. Earn complexity by demonstrating the simpler pattern fails.
 
-<HARD-GATE>
-Do NOT ship an agent without running evals. Agent behavior is non-deterministic — a single successful run proves nothing. Run 3-5 trials per eval task and measure pass rates before deploying. An agent without evals is a demo, not a product.
-</HARD-GATE>
+## Workflows vs Agents (Anthropic's Dec 2024 framing)
+
+Anthropic's [Building Effective Agents](https://www.anthropic.com/research/building-effective-agents) (December 2024) draws the load-bearing distinction:
+
+- **Workflows** orchestrate LLMs and tools through **predefined routes**. The path through the system is fixed at design time; the LLM fills in blanks but doesn't change the structure. Predictable, debuggable, cost-bounded.
+- **Agents** are systems where the LLM **dynamically directs its own process and tool usage**. The path emerges at runtime. Flexible, expensive, harder to reason about.
+
+**Five workflow patterns to consider before going agentic:**
+1. **Prompt chaining** — fixed sequence of LLM calls, each operating on the previous output
+2. **Routing** — classify input, dispatch to one of several predefined paths
+3. **Parallelization** — concurrent LLM calls (sectioning for independent sub-tasks, voting for redundancy)
+4. **Orchestrator-workers** — central LLM decomposes the task and assigns sub-tasks to worker LLMs
+5. **Evaluator-optimizer** — one LLM generates, another evaluates and provides feedback in a loop
+
+**The default.** Prefer the simplest pattern. Add complexity only when needed. Agentic loops typically multiply token usage 3-10x; one production deployment reported per-query costs of $0.02 (simple workflow) to $0.31 (complex agentic). Routing every query through an agent when most don't need it is the most expensive default this skill exists to prevent.
+
+## Verify before shipping
+
+Agent behavior is non-deterministic — a single successful run proves nothing. Run **3-5 trials per eval task** and measure pass rates before deploying. An agent shipped without evals is a demo, not a product. The same holds for workflow-shaped features whose outputs depend on LLM judgment. See Step 5: Build with Evals.
 
 ## The Agent Equation
 
@@ -69,20 +87,25 @@ Invoke the **prompt-engineering** skill. Key decisions:
 
 ### 3. Design the Tools
 
-Tools are where the agent acts. Anthropic found that optimizing tool descriptions alone improved task completion by 40%.
+Tools are where the agent acts. Anthropic's [Writing tools for agents](https://www.anthropic.com/engineering/writing-tools-for-agents) found that optimizing tool descriptions alone improved task completion by 40% on internal SWE-bench work.
 
-**Principles:**
-- **Fewer tools = more reliable.** Agents degrade above ~15 tools. Start with 3-5.
+**Principles (2026 guidance is qualitative, not a hard count):**
+- **A few thoughtful tools beat many thinly-scoped ones.** Overlapping or vague tools distract agents; the official guidance is to "prefer a few thoughtful tools targeting specific high-impact workflows" rather than wrapping every API. There is no canonical hard ceiling on tool count, but degradation rises with overlap.
 - **Quality over quantity.** One well-described tool beats three vague ones.
-- **Consolidate similar tools.** `manage_event(action, ...)` not `create_event()` + `update_event()` + `delete_event()`.
+- **Consolidate similar tools.** `manage_event(action, ...)` not `create_event()` + `update_event()` + `delete_event()`. Fewer tools = less confusion at the dispatch step.
+- **Namespace at scale.** Prefix tools by service (`asana_search`, `jira_search`) to delineate boundaries when multiple integrations share concept space.
 
 **For each tool, specify:**
 - Unambiguous parameter names with format examples (`date: string — "ISO 8601, e.g., '2026-03-04'"`)
-- What the tool returns (and a `detail_level` parameter if responses can be large)
-- Structured error responses with suggested fixes
-- Input examples for complex parameter shapes
+- What the tool returns, including a `response_format` enum (`"concise" | "detailed"`) when responses can be large — Anthropic reports ~65% token reduction from agents picking concise for routing decisions and detailed only when needed
+- **Errors as onboarding.** A tool that returns `Error 400` teaches nothing; a tool that returns `error: field 'date' must be ISO 8601 (YYYY-MM-DD), got '2026/01/15' — try '2026-01-15'` teaches the agent to fix itself on the next call.
+- Input examples for complex parameter shapes (nested objects, filter+sort+limit combos)
 
-See `references/claude-agent-sdk.md` for SDK-specific tool configuration, MCP server setup, and hooks.
+**Response cap.** Claude Code truncates tool responses at 25,000 tokens by default. For tools that can return more, ship pagination/filtering/response_format rather than relying on truncation — truncation reads as success to the agent.
+
+**MCP as the production default.** [Model Context Protocol](https://modelcontextprotocol.io/) launched November 2024, adopted by every major provider by March 2026 (10,000+ public MCP servers, 97M monthly downloads, donated to the Agentic AI Foundation under the Linux Foundation in December 2025 with Block / Google / Microsoft / AWS / Cloudflare backing). For new agentic systems in 2026, **define tools as MCP servers by default** — the network effect plus governance neutrality made MCP the standard tool-calling contract. Bespoke per-integration wiring pays an integration tax.
+
+See `references/claude-agent-sdk.md` for SDK-specific tool configuration, MCP server setup, hooks, and the `skills` option (replaces deprecated `allowedTools: ["Skill"]`).
 
 ### 4. Design the Architecture
 
@@ -92,17 +115,34 @@ For anything beyond a single agent with tools, invoke the **architecture** skill
 
 | Signal | Pattern to Consider |
 |--------|-------------------|
-| Tool count > 15 | Split into orchestrator + specialist agents |
+| Tool surface too overlapping to describe cleanly | Split into orchestrator + specialist agents with disjoint tools |
 | Conflicting instructions | Separate agents with different system prompts |
 | Security boundaries | Agents with different permission levels |
 | Sequential specialization | Pipeline: Agent A → Agent B → Agent C |
 | Independent parallel work | Fan-out/fan-in with result merging |
 
-**Orchestration costs are real.** Multi-agent systems use ~15x more tokens than single agents. Token usage explains 80% of performance variance in complex systems. Every additional agent must justify its cost.
+**Orchestration costs are real.** Multi-agent systems use roughly 15x more tokens than single agents. Token usage explains 80% of performance variance in complex systems. Every additional agent must justify its cost.
+
+**Sub-agent pattern (Anthropic's research-system example).** A LeadResearcher agent plans, spawns specialized Subagents with scoped sub-tasks, each subagent runs its own retrieval / tool loop, the lead synthesizes. Reported quality wins on open-ended questions, at the cost of many more model calls per query. Use when the task genuinely decomposes into independent investigations; pure overhead when sub-tasks are sequentially dependent.
+
+### 4b. Production failure modes to guard against
+
+These hit every agentic system within a month of real traffic. Ship guardrails at deployment, not after the first incident.
+
+| Failure mode | Symptom | Guardrail |
+|---|---|---|
+| **Retrieval thrash / loop** | Agent keeps retrieving without converging; same content comes back across iterations | Hard step limit (MAX_STEPS=5-10), per-iteration cost cap, "give up gracefully with what you have" instruction in the system prompt |
+| **Hallucinated tool calls** | LLM invents tool names, wrong parameter types, non-existent endpoints | Strict tool-schema validation; reject + re-prompt on schema violations with a clear error; track BFCL-style tool-use accuracy in eval |
+| **Context bloat / tool storms** | Parallel or long-running tool calls fill the context window with retrieved snippets; reasoning degrades step over step | Per-step context budget; summarize older steps; cap concurrent tool calls |
+| **Latency spirals** | Multi-second loop turns into 30-second turns into 90-second as outputs grow and context bloats | Wall-clock timeout per query; stream partial results so the user sees progress; expose "I'm taking longer than usual" states |
+
+Observability (LangSmith, Langfuse, Arize Phoenix for SDK agents; built-in transcripts for Claude Code) is required to diagnose which failure mode is hitting you. Agentic loops without tracing are debug-by-prayer.
 
 ### 5. Build with Evals
 
-Invoke the **eval-driven-dev** skill. Agent evals are the outer loop — write them before implementation.
+Invoke the **eval-driven-dev** skill. Agent evals are the outer loop.
+
+**A nuance worth knowing.** The strict "write the eval before the feature" dogma is contested even by its main advocates. Hamel Husain ([Should I practice eval-driven development?](https://hamel.dev/blog/posts/evals-faq/should-i-practice-eval-driven-development.html)) explicitly argues against it because LLM failure surfaces are infinite — you can't enumerate them upfront. The better workflow: **error analysis on real outputs first**, then write evaluators for the failures you discover. Exception: known hard constraints (`never mention competitors`, `never give medical advice`, schema validation) can and should be eval'd upfront — those have a finite enumeration. **The CI gate pattern IS canonical**: once you have evals, run them on every change that affects prompts, retrieval, or model configuration.
 
 **Minimum viable eval suite:**
 - 5-10 representative tasks from real use cases
@@ -120,11 +160,24 @@ Invoke the **eval-driven-dev** skill. Agent evals are the outer loop — write t
 
 Use code-based wherever possible. Calibrate model-based graders against human judgment.
 
+**LLM-as-judge biases to design around** (each documented in the literature):
+- **Position bias** ([arXiv 2406.07791](https://arxiv.org/abs/2406.07791), IJCNLP 2025): pairwise judges prefer the first or last response; documented >10% accuracy shift in pairwise code judging. Randomize presentation order and average across both orderings.
+- **Self-preference bias** ([arXiv 2410.21819](https://arxiv.org/abs/2410.21819), Oct 2024): judges prefer responses from their own model family. Use a judge from a different family than the candidates.
+- **Style / verbosity bias**: judges prefer verbose, well-formatted responses. Explicit rubric criteria penalizing verbosity; control for response length in scoring.
+
+**Tools (2026 landscape):**
+- **[Inspect AI](https://inspect.aisi.org.uk/)** (UK AI Safety Institute, May 2024). Production-grade evaluation framework. 200+ pre-built evals, MIT licensed, supports tool calling + Docker/Kubernetes sandboxing + MCP. Adopted by Anthropic, DeepMind, xAI. The right default for any agentic eval where the model needs to call tools or browse.
+- **lm-evaluation-harness** (EleutherAI v0.4.x). Standard for running standardized benchmarks (MMLU-Pro, GPQA, BBH, MuSR). Use to filter candidate models, not as a verdict for production fit.
+- **DeepEval**, **promptfoo**, **RAGAS** (RAG-specific). Application-layer eval harnesses for CI integration.
+- **BFCL** (Berkeley Function Calling Leaderboard). De facto standard for function-calling / tool-use eval; V4 Agentic (July 2025) added multi-hop reasoning, error recovery, memory management.
+- **Tau-bench** (Sierra Research). Realistic agent-user-tool interactions, closer to production agent shape than single-turn benchmarks.
+
 **Eval anti-patterns:**
 - Single trial per task — one run proves nothing
 - Exact string matching for LLM output — use structural and semantic checks
 - Testing implementation ("did it call tool X?") vs. outcome ("did it solve the problem?")
 - Shared state between trials — previous trials corrupting current ones
+- Public benchmark rank as the verdict — public benchmarks (MMLU, HumanEval) are contaminated and saturated; treat them as candidate-pool filters, not final selection
 
 ### 6. Iterate
 
@@ -155,11 +208,14 @@ When an agent underperforms, identify the failing component before changing anyt
 | Thought | Reality |
 |---------|---------|
 | "I need multi-agent orchestration" | Start with one agent + tools. Prove it fails before splitting. |
+| "I need an agent for this" | Most production features should be workflows, not agents. Anthropic's Dec 2024 guidance: prefer the simplest pattern; may mean not building agentic systems at all. |
 | "The prompt just needs tweaking" | If 2+ prompt iterations haven't fixed it, the problem is tools or architecture. |
 | "One successful run means it works" | Non-deterministic. Run 3-5 trials. |
-| "More tools = more capable" | More tools = more confusion above ~15. Quality over quantity. |
-| "I'll add evals later" | You'll ship without them. Write evals first. |
+| "More tools = more capable" | More tools = more confusion. The 2026 guidance is qualitative: a few thoughtful tools, not a count. |
+| "I'll add evals later" | You'll ship without them. Run error analysis on real outputs early; write evals for the failures you discover. |
 | "The agent is smart enough to figure it out" | Agents need explicit structure. Ambiguity causes hallucination. |
+| "I'll let the LLM decide which tool to use; it's smart enough" | Tool selection accuracy is a tracked failure mode (BFCL). Schema validation + clear descriptions + namespace prefixes prevent hallucinated tool calls. |
+| "Public benchmark says model A is better, ship it" | Public benchmarks are filters, not verdicts. Build an internal eval from your real inputs and let it pick the model. |
 
 ## SDK & Configuration Reference
 

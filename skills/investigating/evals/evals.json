@@ -1,0 +1,70 @@
+{
+  "skill_name": "research",
+  "evals": [
+    {
+      "id": 1,
+      "name": "fast-moving-factual-recency",
+      "prompt": "what are the current claude model ids and which one should i default to for an agent that mostly does tool calling? i keep seeing different names in blog posts and half of them seem outdated",
+      "expected_output": "Current model IDs verified against primary Anthropic sources (not blog posts), claims dated, a concrete default recommendation with reasoning, outdated names from blogs explicitly flagged as stale.",
+      "files": [],
+      "assertions": [
+        {"text": "Cites a primary Anthropic source (docs.anthropic.com / platform.claude.com / anthropic.com), not only blogs or aggregators"},
+        {"text": "States when each claim was verified or the publication date of sources (recency discipline)"},
+        {"text": "Gives one concrete default recommendation rather than an undifferentiated list"},
+        {"text": "Output includes a Sources section with working references"}
+      ]
+    },
+    {
+      "id": 2,
+      "name": "codebase-exploration-ground-truth",
+      "prompt": "how does auth actually work in ~/Projects/arboreus-api? like where do roles get enforced - is it the API layer or the database? I need to know before I add a new reviewer-only endpoint",
+      "expected_output": "Correctly identifies Supabase Auth + JWT, the role set (learner/creator/reviewer/admin), and RLS policies as the DB-layer enforcement, with real file paths as evidence. Answers the layering question directly and gives actionable guidance for the new endpoint.",
+      "files": [],
+      "assertions": [
+        {"text": "Identifies Supabase Auth with JWT and RLS policy enforcement (verifiable against the repo)"},
+        {"text": "Every architectural claim cites a file path that actually exists in the repo"},
+        {"text": "Directly answers the API-layer vs database-layer question rather than describing both vaguely"},
+        {"text": "No fabricated file paths or invented middleware names"}
+      ]
+    },
+    {
+      "id": 3,
+      "name": "consumer-seo-resistance",
+      "prompt": "my wrists hurt after long coding sessions. looking for a split ergonomic keyboard, ideally under $250, that real people have used for a year plus and still recommend. not interested in whatever amazon is pushing",
+      "expected_output": "Recommendations sourced from specialist communities (r/ErgoMechKeyboards, geekhack, long-term review blogs) with longevity signal, not SEO listicles. Picks triangulated across 2+ independent sources, contradictions flagged, confidence levels stated.",
+      "files": [],
+      "assertions": [
+        {"text": "At least one source is a specialist community or long-term user report (forum, subreddit, enthusiast blog), not a commerce/SEO listicle"},
+        {"text": "Each recommended product is supported by 2+ independent sources"},
+        {"text": "Findings carry confidence levels and a Sources section"},
+        {"text": "Addresses the longevity criterion (year-plus ownership signal) rather than launch reviews"}
+      ]
+    },
+    {
+      "id": 4,
+      "name": "contested-question-contradiction-handling",
+      "prompt": "is it actually safe to run postgres in kubernetes for production in 2026 or is that still a bad idea? getting conflicting advice from my team. we're a 3 person startup, ~50GB database",
+      "expected_output": "Presents the genuine disagreement (operator maturity vs operational complexity) with sources on both sides, identifies the context that makes each side right, and lands on a sized recommendation for a 3-person/50GB context instead of flattening to one camp.",
+      "files": [],
+      "assertions": [
+        {"text": "Represents both positions with at least one source each (does not flatten the controversy)"},
+        {"text": "Explains the context-dependence (team size, ops maturity, data size) that resolves the contradiction"},
+        {"text": "Gives a concrete recommendation for the stated context (3-person startup, 50GB)"},
+        {"text": "Sources are dated or recency-checked (operator landscape changed substantially 2023-2026)"}
+      ]
+    },
+    {
+      "id": 5,
+      "name": "negative-evidence-and-stopping",
+      "prompt": "I want a CLI tool that automates UI testing for Compose Multiplatform desktop apps - something like playwright but for compose. what are my options?",
+      "expected_output": "Correctly concludes the market is near-empty (no direct Playwright-equivalent for Compose Multiplatform), treats the absence as a finding with evidence of where it looked, surfaces the nearest alternatives and their gaps, rather than padding weak matches into a fake comparison.",
+      "files": [],
+      "assertions": [
+        {"text": "States clearly that no direct equivalent exists (negative finding presented as the answer, not hedged away)"},
+        {"text": "Lists where it looked (search coverage as evidence for the negative claim)"},
+        {"text": "Nearest-alternative tools are described with their actual gaps, not inflated into equivalents"},
+        {"text": "Does not fabricate a tool or misrepresent an Android-only/Espresso-based tool as Compose Multiplatform desktop support"}
+      ]
+    }
+  ]
+}

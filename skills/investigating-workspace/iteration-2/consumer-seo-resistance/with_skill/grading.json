@@ -1,0 +1,30 @@
+{
+  "expectations": [
+    {
+      "text": "At least one specialist community / long-term user source, not SEO listicles",
+      "passed": true,
+      "evidence": "HN decade-long user account, bulsuk.com 2-year review, deskthority.net."
+    },
+    {
+      "text": "Each recommended product supported by 2+ independent sources",
+      "passed": true,
+      "evidence": "Freestyle2 and Q11 each carry multiple independent accounts; K11 Max leans on one long-term review plus community corroboration and is caveated as Alice-not-split."
+    },
+    {
+      "text": "Findings carry confidence levels and a Sources section",
+      "passed": true,
+      "evidence": "3 confidence markers, Sources section with 8 dated links."
+    },
+    {
+      "text": "Addresses the longevity criterion (year-plus ownership)",
+      "passed": true,
+      "evidence": "Decade-long Freestyle2 user; 2-year maintained 5/5 review; per-pick longevity evidence stated."
+    },
+    {
+      "text": "Wrote an investigation header (Question/Domain/Strategy/Hypothesis/Done-when) at the top of the deliverable",
+      "passed": true,
+      "evidence": "Header opens the document; hypothesis correctly predicted the over-$250 enthusiast favorites would be excluded by the budget."
+    }
+  ],
+  "notes": "Ran refutation searches per pick (surfaced the buried Q11 no-tenting complaint). Recovered from SearXNG outage + Reddit block via WebSearch/Playwright."
+}

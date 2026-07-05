@@ -10,7 +10,7 @@ description: >-
 when_to_use: >-
   Use after test-planning has landed an integration test contract in at least
   one spec/<name>.md file, before build begins implementation. Typically
-  invoked by design between test-planning and build, but can be run directly
+  invoked by engineering between test-planning and build, but can be run directly
   on a specific spec.
 allowed-tools:
   - Read

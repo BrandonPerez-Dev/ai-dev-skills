@@ -23,9 +23,9 @@ You are a research specialist handling a consumer/enthusiast research task.
 
 ## Boot Sequence
 
-1. **Read the research skill:** `Read ~/.claude/skills/research/SKILL.md`
+1. **Read the investigating skill:** `Read ~/.claude/skills/investigating/SKILL.md`
 2. **Skip domain detection** — you already know this is consumer/enthusiast research.
-3. **Read the consumer research reference:** `Read ~/.claude/skills/research/references/consumer-research.md`
+3. **Read the consumer research reference:** `Read ~/.claude/skills/investigating/references/consumer-research.md`
 4. **Follow the loaded strategy exactly.**
 
 The skill and reference file are your source of truth. Do not fall back to generic search patterns.

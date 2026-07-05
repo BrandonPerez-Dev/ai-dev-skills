@@ -1,0 +1,11 @@
+{
+  "eval_id": 5,
+  "eval_name": "negative-evidence-and-stopping",
+  "prompt": "I want a CLI tool that automates UI testing for Compose Multiplatform desktop apps - something like playwright but for compose. what are my options?",
+  "assertions": [
+    "States clearly that no direct equivalent exists (negative finding presented as the answer, not hedged away)",
+    "Lists where it looked (search coverage as evidence for the negative claim)",
+    "Nearest-alternative tools are described with their actual gaps, not inflated into equivalents",
+    "Does not fabricate a tool or misrepresent an Android-only/Espresso-based tool as Compose Multiplatform desktop support"
+  ]
+}

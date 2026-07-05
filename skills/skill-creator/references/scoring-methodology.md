@@ -62,7 +62,7 @@ SECTIONS:
 
 ## Phase 2: Subjective Quality Evaluation (LLM)
 
-Score each of the 7 dimensions using the rubric from skill-creator. The scorer receives:
+Score each of the 8 dimensions using the rubric from skill-creator. The scorer receives:
 1. The full SKILL.md content
 2. The Phase 1 fact sheet (so structural markers can't be missed)
 
@@ -79,41 +79,51 @@ For each dimension, the scorer MUST:
 These prevent drift in scoring standards.
 
 #### Additive value (0-2)
-- **0**: The skill is a reformatted version of something Claude already knows (e.g., generic git commands, standard library API)
+- **0**: Reformatted version of something Claude already knows (e.g., generic git commands, standard library API)
 - **1**: Adds team conventions, specific decision frameworks, or domain context Claude doesn't have
-- **2**: Teaches a methodology — a way of thinking about a class of problems that Claude doesn't do by default
+- **2**: Teaches a methodology Claude doesn't do by default. Apply the **deletion test** to each instruction block: "Would removing this cause Claude to make a mistake?" If no, cut.
 
-#### Central thesis (0-2)
-- **0**: No opening principle. The skill jumps straight into steps or sections
-- **1**: Has a thesis but it's buried mid-document, or it's generic ("do good work")
-- **2**: Clear, opinionated thesis in the first line after the H1. Everything in the skill flows from it. Quote the thesis.
+#### Description quality (0-2) — NEW DIMENSION (2026-05-14)
+- **0**: Missing trigger info; mixed POV ("I'll do X" / "you should..."); time-sensitive; over the 1,536-char combined cap with truncation; vague
+- **1**: Third-person, includes both what the skill does and when to use it, fits in budget
+- **2**: Third-person, **key use-case phrase first** (routing scores against the start), includes what + when, uses `when_to_use` field for additional triggers if useful, fits within 1,536-char combined cap, NOT time-sensitive
+- **IMPORTANT**: Mixed POV is an automatic 0. Anthropic explicitly: "inconsistent point-of-view can cause discovery problems."
 
-#### Failure prevention (0-2)
-- **0**: No `<HARD-GATE>` tags AND no anti-patterns section AND no bias guards
-- **1**: Has EITHER a hard gate OR anti-patterns, but not both. Or has them but they're generic
-- **2**: Has `<HARD-GATE>` tags + anti-patterns table + bias guards or red flags specific to this domain
-- **IMPORTANT**: If the fact sheet shows `hard-gates: >= 1`, the minimum score is 1. A score of 0 requires justifying why the detected hard gate doesn't count.
+#### Entry-point clarity (0-2) — REVISED FROM "Central thesis" (2026-05-14)
+Measures whether Claude, once the skill is loaded, can find the anchoring concept fast — within a 5-second scroll. Broader than the old "central thesis" criterion: a quick-reference table near the top counts equally with a prose thesis statement.
+- **0**: No anchoring concept anywhere near the top. The reader must scan the whole skill to figure out what's load-bearing
+- **1**: Has an anchor (thesis or table) but it's buried mid-document, OR it's generic ("do good work" / "follow best practices")
+- **2**: Any of: (a) clear opinionated prose thesis in the first non-empty line after the H1 (typical for methodology skills like research / systematic-debugging / verification), (b) quick-reference table mapping tasks → tools/files/approach near the top (typical for utility skills like pdf / docx / pptx), (c) both. Quote the anchor.
+- **IMPORTANT**: A skill's *form* of entry-point clarity depends on its type. Methodology skills usually use prose theses; utility skills usually use quick-ref tables. Neither is inherently superior — score whether the anchor is *fast to find and load-bearing*, not whether it's in the form you expected.
 
-#### Decision support (0-2)
+#### Failure prevention (0-2) — REVISED
+Mechanism-agnostic — scores whether failures are prevented, not whether `<HARD-GATE>` tags are present. (Zero of six analyzed Anthropic-authored skills use `<HARD-GATE>` tags.)
+- **0**: No verification mechanisms, no critical-failure callouts, no validation scripts/hooks, no domain-specific anti-patterns
+- **1**: Has ONE mechanism: verification loop OR critical callouts (`⚠️ CRITICAL`/**bold**) OR validation scripts OR subagent QA pattern OR `<HARD-GATE>` blocks OR domain anti-patterns table
+- **2**: Multiple mechanisms appropriate to the domain. Could include: verification loops ("assume there are problems"), bold/critical prose callouts on specific failure modes, scripts/hooks for fragile operations, subagent delegation for fresh-eyes review, bias guards table, anti-patterns table. Positive directives with motivation count equally with negation gates.
+- **IMPORTANT**: If the fact sheet shows `hard-gates: >= 1`, the minimum score is 1 (still a valid mechanism, just not Anthropic's canonical pattern).
+
+#### Decision support (0-2) — BROADENED
 - **0**: Linear "do these steps" with no branching or conditional logic
-- **1**: Some conditional paths (if X then Y), sizing tables, or method selection
-- **2**: Full decision/routing table that matches situations to approaches, with clear criteria
+- **1**: Some conditional logic (if X then Y) or a sizing table
+- **2**: Any of: quick-reference table mapping situations → approach, conditional workflow branching, domain-partitioned references with explicit routing instructions, method selection table
 
-#### Structure (0-2)
-- **0**: Wall of text, no phases, no entry/exit criteria
-- **1**: Organized sections but linear flow, no checkpoints
-- **2**: Phased process with entry/exit criteria per phase, checkpoints for human validation
+#### Structure (0-2) — BROADENED
+- **0**: Wall of text, no progressive disclosure, references nested >1 level deep
+- **1**: Organized sections, references one level deep, but linear flow without entry/exit criteria
+- **2**: Progressive disclosure done well: SKILL.md as index, references loaded on demand, all reference files one level deep from SKILL.md, files >100 lines have a TOC. For methodology skills, phased process with entry/exit criteria. For user-facing skills, output paced per communication-protocol.
 
-#### Tool design (0-2)
-- **0**: No allowed-tools in frontmatter AND no delegation to other skills AND no MCP/script usage
-- **1**: Has allowed-tools appropriate to the task OR delegates to other skills
-- **2**: Tools actively researched and well-matched. Uses `Skill` tool for delegation, MCP servers, scripts, or custom tools where appropriate
-- **IMPORTANT**: If the fact sheet shows `has-Skill-tool: yes` AND `explicit-invocations` lists delegations, the minimum score is 1. A score of 0 requires justifying why the detected delegation doesn't count.
+#### Tool design (0-2) — UPDATED FOR 2026
+- **0**: No `allowed-tools` AND no delegation AND no MCP/script usage
+- **1**: `allowed-tools` appropriate to the task, OR delegates to other skills
+- **2**: 2026 patterns applied: `allowed-tools` treated as grant (not fence), MCP tools use fully qualified names (`Server:tool_name`), Skill/Task used for delegation where appropriate, `context: fork` + `agent:` for subagent routing where helpful, `effort:` / `model:` calibration where intelligence-sensitive, scoped `hooks:` for deterministic enforcement where the operation is fragile
+- **IMPORTANT**: If the fact sheet shows `has-Skill-tool: yes` AND `explicit-invocations` lists delegations, the minimum score is 1.
 
-#### Context efficiency (0-2)
-- **0**: 500+ lines of generic advice that Claude already knows, or massive code snippets for standard operations
-- **1**: Right-sized but some filler — sections that could be trimmed without losing value
-- **2**: Every paragraph justifies its token cost. Reference material is in `references/` not inline. Under 300 lines for methodology skills, under 200 for utility skills.
+#### Context efficiency (0-2) — REVISED FOR 2026 COMPACTION BUDGET
+- **0**: Exceeds 500-line SKILL.md cap, OR padded with explanations Claude already knows
+- **1**: Under 500 lines, but some filler — sections that could be trimmed without losing value
+- **2**: Under 500 lines, **critical instructions in first ~350 lines** (the 5,000-token per-skill compaction-durable zone), references/ used for variant/domain detail loaded on demand, no explanations of standard-library behavior, deletion test applied throughout. Density over completeness.
+- **IMPORTANT**: Anthropic's official cap is 500 lines (not 300 as the old anchor stated). The 5K-token compaction budget makes the *first* ~350 lines load-bearing — a 480-line skill with critical content up front beats a 280-line skill that buried the load-bearing rules.
 
 ### Output format
 
@@ -121,15 +131,16 @@ These prevent drift in scoring standards.
 SKILL: <name>
 
 SCORES:
-  additive-value:     X/2 — "<evidence quote>" [gap if < 2]
-  central-thesis:     X/2 — "<evidence quote>" [gap if < 2]
-  failure-prevention: X/2 — "<evidence quote>" [gap if < 2]
-  decision-support:   X/2 — "<evidence quote>" [gap if < 2]
-  structure:          X/2 — "<evidence quote>" [gap if < 2]
-  tool-design:        X/2 — "<evidence quote>" [gap if < 2]
-  context-efficiency: X/2 — "<evidence quote>" [gap if < 2]
+  additive-value:      X/2 — "<evidence quote>" [gap if < 2]
+  description-quality: X/2 — "<evidence quote>" [gap if < 2]
+  entry-point-clarity: X/2 — "<evidence quote>" [gap if < 2]
+  failure-prevention:  X/2 — "<evidence quote>" [gap if < 2]
+  decision-support:    X/2 — "<evidence quote>" [gap if < 2]
+  structure:           X/2 — "<evidence quote>" [gap if < 2]
+  tool-design:         X/2 — "<evidence quote>" [gap if < 2]
+  context-efficiency:  X/2 — "<evidence quote>" [gap if < 2]
 
-TOTAL: XX/14
+TOTAL: XX/16
 
 FACT SHEET CONFLICTS: [any cases where the score contradicts the fact sheet — must be explained]
 

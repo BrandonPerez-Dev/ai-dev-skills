@@ -1,6 +1,6 @@
 # Claude Agent SDK Reference
 
-Verified against official documentation (March 2026). Sources: platform.claude.com, GitHub repos.
+Verified against official documentation (June 2026 refresh). Sources: platform.claude.com, GitHub repos, [Building Effective Agents](https://www.anthropic.com/research/building-effective-agents), [Writing tools for agents](https://www.anthropic.com/engineering/writing-tools-for-agents).
 
 ## Installation
 
@@ -59,7 +59,7 @@ async for message in query(
 
 ```typescript
 interface Options {
-  allowedTools?: string[];             // Tool whitelist
+  allowedTools?: string[];             // Tool whitelist (GRANT, not fence — see permissions note below)
   disallowedTools?: string[];          // Tool blacklist
   permissionMode?: "default" | "acceptEdits" | "bypassPermissions";
   systemPrompt?: string;               // System prompt for the agent
@@ -69,10 +69,36 @@ interface Options {
   agents?: Record<string, AgentDefinition>;      // Subagent definitions
   hooks?: Record<HookEventName, HookMatcher[]>;  // Lifecycle hooks
   env?: Record<string, string>;        // Environment variables
+  skills?: "all" | string[];           // Skill loading (replaces deprecated allowedTools: ["Skill"])
+  effort?: "low" | "medium" | "high" | "xhigh" | "max";  // Adaptive thinking budget — see below
 }
 ```
 
+**`allowedTools` is a GRANT, not a FENCE** ([GH #37683](https://github.com/anthropics/claude-code/issues/37683), confirmed in [Claude Code skills docs](https://code.claude.com/docs/en/skills)). Listing tools pre-approves them while the agent runs — but does NOT block Claude from using unlisted tools. To actually block tools, use `disallowedTools` or permission deny rules.
+
+**`skills` (replaces `allowedTools: ["Skill"]`)** — the old pattern of including `"Skill"` in `allowedTools` is deprecated. Use `skills: "all"` to load all skills, or `skills: ["skill-a", "skill-b"]` to load specific ones. The Skill tool is still callable; the discovery mechanism is what changed.
+
+## Adaptive Thinking (Claude 4.x)
+
+The 4.x architecture is **adaptive thinking** — Claude decides when and how much to think based on the configured `effort` and query complexity. This replaces manual `budget_tokens` and most "think step by step" scaffolding.
+
+**`budget_tokens` is deprecated** on Opus 4.6 / Sonnet 4.6, and **returns 400 on Opus 4.7+**. Migrate to `effort`:
+
+| Effort | When to use |
+|---|---|
+| `max` | Intelligence-demanding tasks; risk of overthinking simple work |
+| `xhigh` (4.7+) | Best default for most coding and agentic tasks; the Opus 4.7 default |
+| `high` | Minimum for intelligence-sensitive work; the Sonnet 4.6 default |
+| `medium` | Cost-sensitive workloads |
+| `low` | Latency-sensitive, scoped, non-intelligence-sensitive |
+
+**Stop telling Claude 4.x to "think step by step."** Per current Anthropic docs, those instructions were scaffolding for older-model limitations and are no longer load-bearing — delete them and raise the effort level instead.
+
+**Prefilled responses are deprecated on Claude 4.6+** (return 400). If you previously used prefill to force JSON, switch to Structured Outputs or a direct instruction ("Respond in valid JSON.").
+
 ## MCP Server Configuration
+
+MCP is the production standard for agentic tool integration in 2026 (10,000+ public servers, donated to the Agentic AI Foundation under the Linux Foundation December 2025). For new tools and integrations, **author them as MCP servers by default** — the ecosystem effect plus governance neutrality means bespoke per-integration wiring pays a long-term integration tax.
 
 `mcpServers` is a **Record** (object with server names as keys), not an array.
 
@@ -234,3 +260,17 @@ if (sessionId) {
 | Task | Launch subagents for parallel work |
 
 **Principle of least privilege.** Start with minimal tools, add as needed. An agent with `Bash` can do almost anything — restrict unless required.
+
+**Response truncation.** Claude Code truncates tool responses at **25,000 tokens** by default. For tools that can return more, implement pagination, filtering, and `response_format` enums rather than relying on truncation — the agent can't tell truncated success from full success without an explicit signal.
+
+## Prompt Caching for Agentic Workloads
+
+Anthropic prompt caching (launched August 14, 2024) is the cheapest single optimization for any agentic workload with stable prompt prefixes (system prompts, tool descriptions, persona, few-shot examples).
+
+- **Explicit opt-in** via `cache_control` annotations
+- **Minimum prefix length**: 1024 tokens (Sonnet 4.6, Opus 4.x), 2048 tokens (Haiku 4.5)
+- **Cache hit**: 10% of base input cost (90% savings on cached portion)
+- **Cache write**: 25% premium
+- **Default TTL**: 5 minutes, extendable to 1 hour
+
+For agentic loops where the system prompt + tool descriptions are reused across many tool-call turns within a session, caching the static prefix is essentially free latency and substantial cost reduction. Build for it from day one on any production agent.

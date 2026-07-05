@@ -6,7 +6,7 @@ Personal AI coding assistant configuration - skills, agents, MCP servers, plugin
 
 ```bash
 # 1. Clone this repo
-git clone https://github.com/brandonperez-wex/ai-workflow-config.git ~/ai-workflow-config
+git clone https://github.com/BrandonPerez-Dev/ai-dev-skills.git ~/ai-workflow-config
 
 # 2. Install MCP servers
 ./scripts/install-mcps.sh
@@ -172,7 +172,7 @@ To set up on a new machine:
 
 ```bash
 # Clone your config
-git clone https://github.com/brandonperez-wex/ai-workflow-config.git ~/ai-workflow-config
+git clone https://github.com/BrandonPerez-Dev/ai-dev-skills.git ~/ai-workflow-config
 
 # Run setup (installs everything)
 cd ~/ai-workflow-config

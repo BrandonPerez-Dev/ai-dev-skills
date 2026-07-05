@@ -1,0 +1,30 @@
+{
+  "expectations": [
+    {
+      "text": "At least one specialist community / long-term user source, not SEO listicles",
+      "passed": true,
+      "evidence": "r/ErgoMechKeyboards, getreuer.info practitioner review, individual long-term reports."
+    },
+    {
+      "text": "Each recommended product supported by 2+ independent sources",
+      "passed": true,
+      "evidence": "Each of the 3 picks carries at least two independent endorsements (e.g. Freestyle: dissertation-long daily use + community consensus)."
+    },
+    {
+      "text": "Findings carry confidence levels and a Sources section",
+      "passed": true,
+      "evidence": "4 confidence markers + Sources section."
+    },
+    {
+      "text": "Addresses the longevity criterion (year-plus ownership)",
+      "passed": true,
+      "evidence": "Year-plus signals explicit: dissertation-long use, 12-13 year Kinesis user, documented RSI-recovery journey."
+    },
+    {
+      "text": "Wrote an investigation header (Question/Domain/Strategy/Hypothesis/Done-when) before findings, or evidence of it appears in the answer",
+      "passed": false,
+      "evidence": "No investigation header in the deliverable."
+    }
+  ],
+  "notes": "Explicitly named the SEO distortion (K860 pushed by affiliates, absent from specialist discussion) - exactly the behavior the case tests. Header missing."
+}

@@ -1,0 +1,25 @@
+{
+  "expectations": [
+    {
+      "text": "At least one specialist community / long-term user source, not SEO listicles",
+      "passed": true,
+      "evidence": "HN, Lobsters, Keebio community used after Reddit/SearXNG access failures; 16 URLs."
+    },
+    {
+      "text": "Each recommended product supported by 2+ independent sources",
+      "passed": true,
+      "evidence": "Picks carry multiple community citations."
+    },
+    {
+      "text": "Findings carry confidence levels and a Sources section",
+      "passed": true,
+      "evidence": "8 confidence markers + Sources section."
+    },
+    {
+      "text": "Addresses the longevity criterion (year-plus ownership)",
+      "passed": true,
+      "evidence": "'Longest real-world wrist-pain track record' framing on the Freestyle2; HN long-term users on the MD770."
+    }
+  ],
+  "notes": "Resourceful under tool failures (SearXNG down, Reddit blocked). Good picks; also called out Q11's missing tenting. Lower dating density (4 dated lines vs 14)."
+}

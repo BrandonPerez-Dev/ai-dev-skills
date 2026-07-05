@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eval Review</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" integrity="sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --bg: #faf9f5;
+      --surface: #ffffff;
+      --border: #e8e6dc;
+      --text: #141413;
+      --text-muted: #b0aea5;
+      --accent: #d97757;
+      --accent-hover: #c4613f;
+      --green: #788c5d;
+      --green-bg: #eef2e8;
+      --red: #c44;
+      --red-bg: #fceaea;
+      --header-bg: #141413;
+      --header-text: #faf9f5;
+      --radius: 6px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Lora', Georgia, serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ---- Header ---- */
+    .header {
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .header h1 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    .header .instructions {
+      font-size: 0.8rem;
+      opacity: 0.7;
+      margin-top: 0.25rem;
+    }
+    .header .progress {
+      font-size: 0.875rem;
+      opacity: 0.8;
+      text-align: right;
+    }
+
+    /* ---- Main content ---- */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* ---- Sections ---- */
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      flex-shrink: 0;
+    }
+    .section-header {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.75rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .section-body {
+      padding: 1rem;
+    }
+
+    /* ---- Config badge ---- */
+    .config-badge {
+      display: inline-block;
+      padding: 0.2rem 0.625rem;
+      border-radius: 9999px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-left: 0.75rem;
+      vertical-align: middle;
+    }
+    .config-badge.config-primary {
+      background: rgba(33, 150, 243, 0.12);
+      color: #1976d2;
+    }
+    .config-badge.config-baseline {
+      background: rgba(255, 193, 7, 0.15);
+      color: #f57f17;
+    }
+
+    /* ---- Prompt ---- */
+    .prompt-text {
+      white-space: pre-wrap;
+      font-size: 0.9375rem;
+      line-height: 1.6;
+    }
+
+    /* ---- Outputs ---- */
+    .output-file {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .output-file + .output-file {
+      margin-top: 1rem;
+    }
+    .output-file-header {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .output-file-header .dl-btn {
+      font-size: 0.7rem;
+      color: var(--accent);
+      text-decoration: none;
+      cursor: pointer;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-weight: 500;
+      opacity: 0.8;
+    }
+    .output-file-header .dl-btn:hover {
+      opacity: 1;
+      text-decoration: underline;
+    }
+    .output-file-content {
+      padding: 0.75rem;
+      overflow-x: auto;
+    }
+    .output-file-content pre {
+      font-size: 0.8125rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+    }
+    .output-file-content img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+    }
+    .output-file-content iframe {
+      width: 100%;
+      height: 600px;
+      border: none;
+    }
+    .output-file-content table {
+      border-collapse: collapse;
+      font-size: 0.8125rem;
+      width: 100%;
+    }
+    .output-file-content table td,
+    .output-file-content table th {
+      border: 1px solid var(--border);
+      padding: 0.375rem 0.5rem;
+      text-align: left;
+    }
+    .output-file-content table th {
+      background: var(--bg);
+      font-weight: 600;
+    }
+    .output-file-content .download-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+    .output-file-content .download-link:hover {
+      background: var(--border);
+    }
+    .empty-state {
+      color: var(--text-muted);
+      font-style: italic;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    /* ---- Feedback ---- */
+    .prev-feedback {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.625rem 0.75rem;
+      margin-top: 0.75rem;
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .prev-feedback-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.25rem;
+      color: var(--text-muted);
+    }
+    .feedback-textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 0.9375rem;
+      line-height: 1.5;
+      resize: vertical;
+      color: var(--text);
+    }
+    .feedback-textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    .feedback-status {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      min-height: 1.1em;
+    }
+
+    /* ---- Grades (collapsible) ---- */
+    .grades-toggle {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .grades-toggle:hover {
+      color: var(--accent);
+    }
+    .grades-toggle .arrow {
+      margin-right: 0.5rem;
+      transition: transform 0.15s;
+      font-size: 0.75rem;
+    }
+    .grades-toggle .arrow.open {
+      transform: rotate(90deg);
+    }
+    .grades-content {
+      display: none;
+      margin-top: 0.75rem;
+    }
+    .grades-content.open {
+      display: block;
+    }
+    .grades-summary {
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .grade-badge {
+      display: inline-block;
+      padding: 0.125rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .grade-pass { background: var(--green-bg); color: var(--green); }
+    .grade-fail { background: var(--red-bg); color: var(--red); }
+    .assertion-list {
+      list-style: none;
+    }
+    .assertion-item {
+      padding: 0.625rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8125rem;
+    }
+    .assertion-item:last-child { border-bottom: none; }
+    .assertion-status {
+      font-weight: 600;
+      margin-right: 0.5rem;
+    }
+    .assertion-status.pass { color: var(--green); }
+    .assertion-status.fail { color: var(--red); }
+    .assertion-evidence {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+      padding-left: 1.5rem;
+    }
+
+    /* ---- View tabs ---- */
+    .view-tabs {
+      display: flex;
+      gap: 0;
+      padding: 0 2rem;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .view-tab {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.625rem 1.25rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .view-tab:hover { color: var(--text); }
+    .view-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .view-panel { display: none; }
+    .view-panel.active { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+
+    /* ---- Benchmark view ---- */
+    .benchmark-view {
+      padding: 1.5rem 2rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .benchmark-table {
+      border-collapse: collapse;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.8125rem;
+      width: 100%;
+      margin-bottom: 1.5rem;
+    }
+    .benchmark-table th, .benchmark-table td {
+      padding: 0.625rem 0.75rem;
+      text-align: left;
+      border: 1px solid var(--border);
+    }
+    .benchmark-table th {
+      font-family: 'Poppins', sans-serif;
+      background: var(--header-bg);
+      color: var(--header-text);
+      font-weight: 500;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .benchmark-table tr:hover { background: var(--bg); }
+    .benchmark-table tr.benchmark-row-with { background: rgba(33, 150, 243, 0.06); }
+    .benchmark-table tr.benchmark-row-without { background: rgba(255, 193, 7, 0.06); }
+    .benchmark-table tr.benchmark-row-with:hover { background: rgba(33, 150, 243, 0.12); }
+    .benchmark-table tr.benchmark-row-without:hover { background: rgba(255, 193, 7, 0.12); }
+    .benchmark-table tr.benchmark-row-avg { font-weight: 600; border-top: 2px solid var(--border); }
+    .benchmark-table tr.benchmark-row-avg.benchmark-row-with { background: rgba(33, 150, 243, 0.12); }
+    .benchmark-table tr.benchmark-row-avg.benchmark-row-without { background: rgba(255, 193, 7, 0.12); }
+    .benchmark-delta-positive { color: var(--green); font-weight: 600; }
+    .benchmark-delta-negative { color: var(--red); font-weight: 600; }
+    .benchmark-notes {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+    }
+    .benchmark-notes h3 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+    }
+    .benchmark-notes ul {
+      list-style: disc;
+      padding-left: 1.25rem;
+    }
+    .benchmark-notes li {
+      font-size: 0.8125rem;
+      line-height: 1.6;
+      margin-bottom: 0.375rem;
+    }
+    .benchmark-empty {
+      color: var(--text-muted);
+      font-style: italic;
+      text-align: center;
+      padding: 3rem;
+    }
+
+    /* ---- Navigation ---- */
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+    .nav-btn {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text);
+      transition: all 0.15s;
+    }
+    .nav-btn:hover:not(:disabled) {
+      background: var(--bg);
+      border-color: var(--text-muted);
+    }
+    .nav-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .done-btn {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.5rem 1.5rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+    .done-btn:hover {
+      background: var(--bg);
+      border-color: var(--text-muted);
+    }
+    .done-btn.ready {
+      border: none;
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+    }
+    .done-btn.ready:hover {
+      background: var(--accent-hover);
+    }
+    /* ---- Done overlay ---- */
+    .done-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+    .done-overlay.visible {
+      display: flex;
+    }
+    .done-card {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 2rem 3rem;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 500px;
+    }
+    .done-card h2 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .done-card p {
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+    .done-card .btn-row {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+    .done-card button {
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.875rem;
+    }
+    .done-card button:hover {
+      background: var(--bg);
+    }
+    /* ---- Toast ---- */
+    .toast {
+      position: fixed;
+      bottom: 5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 0.625rem 1.25rem;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      z-index: 200;
+    }
+    .toast.visible {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" style="height:100vh; display:flex; flex-direction:column;">
+    <div class="header">
+      <div>
+        <h1>Eval Review: <span id="skill-name"></span></h1>
+        <div class="instructions">Review each output and leave feedback below. Navigate with arrow keys or buttons. When done, copy feedback and paste into Claude Code.</div>
+      </div>
+      <div class="progress" id="progress"></div>
+    </div>
+
+    <!-- View tabs (only shown when benchmark data exists) -->
+    <div class="view-tabs" id="view-tabs" style="display:none;">
+      <button class="view-tab active" onclick="switchView('outputs')">Outputs</button>
+      <button class="view-tab" onclick="switchView('benchmark')">Benchmark</button>
+    </div>
+
+    <!-- Outputs panel (qualitative review) -->
+    <div class="view-panel active" id="panel-outputs">
+    <div class="main">
+      <!-- Prompt -->
+      <div class="section">
+        <div class="section-header">Prompt <span class="config-badge" id="config-badge" style="display:none;"></span></div>
+        <div class="section-body">
+          <div class="prompt-text" id="prompt-text"></div>
+        </div>
+      </div>
+
+      <!-- Outputs -->
+      <div class="section">
+        <div class="section-header">Output</div>
+        <div class="section-body" id="outputs-body">
+          <div class="empty-state">No output files found</div>
+        </div>
+      </div>
+
+      <!-- Previous Output (collapsible) -->
+      <div class="section" id="prev-outputs-section" style="display:none;">
+        <div class="section-header">
+          <div class="grades-toggle" onclick="togglePrevOutputs()">
+            <span class="arrow" id="prev-outputs-arrow">&#9654;</span>
+            Previous Output
+          </div>
+        </div>
+        <div class="grades-content" id="prev-outputs-content"></div>
+      </div>
+
+      <!-- Grades (collapsible) -->
+      <div class="section" id="grades-section" style="display:none;">
+        <div class="section-header">
+          <div class="grades-toggle" onclick="toggleGrades()">
+            <span class="arrow" id="grades-arrow">&#9654;</span>
+            Formal Grades
+          </div>
+        </div>
+        <div class="grades-content" id="grades-content"></div>
+      </div>
+
+      <!-- Feedback -->
+      <div class="section">
+        <div class="section-header">Your Feedback</div>
+        <div class="section-body">
+          <textarea
+            class="feedback-textarea"
+            id="feedback"
+            placeholder="What do you think of this output? Any issues, suggestions, or things that look great?"
+          ></textarea>
+          <div class="feedback-status" id="feedback-status"></div>
+          <div class="prev-feedback" id="prev-feedback" style="display:none;">
+            <div class="prev-feedback-label">Previous feedback</div>
+            <div id="prev-feedback-text"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav" id="outputs-nav">
+      <button class="nav-btn" id="prev-btn" onclick="navigate(-1)">&#8592; Previous</button>
+      <button class="done-btn" id="done-btn" onclick="showDoneDialog()">Submit All Reviews</button>
+      <button class="nav-btn" id="next-btn" onclick="navigate(1)">Next &#8594;</button>
+    </div>
+    </div><!-- end panel-outputs -->
+
+    <!-- Benchmark panel (quantitative stats) -->
+    <div class="view-panel" id="panel-benchmark">
+      <div class="benchmark-view" id="benchmark-content">
+        <div class="benchmark-empty">No benchmark data available. Run a benchmark to see quantitative results here.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Done overlay -->
+  <div class="done-overlay" id="done-overlay">
+    <div class="done-card">
+      <h2>Review Complete</h2>
+      <p>Your feedback has been saved. Go back to your Claude Code session and tell Claude you're done reviewing.</p>
+      <div class="btn-row">
+        <button onclick="closeDoneDialog()">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ---- Embedded data (injected by generate_review.py) ----
+    const EMBEDDED_DATA = {"skill_name": "investigating", "runs": [{"id": "fast-moving-factual-recency-old_skill", "prompt": "what are the current claude model ids and which one should i default to for an agent that mostly does tool calling? i keep seeing different names in blog posts and half of them seem outdated", "eval_id": 1, "outputs": [{"name": "answer.md", "type": "text", "content": "## Answer\n\nAs of June 9, 2026, the current Claude model IDs are in three active tiers (Opus, Sonnet, Haiku) plus a brand-new top-tier family (Fable/Mythos) that launched today. For an agent that mostly does tool calling, **`claude-sonnet-4-6`** is the official recommended default \u2014 described by Anthropic as \"frontier intelligence at scale, built for coding, agents, and enterprise workflows\" with \"agentic tool use\" listed explicitly as a primary example. Opus 4.8 is the step up if you need maximum reasoning capability at higher cost.\n\n---\n\n## Key Findings\n\n1. **Blog posts are almost certainly outdated.** The naming scheme changed significantly with the 4.6 generation (June 2025+). Before that, IDs had dates baked in (`claude-sonnet-4-5-20250929`). From 4.6 onward, IDs are dateless (`claude-sonnet-4-6`). Anything citing `claude-3-7-sonnet`, `claude-3-5-sonnet`, or `opus-4-20250514` is from the old scheme. [Confidence: high, from official versioning docs]\n\n2. **`claude-fable-5` launched today (June 9, 2026).** This is now Anthropic's most capable widely released model. It uses a new naming scheme entirely (not Opus/Sonnet/Haiku). If blog posts mention it and predate this date, they were referencing a preview. It's genuinely brand new. [Confidence: high]\n\n3. **Dateless IDs are pinned snapshots, not evergreen pointers.** A critical misconception: `claude-sonnet-4-6` is NOT an alias that updates to the next sonnet. It is a fixed snapshot. This changed from the old behavior where `claude-sonnet-4-5` WAS an alias pointing to the latest dated snapshot. Starting with 4.6, dateless = pinned. [Confidence: high, from official model-ids-and-versions page]\n\n4. **`claude-opus-4-20250514` is deprecated.** The original Claude Opus 4 and Sonnet 4 (both dated May 2025) have been announced for deprecation and retirement. Do not use these. [Confidence: high, from API release notes]\n\n---\n\n## Current Model IDs (Claude API)\n\n| Model | Claude API ID | Best for | Pricing (input/output per MTok) |\n|---|---|---|---|\n| **Claude Fable 5** | `claude-fable-5` | Most demanding reasoning, long-horizon agents | $10 / $50 |\n| **Claude Mythos 5** | `claude-mythos-5` | Same as Fable 5 but no safety classifiers; invite-only via Project Glasswing | $10 / $50 |\n| **Claude Opus 4.8** | `claude-opus-4-8` | Complex reasoning, high-autonomy agentic coding, computer use | $5 / $25 |\n| **Claude Sonnet 4.6** | `claude-sonnet-4-6` | **Best default for tool-calling agents** \u2014 speed + intelligence balance | $3 / $15 |\n| **Claude Haiku 4.5** | `claude-haiku-4-5-20251001` (or alias `claude-haiku-4-5`) | Fast, cheap, sub-agent tasks, high-volume | $1 / $5 |\n\n**Bedrock IDs:** prefix `anthropic.` (e.g., `anthropic.claude-sonnet-4-6`). Haiku still has `-v1:0` suffix on Bedrock.\n**Vertex AI IDs:** same as Claude API for 4.6+. Haiku uses `@` date notation: `claude-haiku-4-5@20251001`.\n\n---\n\n## For Tool-Calling Agents Specifically\n\nThe official \"choosing a model\" matrix lists Sonnet 4.6 explicitly for \"agentic tool use.\" The specific guidance:\n\n- **Default recommendation: `claude-sonnet-4-6`** \u2014 explicitly listed for code generation, data analysis, content creation, and agentic tool use. Best cost/performance balance.\n- **Step up to `claude-opus-4-8`** if you need multi-hour autonomous coding agents, large-scale refactoring, or complex systems engineering. Default effort level is `high`; use `xhigh` for the most demanding agentic work.\n- **Step up to `claude-fable-5`** for the most demanding long-horizon agentic tasks (launched today; $10/$50 \u2014 3x Sonnet cost).\n- **Step down to `claude-haiku-4-5`** for sub-agent tasks, high-volume tool dispatch, or cost-sensitive work where near-frontier intelligence is enough.\n\nA useful lever before switching models: the **`effort` parameter** on Opus 4.8 and Sonnet 4.6 lets you trade intelligence for latency/cost within a single model. Tuning effort is often a better lever than jumping to a different model tier.\n\n---\n\n## Why Blog Posts Are Confusing\n\nThree overlapping things create the noise:\n\n1. **Two generations of naming schemes.** Pre-4.6 models have dates in the ID; 4.6+ do not. Blog posts mixing both look inconsistent but are technically correct for their era.\n2. **Aliases that used to be evergreen.** `claude-sonnet-4-5` once pointed to \"latest sonnet 4.5 snapshot\" \u2014 some blogs relied on this behavior. That pointer concept is gone for 4.6+ models; the ID IS the snapshot.\n3. **Claude Fable 5 is a brand-new naming family.** The Opus/Sonnet/Haiku family name scheme was the norm for Claude 1\u20134. \"Fable\" and \"Mythos\" are a new class above them. Any blog post that doesn't mention Fable is from before today (June 9, 2026).\n\n---\n\n## Sources\n\n- [Models overview \u2014 platform.claude.com](https://platform.claude.com/docs/en/about-claude/models/overview) \u2014 primary source for all current model IDs and pricing\n- [Choosing a model \u2014 platform.claude.com](https://platform.claude.com/docs/en/about-claude/models/choosing-a-model) \u2014 official selection matrix and agent recommendations\n- [Model IDs and versioning \u2014 platform.claude.com](https://platform.claude.com/docs/en/about-claude/models/model-ids-and-versions) \u2014 dateless ID behavior, pinned vs alias explanation\n- [Introducing Claude Fable 5 and Claude Mythos 5 \u2014 platform.claude.com](https://platform.claude.com/docs/en/about-claude/models/introducing-claude-fable-5-and-claude-mythos-5) \u2014 launch details, API changes, availability\n- Anthropic SDK TypeScript CHANGELOG (via Context7) \u2014 confirmed `claude-opus-4-8` as of SDK 0.100.0 (May 28, 2026)\n\n---\n\n## Contradictions & Surprises\n\n- **Haiku 4.5 still uses a dated ID** (`claude-haiku-4-5-20251001`) while Sonnet 4.6 and Opus 4.8 are dateless. This is not an inconsistency \u2014 Haiku 4.5 shipped before the 4.6 generation cutoff, so it got the old format. There is no Haiku 4.6 yet.\n- **Claude Fable 5 does NOT support extended thinking**, unlike Sonnet 4.6 and Haiku 4.5. Instead it uses \"adaptive thinking\" which is always on. This matters if you're currently using extended thinking \u2014 it requires a small migration.\n- **Fable 5 has a refusal mechanism** that returns `stop_reason: \"refusal\"` as a 200 (not an error). If you switch from Opus 4.8 to Fable 5 for agents, you need to handle this new stop reason.\n- **Opus 4.8 defaults to `effort: high`** everywhere including the Messages API, not just Claude Code. Set it explicitly if you want a different level.\n\n---\n\n## Open Questions\n\n- No Haiku 4.6 exists yet \u2014 it's unclear when Anthropic will update the Haiku tier to the dateless format.\n- Claude Fable 5 is brand new (today); real-world tool-calling benchmarks and community feedback on agent quality vs. Opus 4.8 don't exist yet.\n- Fable 5 has a 30-day data retention requirement and is not available under zero data retention \u2014 relevant if you're in a compliance-sensitive deployment.\n"}], "grading": {"expectations": [{"text": "Cites a primary Anthropic source (docs/platform), not only blogs", "passed": true, "evidence": "Official Anthropic docs cited; 4 URLs."}, {"text": "States when claims were verified / source dates (recency discipline)", "passed": true, "evidence": "'As of June 10, 2026' statement; 6 dated lines (about half the with_skill density)."}, {"text": "Gives one concrete default recommendation", "passed": true, "evidence": "claude-sonnet-4-6 recommended explicitly."}, {"text": "Output includes a Sources section", "passed": true, "evidence": "Sources section present."}], "notes": "Correct and well-sourced. Slightly less dating density and no deprecation-date specifics, but clears every bar."}}, {"id": "fast-moving-factual-recency-with_skill", "prompt": "what are the current claude model ids and which one should i default to for an agent that mostly does tool calling? i keep seeing different names in blog posts and half of them seem outdated", "eval_id": 1, "outputs": [{"name": "answer.md", "type": "text", "content": "# Claude Model IDs \u2014 Current as of June 9\u201310, 2026\n\n## Answer\n\nFor a tool-calling agent, **`claude-sonnet-4-6`** is the recommended default. Anthropic's own model selection matrix calls it out specifically for \"agentic tool use\" and it hits the sweet spot of speed + intelligence at $3/$15 per MTok. If your agent runs complex, long-horizon tasks where accuracy matters more than cost, use **`claude-opus-4-8`** instead. The brand-new **`claude-fable-5`** (launched June 9, 2026) is the most capable model available but costs 3x more than Sonnet and is best saved for the most demanding reasoning/agentic workloads.\n\n---\n\n## Key Findings\n\n1. **The model family is now \"Claude 4.x\" generation \u2014 not \"3.5\" or \"3.7\"** \u2014 those blog posts are outdated. The 3.x generation was fully superseded. `claude-3-5-sonnet` and `claude-3-7-sonnet` are old names. [Confidence: high]\n   - Refutation attempt: searched for regressions/issues in claude-sonnet-4-6 for tool calling \u2014 zero results, no known issues.\n\n2. **A new top tier was released on June 9, 2026: Claude Fable 5 (`claude-fable-5`) and Claude Mythos 5 (`claude-mythos-5`)**. These are not \"Claude 4\" models \u2014 they're a new naming scheme (\"Fable 5\"). `claude-mythos-5` is invitation-only (Project Glasswing). [Confidence: high \u2014 sourced from official launch docs dated June 9, 2026]\n\n3. **Starting with Claude Opus 4.7, model IDs dropped date suffixes for current releases**. `claude-sonnet-4-6` is a pinned snapshot (not an evergreen alias). Older models like `claude-sonnet-4-5-20250929` still use date suffixes. [Confidence: high \u2014 from official versioning note on models/overview page]\n\n4. **`claude-sonnet-4-20250514` and `claude-opus-4-20250514` are deprecated and retire June 15, 2026** \u2014 if you're on either of these, migrate now. [Confidence: high \u2014 from deprecation warning on official docs]\n\n5. **Anthropic explicitly lists Sonnet 4.6 for \"agentic tool use\"** in the model selection matrix alongside Opus 4.8 for \"agentic coding\". The distinction: Sonnet for general agent+tool pipelines; Opus for multi-hour autonomous or high-autonomy work. [Confidence: high \u2014 from \"choosing-a-model\" page]\n\n---\n\n## Current Model IDs (Complete List)\n\n### Generally Recommended / Latest Generation\n\n| Model Name | API Model ID | Tier | Best For | Price (input/output MTok) |\n|---|---|---|---|---|\n| Claude Fable 5 | `claude-fable-5` | Frontier (new) | Most demanding reasoning + long-horizon agents | $10 / $50 |\n| Claude Mythos 5 | `claude-mythos-5` | Frontier (invite-only) | Same as Fable 5, no safety classifiers | $10 / $50 |\n| Claude Opus 4.8 | `claude-opus-4-8` | Opus | Complex reasoning, agentic coding, high-autonomy | $5 / $25 |\n| Claude Sonnet 4.6 | `claude-sonnet-4-6` | Sonnet | **Agentic tool use, code gen, data analysis** | $3 / $15 |\n| Claude Haiku 4.5 | `claude-haiku-4-5` (alias) / `claude-haiku-4-5-20251001` (pinned) | Haiku | Real-time, high-volume, sub-agent tasks, cost-sensitive | $1 / $5 |\n\n### Legacy (Still Available, Migrate Soon)\n\n| Model Name | API Model ID |\n|---|---|\n| Claude Opus 4.7 | `claude-opus-4-7` |\n| Claude Opus 4.6 | `claude-opus-4-6` |\n| Claude Sonnet 4.5 | `claude-sonnet-4-5` (alias) / `claude-sonnet-4-5-20250929` (pinned) |\n| Claude Opus 4.5 | `claude-opus-4-5` (alias) / `claude-opus-4-5-20251101` (pinned) |\n\n### Deprecated (Retire June 15, 2026)\n\n- `claude-sonnet-4-20250514` (alias: `claude-sonnet-4-0`)\n- `claude-opus-4-20250514` (alias: `claude-opus-4-0`)\n\n### Also Deprecated (Retire August 5, 2026)\n\n- `claude-opus-4-1-20250805` (alias: `claude-opus-4-1`)\n\n### AWS Bedrock IDs (for the three main current models)\n\n| Model | Bedrock ID |\n|---|---|\n| Claude Opus 4.8 | `anthropic.claude-opus-4-8` |\n| Claude Sonnet 4.6 | `anthropic.claude-sonnet-4-6` |\n| Claude Haiku 4.5 | `anthropic.claude-haiku-4-5-20251001-v1:0` |\n\n---\n\n## Tool Calling Recommendation Decision Tree\n\n```\nIs your agent long-horizon / multi-hour / high-autonomy?\n  YES \u2192 claude-opus-4-8 (effort: xhigh recommended)\n  NO  \u2192 Is it high-volume / latency-sensitive / cost-sensitive?\n          YES \u2192 claude-haiku-4-5\n          NO  \u2192 claude-sonnet-4-6  \u2190 DEFAULT\n```\n\nAnthropic's own docs call out Sonnet 4.6 specifically for \"agentic tool use\" in the model selection matrix. Haiku 4.5 is explicitly recommended for \"sub-agent tasks\" in multi-agent pipelines, making it a strong choice for leaf nodes in an orchestration tree.\n\nFor Claude Fable 5: it supports the memory tool and tool result clearing (context editing beta), so tool calling works, but it has safety classifiers that return `stop_reason: \"refusal\"` \u2014 you'll need to handle that in your agent loop. It's also 3x Sonnet's cost.\n\n---\n\n## Contradictions and Surprises\n\n- **Naming scheme break**: Claude 4.x used \"Opus/Sonnet/Haiku\" naming. The new generation dropped that entirely \u2014 \"Claude Fable 5\" and \"Claude Mythos 5\" are new names with no tier mapping. This will cause confusion if you're following old blog posts.\n- **\"claude-sonnet-4-6\" is a pinned snapshot, not an alias**: Starting with the 4.6 generation, dateless IDs are snapshots too. This is a change from earlier behavior where dateless IDs (like `claude-sonnet-4-0`) were aliases pointing to a dated version.\n- **Haiku 4.5 is the only current model with a date in its primary ID** (`claude-haiku-4-5-20251001`), while also having a dateless alias (`claude-haiku-4-5`). Both are pinned to the same snapshot.\n- **Claude 3.x generation**: Completely absent from the current model list except `claude-3-haiku-20240307`, which is deprecated (EOL April 20, 2026). If you're still using any `claude-3-*` IDs, you're already past or near end-of-life.\n\n---\n\n## Sources\n\n- [Models overview \u2014 platform.claude.com](https://platform.claude.com/docs/en/docs/about-claude/models/overview) \u2014 verified June 10, 2026\n- [Choosing the right model \u2014 platform.claude.com](https://platform.claude.com/docs/en/docs/about-claude/models/choosing-a-model) \u2014 verified June 10, 2026\n- [Introducing Claude Fable 5 and Claude Mythos 5 \u2014 platform.claude.com](https://platform.claude.com/docs/en/about-claude/models/introducing-claude-fable-5-and-claude-mythos-5) \u2014 dated June 9, 2026\n- Context7 Claude API docs (`/llmstxt/platform_claude_llms_txt`) \u2014 indexed from `platform.claude.com`, verified June 10, 2026\n\n---\n\n## Open Questions\n\n- No publicly documented benchmark comparisons between Sonnet 4.6 and Fable 5 specifically on tool-calling accuracy (function selection correctness, argument generation) \u2014 worth checking the Anthropic model card or evals page if that matters for your use case.\n- `claude-fable-5` has a new tokenizer (introduced with Opus 4.7) that produces ~30% more tokens for the same text compared to pre-4.7 models. If you're migrating a prompt-heavy agentic system from Sonnet 4.5 or earlier to Fable 5, expect higher token counts.\n"}], "grading": {"expectations": [{"text": "Cites a primary Anthropic source (docs/platform), not only blogs", "passed": true, "evidence": "Sourced directly from platform.claude.com/docs; 3 URLs all primary."}, {"text": "States when claims were verified / source dates (recency discipline)", "passed": true, "evidence": "11 dated claim lines; explicit 'as of June 9-10, 2026' framing and deprecation date (June 15, 2026) for Sonnet 4."}, {"text": "Gives one concrete default recommendation", "passed": true, "evidence": "claude-sonnet-4-6 named as the default for tool-calling, with reasoning from Anthropic's selection matrix."}, {"text": "Output includes a Sources section", "passed": true, "evidence": "Sources section present."}, {"text": "Wrote an investigation header (Question/Domain/Strategy/Hypothesis/Done-when) before findings, or evidence of it appears in the answer", "passed": false, "evidence": "No Question/Domain/Strategy/Hypothesis header appears in the deliverable."}], "notes": "Strong recency work: caught the dateless-ID-is-pinned-snapshot gotcha and the June 15 deprecation. Header artifact missing from the answer."}}, {"id": "codebase-exploration-ground-truth-old_skill", "prompt": "how does auth actually work in ~/Projects/arboreus-api? like where do roles get enforced - is it the API layer or the database? I need to know before I add a new reviewer-only endpoint", "eval_id": 2, "outputs": [{"name": "answer.md", "type": "text", "content": "## Answer\n\nRole enforcement lives entirely in the **API layer** (Fastify `preHandler` hooks), not the database. The database has RLS on exactly one table (`user_problem_attempts`), and that policy is about row ownership (users can only see their own attempts), not roles. The role itself is embedded in the JWT via a Supabase custom access token hook and read by the Fastify auth plugin on every request.\n\n---\n\n## Key Findings\n\n1. **Role enforcement is Fastify `preHandler` hooks, not RLS.** Every write/mutate endpoint uses `preHandler: [requireAuth, requireRole('creator', 'reviewer', 'admin')]`. The database has no role-based RLS policies \u2014 only one ownership-based RLS policy on `user_problem_attempts`. [Confidence: high]\n\n2. **The role claim lives in the JWT, sourced from `public.users.role`.** A Supabase custom access token hook (`public.custom_access_token_hook`) fires at JWT mint time, reads `public.users.role` for the signing user, and injects a `user_role` claim into the JWT payload. The Fastify auth plugin reads `payload.user_role` and sets `request.user.role`. [Confidence: high]\n\n3. **`reviewer` has the same permissions as `creator` everywhere today.** The `requireRole` call on all existing write endpoints is `requireRole('creator', 'reviewer', 'admin')`. There is no endpoint today that is reviewer-exclusive. [Confidence: high]\n\n4. **Draft visibility uses an inline role check, not `requireRole`.** For read-only endpoints that filter by publish status (lessons, problems), the route checks `request.user?.role` inline to decide whether to include drafts. This is separate from the `preHandler` gate. [Confidence: high]\n\n5. **The `public.users` table is the source of truth for role.** Role defaults to `'learner'` on signup (via `handle_new_user` trigger). Upgrading a user's role means updating `public.users.role`, then on next sign-in the new role flows into the JWT via the hook. [Confidence: high]\n\n---\n\n## How It Works (Auth Flow)\n\n```\n1. User signs up \u2192 handle_new_user trigger \u2192 public.users row created, role = 'learner'\n\n2. User signs in \u2192 Supabase GoTrue mints JWT \u2192\n   custom_access_token_hook fires \u2192 reads public.users.role \u2192\n   injects user_role claim into JWT\n\n3. Client sends: Authorization: Bearer <jwt>\n\n4. Fastify onRequest hook (auth plugin) \u2192\n   jwtVerify(token, JWKS from Supabase) \u2192\n   sets request.user = { sub, email, role: payload.user_role || 'learner' }\n\n5. Protected routes use preHandler:\n   - requireAuth   \u2192 401 if request.user is undefined\n   - requireRole('creator','reviewer','admin')  \u2192 403 if role not in list\n```\n\n**Role values:** `learner` (default), `creator`, `reviewer`, `admin`\n\n---\n\n## Adding a Reviewer-Only Endpoint\n\nUse the exact same pattern as existing write endpoints, but pass only `'reviewer'` and `'admin'` to `requireRole`:\n\n```ts\nimport { requireAuth, requireRole } from '../plugins/auth.js';\n\napp.post('/api/some-resource/review', {\n  schema: {\n    body: ReviewSchema,\n    security: [{ bearerAuth: [] }],\n  },\n  preHandler: [requireAuth, requireRole('reviewer', 'admin')],\n}, async (request, reply) => {\n  // request.user.role is guaranteed to be 'reviewer' or 'admin' here\n});\n```\n\nNo database changes needed. No RLS to configure. The role is already in the JWT.\n\n---\n\n## Sources\n\n- `/home/juiz/Projects/arboreus-api/src/plugins/auth.ts` \u2014 `requireAuth` and `requireRole` implementations; JWT verification via JWKS\n- `/home/juiz/Projects/arboreus-api/src/db/schema/users.ts` \u2014 `public.users` schema with `role` column\n- `/home/juiz/Projects/arboreus-api/supabase/migrations/00000000000001_schema.sql` \u2014 `handle_new_user` trigger + `custom_access_token_hook`\n- `/home/juiz/Projects/arboreus-api/supabase/migrations/00000000000007_user_problem_attempts.sql` \u2014 only RLS in the codebase (ownership-based, not role-based)\n- `/home/juiz/Projects/arboreus-api/src/routes/domains.ts`, `concepts.ts`, `topics.ts`, `edges.ts`, `lessons.ts`, `problems.ts` \u2014 consistent `preHandler` pattern across all write routes\n- `/home/juiz/Projects/arboreus-api/src/test-helpers.ts` \u2014 confirms four valid roles: `learner | creator | reviewer | admin`\n- `/home/juiz/Projects/arboreus-api/src/auth.integration.test.ts` \u2014 documents JWT contracts (Contract 1.2: JWT contains `user_role`)\n- `/home/juiz/Projects/arboreus-api/src/app.ts` \u2014 auth plugin registered before all route plugins\n\n---\n\n## Contradictions & Surprises\n\n- The `reviewer` role exists in the type system and is accepted on all write routes, but no endpoint today is *exclusively* reviewer-gated. Every existing write endpoint grants access to `creator | reviewer | admin` equally. A reviewer-only endpoint would be the first that distinguishes reviewer from creator.\n- RLS is notably absent from the main content tables (`domains`, `topics`, `concepts`, `lessons`, `problems`). Only `user_problem_attempts` has RLS, and it's row-ownership scoped, not role-scoped. Role enforcement is 100% the API layer's job.\n- If `SUPABASE_URL` is not set, the auth plugin disables itself with a warning and all routes become unauthenticated. This is a local dev escape hatch, not a production concern.\n\n---\n\n## Open Questions\n\n- Is there a plan to restrict which roles can *create* content vs which can only *review/approve* it? Right now `creator` and `reviewer` have identical write permissions \u2014 so `reviewer` is just an alias.\n- Should a reviewer-only endpoint (e.g., approve/publish) prevent creators from calling it? That would be the first meaningful role split and the `requireRole` function handles it cleanly.\n- The role-in-JWT approach means role changes take effect on next sign-in, not immediately. If reviewer access needs to be revokable in real time, that would require a different check (e.g., re-reading from `public.users` on each request).\n"}], "grading": {"expectations": [{"text": "Identifies Supabase Auth with JWT and RLS policy enforcement (verifiable)", "passed": true, "evidence": "Same mechanism correctly identified: token hook, auth plugin, single RLS policy."}, {"text": "Every architectural claim cites a file path that exists", "passed": true, "evidence": "All cited paths verified to exist."}, {"text": "Directly answers API-layer vs database-layer question", "passed": true, "evidence": "Leads with 'API layer, not the database.'"}, {"text": "No fabricated file paths or invented middleware", "passed": true, "evidence": "Claims match repo contents."}], "notes": "Accurate and direct; noted reviewer==creator permission overlap. Missed the service-role/RLS-bypass implication the with_skill run caught."}}, {"id": "codebase-exploration-ground-truth-with_skill", "prompt": "how does auth actually work in ~/Projects/arboreus-api? like where do roles get enforced - is it the API layer or the database? I need to know before I add a new reviewer-only endpoint", "eval_id": 2, "outputs": [{"name": "answer.md", "type": "text", "content": "## Answer\n\nAuth and role enforcement is **primarily done at the API layer** (Fastify middleware + route `preHandler` hooks). The database has one small exception: RLS is enabled on `user_problem_attempts` to enforce row-level ownership (`user_id = auth.uid()`), but all role-based access control (creator/reviewer/admin vs. learner) lives entirely in the API. To add a reviewer-only endpoint, use `preHandler: [requireAuth, requireRole('reviewer', 'admin')]` \u2014 no DB changes needed.\n\n---\n\n## Key Findings\n\n1. **JWT verification happens in a global `onRequest` hook** \u2014 `src/plugins/auth.ts` registers an `onRequest` hook that reads `Authorization: Bearer <token>`, verifies it against Supabase's JWKS endpoint, and populates `request.user = { sub, email, role }`. Invalid or absent tokens leave `request.user` undefined; the hook never rejects \u2014 it just doesn't populate the user. [Confidence: high \u2014 source is the file itself, verified 2026-06-10]\n\n2. **The `user_role` claim in the JWT is injected by a Postgres function, not Supabase defaults.** `supabase/migrations/00000000000001_schema.sql` defines `public.custom_access_token_hook`, a Postgres function registered in `supabase/config.toml` as `[auth.hook.custom_access_token]`. It looks up `public.users.role` for the signing user and injects it as `user_role` into the JWT claims. The API reads this as `payload.user_role`, defaulting to `'learner'` if absent. [Confidence: high \u2014 migration + config file, both read 2026-06-10]\n\n3. **Role enforcement at the route level is done with two exported functions from `src/plugins/auth.ts`:**\n   - `requireAuth` \u2014 returns 401 if `request.user` is undefined.\n   - `requireRole(...roles)` \u2014 returns 401 if unauthenticated, 403 if authenticated but role not in the allowlist.\n   - Both are used as Fastify `preHandler` arrays: `preHandler: [requireAuth, requireRole('creator', 'reviewer', 'admin')]`.\n   [Confidence: high \u2014 source is `src/plugins/auth.ts`, confirmed by grep across all route files]\n\n4. **Every mutating route (POST/PUT/DELETE) for content objects requires `creator | reviewer | admin`.** This applies uniformly across domains, topics, concepts, edges, lessons, and problems. The `reviewer` role is currently bundled identically with `creator` \u2014 no existing endpoint distinguishes between them; reviewers have full write access everywhere creators do. [Confidence: high \u2014 verified via grep of all route files]\n\n5. **The one database-level enforcement is RLS on `user_problem_attempts`** \u2014 only the row's `user_id` can SELECT or INSERT their own rows. This is ownership enforcement, not role enforcement. No other table has RLS enabled. The `db` client in `src/db/client.ts` connects with `DATABASE_URL` (the service-role or admin connection string), which bypasses RLS \u2014 meaning the API layer is authoritative for all role checks, since the DB won't enforce them on its own. [Confidence: high \u2014 migration 00000000000007, db client file, both read 2026-06-10]\n\n6. **Role stored in `public.users.role` (text column, default 'learner').** Valid values referenced in code: `learner`, `creator`, `reviewer`, `admin`. Changing a user's role requires a direct DB update to `public.users` and a re-login to get a fresh JWT with the updated `user_role` claim (the hook runs at token-issue time). [Confidence: high \u2014 schema + test helpers]\n\n---\n\n## How Auth Works End-to-End\n\n```\n[Client]  \u2192  POST /auth/v1/token (Supabase GoTrue)\n                 \u2193 triggers custom_access_token_hook (Postgres fn)\n                 \u2193 looks up public.users.role \u2192 injects user_role into JWT claims\n             \u2190 JWT with { sub, email, user_role: \"reviewer\" }\n\n[Client]  \u2192  POST /api/concepts/:id/lessons\n             Authorization: Bearer <jwt>\n                 \u2193 onRequest hook (src/plugins/auth.ts)\n                 \u2193 jwtVerify against Supabase JWKS\n                 \u2193 request.user = { sub, email, role: \"reviewer\" }\n                 \u2193 preHandler: [requireAuth, requireRole('creator', 'reviewer', 'admin')]\n                    requireAuth: request.user exists \u2713\n                    requireRole: \"reviewer\" in ['creator','reviewer','admin'] \u2713\n                 \u2193 route handler executes\n             \u2190 201 Created\n```\n\nFor draft visibility (GET endpoints), the pattern is inline logic in the handler:\n```ts\nconst canSeeDrafts = request.user && ['creator', 'reviewer', 'admin'].includes(request.user.role);\n```\nThis is checked after the route is entered (no preHandler gate for GET), so unauthenticated users just get published-only results rather than a 401.\n\n---\n\n## How to Add a Reviewer-Only Endpoint\n\n```ts\nimport { requireAuth, requireRole } from '../plugins/auth.js';\n\napp.get('/api/review/queue', {\n  schema: { security: [{ bearerAuth: [] }] },\n  preHandler: [requireAuth, requireRole('reviewer', 'admin')],\n}, async (request, reply) => {\n  // request.user is guaranteed non-null here, with role 'reviewer' or 'admin'\n});\n```\n\nNo DB migration needed. No RLS changes needed. The role is already in the JWT (as long as the user's `public.users.role` is set to `reviewer` and they've logged in since that change).\n\n---\n\n## Contradictions & Surprises\n\n- **No distinction between reviewer and creator in current routes.** Despite `reviewer` being a distinct role in the schema and referenced in planning docs, every existing protected route gates on `requireRole('creator', 'reviewer', 'admin')`. Reviewer is a superset of learner but currently identical in permissions to creator. If the intent is for reviewer to have different (potentially narrower) write access than creator, the current implementation doesn't enforce that \u2014 it would need to.\n\n- **The `db` client bypasses RLS.** `src/db/client.ts` uses a single `DATABASE_URL` connection (the service-role key). This means Drizzle queries run as a superuser relative to RLS \u2014 row-level security on `user_problem_attempts` only matters if you ever connect with a user-scoped JWT (e.g., via Supabase client). The API's Drizzle client can read any user's attempts. The API enforces ownership by filtering on `userId` in the query, not by relying on RLS.\n\n---\n\n## Sources\n\n- `src/plugins/auth.ts` \u2014 JWT verification, `requireAuth`, `requireRole` \u2014 verified 2026-06-10\n- `src/app.ts` \u2014 plugin registration order \u2014 verified 2026-06-10\n- `src/routes/lessons.ts`, `domains.ts`, `topics.ts`, `concepts.ts`, `edges.ts`, `problems.ts` \u2014 preHandler patterns \u2014 verified 2026-06-10\n- `supabase/migrations/00000000000001_schema.sql` \u2014 `custom_access_token_hook`, `handle_new_user` trigger \u2014 verified 2026-06-10\n- `supabase/migrations/00000000000007_user_problem_attempts.sql` \u2014 only table with RLS \u2014 verified 2026-06-10\n- `supabase/config.toml` \u2014 `[auth.hook.custom_access_token]` registration \u2014 verified 2026-06-10\n- `src/db/client.ts` \u2014 single Drizzle client with service-role URL \u2014 verified 2026-06-10\n- `src/test-helpers.ts` \u2014 confirms `user_role` JWT claim shape and role values \u2014 verified 2026-06-10\n\n---\n\n## Open Questions\n\n- What should `reviewer`-only actually mean? Currently reviewers have identical write access to creators. If the new endpoint should be reviewer-exclusive (creators can't hit it), that's supported \u2014 just use `requireRole('reviewer', 'admin')`. If reviewer should have read-only access on existing mutation routes, those routes would need updating too.\n- Is there an admin-only management endpoint needed eventually (e.g., role assignment)? Not implemented yet.\n\n---\n\n## Promote to context/\n\n**Auth is API-layer-only for role enforcement; DB provides identity anchoring only.**\n- Role source of truth: `public.users.role` (text column)\n- Role in JWT: `user_role` claim, injected at token-issue time by `custom_access_token_hook`\n- Role in API: `request.user.role`, populated by global `onRequest` hook via JWKS verification\n- Enforcement mechanism: `requireRole(...roles)` preHandler on each protected route\n- DB layer: no role-based RLS exists; only `user_problem_attempts` has ownership RLS (uid-scoped)\n- Drizzle client: service-role connection, bypasses all RLS\n"}], "grading": {"expectations": [{"text": "Identifies Supabase Auth with JWT and RLS policy enforcement (verifiable)", "passed": true, "evidence": "custom_access_token_hook + JWKS verification + single ownership-scoped RLS policy all verified against the repo (schema.sql:72, src/plugins/auth.ts)."}, {"text": "Every architectural claim cites a file path that exists", "passed": true, "evidence": "All 8 cited paths verified to exist (src/plugins/auth.ts, supabase/config.toml, migrations, etc.)."}, {"text": "Directly answers API-layer vs database-layer question", "passed": true, "evidence": "Leads with 'API-layer-only for role enforcement.'"}, {"text": "No fabricated file paths or invented middleware", "passed": true, "evidence": "Spot-checked claims (requireRole, token hook) match file contents."}, {"text": "Wrote an investigation header (Question/Domain/Strategy/Hypothesis/Done-when) before findings, or evidence of it appears in the answer", "passed": false, "evidence": "No investigation header in the deliverable."}], "notes": "Found the highest-value insight of either run: Drizzle uses the service-role connection so RLS is bypassed entirely - the DB will not catch forgotten API-layer checks. Header missing."}}, {"id": "consumer-seo-resistance-old_skill", "prompt": "my wrists hurt after long coding sessions. looking for a split ergonomic keyboard, ideally under $250, that real people have used for a year plus and still recommend. not interested in whatever amazon is pushing", "eval_id": 3, "outputs": [{"name": "answer.md", "type": "text", "content": "# Split Ergonomic Keyboards Under $250: Real-World Recommendations\n\n## Answer\n\nFor a programmer with wrist pain who wants a proven split keyboard under $250, the **Kinesis Freestyle Edge RGB Plus ($199)** is the strongest pick: it's mechanical, includes a tenting kit in the box, requires zero layout relearning, and has years of real-world testimonials from programmers specifically citing wrist and shoulder pain relief. If mechanical switches are not a priority and budget is a concern, the **Kinesis Freestyle2 with VIP3 kit (~$134)** has the deepest long-term user track record of any split keyboard at any price. Both are from the same company and have been around long enough to find real multi-year users in the wild.\n\n---\n\n## Key Findings\n\n1. **Tenting matters more than most buyers realize.** [Confidence: high] Tenting tilts the keyboard halves so your palms face inward rather than flat-down, reducing forearm pronation. Lab testing found the Kinesis Freestyle Edge achieved 28% carpal tunnel pressure reduction \u2014 significantly more than boards without tenting. The Keychron Q11 (the most-recommended \"affordable split\" in SEO articles) has no tenting at all; one detailed review specifically calls it out for perpetuating bad habits and failing as a serious ergonomic tool for wrist pain. Source: [ChairWise lab testing](https://chairwise.app/articles/split-keyboard-for-wrist-pain/), [Pretentious Reviews Q11](https://pretentiousreviews.com/reviews/keychron-q11/).\n\n2. **The Kinesis Freestyle Edge RGB Plus ($199) is the consensus best-value mechanical split for wrist pain.** [Confidence: high] It includes a detachable Lift Kit supporting 5, 10, and 15 degree tenting in the box (no upsell needed), cushioned palm supports, hotswappable Gateron switches, full tenkeyless layout, and a 20\" link cable for shoulder-width separation. Traditional staggered layout means no relearning. PC Gamer, Pain Free Working, and the High Ground Gaming review all highlight it specifically for people coming from wrist/shoulder pain. Multiple HN and Lobsters commenters cite the Kinesis Edge/Freestyle line as their keyboard after years of use. Source: [kinesis-ergo.com product page](https://kinesis-ergo.com/keyboards/freestyle-edge-rgb/), [Kinesis Gaming Freestyle Edge RGB Plus review - PC Gamer](https://www.pcgamer.com/hardware/gaming-keyboards/kinesis-gaming-freestyle-edge-rgb-plus-review/).\n\n3. **The Kinesis Freestyle2 (~$99-149 depending on accessories) is the membrane option with the deepest long-term user record.** [Confidence: high] It has been around for over a decade. TechGearLab ranked it #1 of 9 ergonomic keyboards tested. One user documented two years of daily use with no hand or wrist pain after previously being unable to finish a work shift. A novelist reports using it to write \"a million words a year\" specifically to protect their wrists. The base keyboard ($99) is usable but the VIP3 accessory kit (~$35-40) adds tenting and integrated palm rests; the bundled version sells for ~$134. Weakness: membrane switches (not mechanical), no backlight, looks dated. Source: [TechGearLab review](https://www.techgearlab.com/reviews/small-and-home-office/ergonomic-keyboard/kinesis-freestyle2), [workwhilewalking.com user testimonials](https://www.workwhilewalking.com/kinesis-freestyle2-ergonomic-keyboard-reviews).\n\n4. **The Mistel Barocco MD770 (~$120-135) is the budget mechanical option with real programmer testimonials, but has stock issues.** [Confidence: medium] A programmer on Hacker News explicitly mentioned being on their second one. Dev.to reviewer confirmed wrist soreness went away after switching. It uses a 75% layout (has function row and arrow keys), Cherry MX switches, and modest tenting nubs. Downside: it is currently out of stock at mechanicalkeyboards.com in most variants; the Bluetooth version (MD770 BT) may be easier to find. No hotswap. Mac firmware limitations exist. Source: [Mistel MD770 review - dev.to](https://dev.to/lefebvre/mistel-barocco-md770-split-mechanical-keyboard-review-3ke4), [HN comment on second Mistel](https://news.ycombinator.com/item?id=26278865).\n\n5. **The Keychron Q11 ($205 direct, ~$250 at Amazon) is well-built but not the right tool for wrist pain.** [Confidence: high] Multiple sources confirm it has no tenting, a short bridge cable that limits hand separation, and no wrist rest. The Tom's Guide review notes it needs a wrist rest to avoid wrist extension. The Pretentious Reviews write-up is the most honest: it's a premium split keyboard built around the aluminum body, not around ergonomics. Good for someone who wants the split layout for shoulder alignment and doesn't have acute wrist pain, but a poor choice as a wrist pain remedy. Source: [Tom's Guide Q11 review](https://www.tomsguide.com/computing/peripherals/keychron-q11-review), [Pretentious Reviews Q11](https://pretentiousreviews.com/reviews/keychron-q11/).\n\n6. **The Keebio Iris CE (~$165-220 pre-built) is the best columnar-stagger option under $250.** [Confidence: medium] Columnar layouts align keys in vertical columns rather than the typewriter stagger, which reduces lateral finger travel and ulnar wrist deviation. A programmer wrote a detailed account in April 2024 of choosing the Iris specifically for RSI, citing \"feel much better than before\" after weeks of use with a tenting setup. Low-profile Choc switches only (no standard MX). Requires 2-4 week adjustment period. Tenting is an optional add-on (magnetic stands). Built and shipped by Keebio, a Durham-based company started because the founder's mother had carpal tunnel. Source: [Why I picked the Iris keyboard for my RSI - Protesilaos (2024)](https://protesilaos.com/keeb/2024-04-29-why-i-picked-iris-keyboard/), [Iris CE at Keebio](https://keeb.io/products/iris-ce-keyboard).\n\n7. **Community consensus: split layout alone helps, but tenting is what resolves pronation-related wrist pain.** [Confidence: high] Multiple independent sources (HN, Lobsters, ocdevel.com ergonomics guide, ChairWise lab testing) converge on this. Splitting the keyboard addresses ulnar deviation (wrists bending sideways). Tenting addresses pronation (palms rotating downward). Both are present in the wrist-pain cocktail for most programmers. This is why the Kinesis Edge outperforms the Q11 for this specific use case despite the Q11 having better switch feel. Source: [ocdevel.com ergonomics guide](https://ocdevel.com/ergo/keyboards), [HN split keyboard discussion](https://news.ycombinator.com/item?id=35637041).\n\n8. **The learning curve for traditional-layout splits (Freestyle Edge, Mistel, Q11) is days, not weeks.** [Confidence: high] Keyboards that keep the standard staggered QWERTY layout just split in half require almost no relearning. Users consistently report feeling normal within 2-3 days. Columnar/ortholinear splits (Iris, Corne, Ferris Sweep) require 2-6 weeks to reach prior typing speed. For someone whose wrists hurt and wants relief now, not after a month of reduced productivity, traditional-layout splits are the pragmatic choice. Source: multiple reviews and HN thread.\n\n---\n\n## Comparison\n\n| Keyboard | Price | Switches | Tenting | Layout | Hotswap | Long-term users cited |\n|---|---|---|---|---|---|---|\n| **Kinesis Freestyle Edge RGB Plus** | $199 | Mech (Gateron), hotswap | Yes, 3 angles, included | Traditional staggered 75% | Yes | Yes \u2014 multiple HN/programmer testimonials |\n| **Kinesis Freestyle2 + VIP3** | ~$134 | Membrane | Yes, 3 angles, included | Traditional staggered full | No | Yes \u2014 deepest track record of any split |\n| **Mistel Barocco MD770** | ~$120-135 | Mech (Cherry MX) | Minimal nubs only | Traditional staggered 75% | No | Yes \u2014 HN \"on my 2nd one\", dev.to programmer |\n| **Keychron Q11** | $205-249 | Mech (Gateron), hotswap | None | Traditional staggered 75% | Yes | Limited \u2014 mostly tech press, not long-term users |\n| **Keebio Iris CE** | ~$165-220 | Low-profile Choc only | Add-on sold separately | Columnar stagger | Yes | One detailed 2024 RSI account; smaller community |\n\n---\n\n## Specific Recommendations by Situation\n\n**You want mechanical switches and real tenting, and want to buy once:** Kinesis Freestyle Edge RGB Plus ($199). This is the answer. Hotswappable if you want different switches later, tenting included, full tenkeyless layout, works on day one. It shows up repeatedly in programmer ergonomics discussions as the keyboard people land on and keep.\n\n**You want the most proven option at the lowest cost:** Kinesis Freestyle2 with VIP3 kit (~$134). Not mechanical, but the community track record is unmatched. Works immediately. Low financial risk to test whether split + tenting helps you.\n\n**You want a compact mechanical option and can accept limited tenting:** Mistel Barocco MD770 (~$120-135). Best if you find it in stock. Verified real-world programmer users. No hotswap, minimal tenting, but solid Cherry MX switches and a familiar layout.\n\n**You're willing to invest a few weeks of relearning for a more ergonomic layout:** Keebio Iris CE (~$165-220). The columnar stagger is more ergonomic in theory and some users with RSI specifically chose it for that reason. Tenting needs to be bought separately.\n\n**Skip:** Keychron Q11 for wrist pain specifically. Good keyboard, wrong tool for this problem. No tenting means no pronation relief.\n\n---\n\n## Sources\n\n- [Kinesis Freestyle Edge RGB Plus - Official page](https://kinesis-ergo.com/keyboards/freestyle-edge-rgb/) \u2014 pricing, included tenting kit, switch options\n- [Kinesis Gaming Freestyle Edge RGB Plus Review - PC Gamer](https://www.pcgamer.com/hardware/gaming-keyboards/kinesis-gaming-freestyle-edge-rgb-plus-review/) \u2014 reviewer hands-on\n- [ChairWise: Split Keyboards for Wrist Pain (lab testing)](https://chairwise.app/articles/split-keyboard-for-wrist-pain/) \u2014 28% pressure reduction data, tenting importance\n- [TechGearLab: Kinesis Freestyle2 Review](https://www.techgearlab.com/reviews/small-and-home-office/ergonomic-keyboard/kinesis-freestyle2) \u2014 #1 ranked of 9 ergonomic keyboards\n- [workwhilewalking.com: Kinesis Freestyle2 User Testimonials](https://www.workwhilewalking.com/kinesis-freestyle2-ergonomic-keyboard-reviews) \u2014 2-year user with wrist pain relief, novelist long-term user\n- [Pretentious Reviews: Keychron Q11](https://pretentiousreviews.com/reviews/keychron-q11/) \u2014 honest critique of missing tenting\n- [Tom's Guide: Keychron Q11 Review](https://www.tomsguide.com/computing/peripherals/keychron-q11-review) \u2014 wrist rest needed, ergonomic limitations\n- [Mistel Barocco MD770 Review - dev.to](https://dev.to/lefebvre/mistel-barocco-md770-split-mechanical-keyboard-review-3ke4) \u2014 programmer perspective, wrist soreness resolved\n- [HN: \"I'm on my second Mistel Barocco\"](https://news.ycombinator.com/item?id=26278865) \u2014 long-term user signal\n- [Why I picked the Iris keyboard for my RSI - Protesilaos (April 2024)](https://protesilaos.com/keeb/2024-04-29-why-i-picked-iris-keyboard/) \u2014 programmer's RSI-driven reasoning\n- [Keebio Iris CE](https://keeb.io/products/iris-ce-keyboard) \u2014 pricing and specs\n- [ocdevel.com: Best Split Ergonomic Keyboards](https://ocdevel.com/ergo/keyboards) \u2014 enthusiast guide, thumb cluster ergonomics\n- [HN: Ask HN: Is split keyboard worth the effort?](https://news.ycombinator.com/item?id=35637041) \u2014 community long-term user opinions\n- [ZSA Voyager - HN discussion](https://news.ycombinator.com/item?id=37391934) \u2014 split keyboard community views, alternatives\n- [mechanicalkeyboards.com: Mistel collection](https://mechanicalkeyboards.com/collections/mistel) \u2014 stock/pricing reference\n- [developerlife.com: mechanical keyboard review](https://developerlife.com/2021/03/09/mechanical-keyboard-review/) \u2014 10-year Kinesis user perspective\n\n---\n\n## Contradictions and Surprises\n\n- **The Q11 SEO trap is real.** Engadget, PCWorld, and multiple \"best ergonomic keyboards\" listicles push the Keychron Q11 as the top pick under $250. The actual ergonomics community and rigorous reviewers are notably less enthusiastic \u2014 specifically because it has no tenting. This is exactly the kind of divergence the research strategy is designed to surface.\n\n- **Membrane vs mechanical is not the deciding factor for wrist pain.** The Kinesis Freestyle2 is membrane and is more recommended for RSI than the Keychron Q11, which is mechanical. The ergonomic features (tenting, separation, layout) drive the wrist pain outcome; switch type is about typing feel, not injury prevention.\n\n- **The Mistel MD770 stock situation is a real constraint right now.** Most variants are out of stock at the primary retailers. If buying new, the Freestyle Edge is more readily available.\n\n- **Columnar layouts (Iris, Corne, Ferris Sweep) have a vocal enthusiast community** that argues they're more ergonomically correct. But the evidence for meaningful RSI difference vs. traditional-staggered-split is mostly theoretical; the Kinesis Freestyle line (traditional staggered) has more long-term RSI testimonials than any columnar board.\n\n---\n\n## Open Questions\n\n- Whether the Mistel MD770 restocks or has been effectively discontinued in favor of newer models.\n- Whether the Kinesis Freestyle Edge's Gateron switches feel comparable to Cherry MX for daily programming use (subjective, switch-preference dependent).\n- Tenting add-on pricing for the Keebio Iris CE was not confirmed \u2014 the magnetic tenting stands are sold separately but price was not retrieved.\n- The Keychron Q11 Ultra (newer wireless version) may have addressed some limitations; pricing and tenting capability were not confirmed.\n"}], "grading": {"expectations": [{"text": "At least one specialist community / long-term user source, not SEO listicles", "passed": true, "evidence": "HN, Lobsters, Keebio community used after Reddit/SearXNG access failures; 16 URLs."}, {"text": "Each recommended product supported by 2+ independent sources", "passed": true, "evidence": "Picks carry multiple community citations."}, {"text": "Findings carry confidence levels and a Sources section", "passed": true, "evidence": "8 confidence markers + Sources section."}, {"text": "Addresses the longevity criterion (year-plus ownership)", "passed": true, "evidence": "'Longest real-world wrist-pain track record' framing on the Freestyle2; HN long-term users on the MD770."}], "notes": "Resourceful under tool failures (SearXNG down, Reddit blocked). Good picks; also called out Q11's missing tenting. Lower dating density (4 dated lines vs 14)."}}, {"id": "consumer-seo-resistance-with_skill", "prompt": "my wrists hurt after long coding sessions. looking for a split ergonomic keyboard, ideally under $250, that real people have used for a year plus and still recommend. not interested in whatever amazon is pushing", "eval_id": 3, "outputs": [{"name": "answer.md", "type": "text", "content": "## Answer\n\nThree keyboards have genuine long-term community backing under $250 for wrist-pain coders: the **Kinesis Freestyle Edge RGB Plus (~$199)** for zero learning curve with real ergonomic benefit, the **Mistel Barocco MD770 (~$120-160)** for a compact true-split mechanical that developers with 12+ years on Kinesis Freestyle have switched to, and the **Beekeeb Piantor Pro (~$143-173 prebuilt)** for programmers willing to accept a 2-4 week relearning period in exchange for the most wrist-optimal layout in budget range. The Keychron Q11 ($200) has a vocal community but is widely dismissed by ergonomic specialists as \"a keyboard chopped in half\" \u2014 no tenting, absurdly short bridge cable, and no wrist rest at a $200 price point.\n\n---\n\n## Key Findings\n\n1. **Kinesis Freestyle Edge RGB Plus (~$199) \u2014 Consensus pick for zero-learning-curve users.** [Confidence: high]\n   - The \"Plus\" (2024-2025 refresh) now includes the Lift Kit (tenting up to 15 degrees) and detachable palm rests in the box \u2014 previous version's #1 complaint was that these were $40 extra. Hotswap switches added.\n   - One reviewer (ergonomic/OT background, Switch and Click) noted wrist pain reduced from 6/10 to 2/10 during productivity testing. Tenting is the critical feature \u2014 the keyboard lying flat delivers far less ergonomic benefit.\n   - The original Freestyle 2 (rubber dome, ~$90) got a lengthy endorsement from a UC San Diego linguistics professor who used it through a 176-page dissertation pain-free, calling it \"boring in the best way\" after trying and rejecting the Kinesis Advantage, Matias Ergo Pro, and others. He specifically returned to it after each experiment. [Source: Will Styler, UCSD, 2015 \u2014 long-term evaluation, personal funds]\n   - Refutation attempt: Switch and Click reviewer found the large footprint and pinky reach fatiguing for small hands. Works better for larger hands. SmartSet programming app failed to launch on reviewer's system, though onboard programming works without it. Windows-only software is a real limitation for Mac users.\n   - Price confirmed: Freestyle Edge RGB Plus lists at $199 on Kinesis's site and Amazon (verified June 2026).\n\n2. **Mistel Barocco MD770 (~$120-160 depending on switch) \u2014 Best compact true-split mechanical under budget.** [Confidence: high]\n   - A software developer with 12-13 years on Kinesis Freestyle 2 switched to the MD770 specifically because it's smaller and mechanical. Long-term user report, Aug 2020, personal purchase. [Source: Paul Lefebvre, DEV.to]\n   - Cherry MX Brown recommended by that reviewer. Hot-swappable on the RGB variant. Includes tenting nubs (3-5 inch separation common; can go wider). Note: backslant design (back higher than front) is slightly less ergonomic than flat \u2014 worth countering with palm rest.\n   - Available with Bluetooth on the MD770 RGB variant (~$160), useful for multi-device setups.\n   - Mac support quirks: firmware updates require a Windows machine; the DIP Mac mode disables function keys as function keys (workaround: use Karabiner Elements). Real friction for Mac users.\n   - Mistel site and mechanicalkeyboards.com show Cherry MX Brown/Red/Blue variants in stock as of 2025. Starting around $120.\n   - Refutation attempt: No strong community reports of long-term durability failures. Limited community around Mistel vs. Kinesis/ZSA; fewer firmware updates.\n\n3. **Beekeeb Piantor Pro (~$143-173 prebuilt) \u2014 Best ergonomics per dollar, requires commitment.** [Confidence: high]\n   - First-hand RSI recovery account from a developer/drummer who used a Moonlander for years, then hit a wall where his arms \"didn't work\" one morning. Switched to Piantor Pro after 2 months on a Lily58. Quote: \"Once your fingers only have to move one key in any direction... the keyboard starts to feel huge.\" [Source: JovianMoon.io, February 2026, personal purchase]\n   - Columnar stagger (keys in straight columns, not typewriter offset) is the real ergonomic win \u2014 it eliminates the lateral finger twisting that row-staggered keyboards (including most splits) still require. Pascal Getreuer (Google engineer, prolific QMK contributor) uses one as his daily driver and has written extensively on why split + columnar is the target combination. [Source: getreuer.info, updated Sept 2025]\n   - Beekeeb is a well-regarded small vendor; builder sends photos when done soldering. Community consistently recommends them.\n   - Trade-off: 36-key layout requires learning layers for numbers/symbols/function keys. Learning curve is 2-4 weeks. Not a casual swap.\n   - Price: $143 (standard), $173 (aluminum case) from Beekeeb. Within budget.\n\n4. **Keychron Q11 ($200) \u2014 Skip for actual wrist pain relief.** [Confidence: high]\n   - Community verdict is consistent: r/MechanicalKeyboards calls it a \"gateway drug\" for build quality, r/ErgoMechKeyboards considers it a \"normie\" half-measure, and ergonomic specialists point out the fatal flaw \u2014 it lies completely flat with no tenting, and the bridge cable is too short to achieve meaningful separation.\n   - Quote from Pretentious Reviews (Dec 2025, affiliate site but references actual Reddit threads accurately): \"It's just a regular keyboard chopped in half... The bridge cable is like a leash on a toddler.\"\n   - M2 screw standoff community workaround exists for DIY tenting, but that's a hardware store trip on a $200 keyboard.\n   - Refutation: Heavy CNC aluminum build and QMK/VIA support are genuine wins. If your goal is a nice typing keyboard that's *slightly* more open than a standard board, it delivers. If your goal is wrist pain relief, it doesn't.\n\n---\n\n## How They Compare\n\n| Keyboard | Price | Learning Curve | Tenting | Mechanical | Key Layout | Mac Support |\n|---|---|---|---|---|---|---|\n| Kinesis Freestyle Edge RGB Plus | $199 | None | Yes (Lift Kit included) | Yes (hotswap) | Row-staggered | Limited (Windows software) |\n| Mistel Barocco MD770 | $120-160 | Minimal | Nubs only | Yes | Row-staggered | Workaround needed |\n| Beekeeb Piantor Pro | $143-173 | 2-4 weeks | Optional | Yes (hotswap Choc) | Column-staggered | Full (QMK) |\n| Keychron Q11 | $200 | None | None (DIY only) | Yes (hotswap) | Row-staggered | Full |\n\n**On tenting:** This is not optional if you have active wrist pain. Tenting rotates your forearms from fully pronated (palms down) toward a handshake position. Kinesis Freestyle Edge RGB Plus now includes it. Mistel MD770's nubs provide minimal tenting \u2014 you'll want an aftermarket solution or wrist pads. Piantor Pro can be tilted freely since the halves are independent.\n\n**On row vs. columnar stagger:** Row-staggered keyboards (which includes Kinesis Freestyle, Mistel MD770, and Keychron Q11) still have keys offset horizontally the way a typewriter did \u2014 a vestige with no ergonomic basis. Columnar keyboards (Piantor Pro, Moonlander, ErgoDox) align keys in straight vertical columns that match finger movement direction. For wrist pain specifically, both types help via separation; columnar helps more for finger/tendon strain.\n\n---\n\n## Contradictions and Surprises\n\n**Kinesis Freestyle Pro (mechanical) vs. Freestyle Edge:** The Switch and Click review concludes \"I do not recommend this keyboard\" \u2014 but the reviewer explicitly has small hands and types in a non-home-row style. The UC San Diego professor's years-long endorsement of the rubber-dome Freestyle 2 suggests the product line is genuinely good for the right user (home-row touch typist, average-to-large hands). These aren't contradictions; they're context.\n\n**The Kinesis Freestyle Pro specifically gets a negative review** (Tom's Guide: \"Extortionate ergonomics\") largely due to price \u2014 the tenting kit being sold separately. The Freestyle Edge RGB Plus resolved this in the 2024-2025 refresh by bundling it. Check that you're looking at the \"Plus\" variant.\n\n**The ergohaven.blog article** claims to have personally tested 18 keyboards over 7 months but the \"Moonlander\" section displays a completely different keyboard image (Nulea) with Amazon affiliate links. Its factual specs for the keyboards it does cover appear accurate, but discount its credibility as personal testing.\n\n**Amazon affiliate listicles are unanimous** that the Logitech K860 is the best pick for most people. Community sources (r/ErgoMechKeyboards, getreuer.info, practitioner reviews) don't mention it. This is the SEO/affiliate distortion at work \u2014 it's a decent keyboard for mild discomfort, but it has no tenting, fixed split angle, and membrane switches. Not what a programmer with active wrist pain needs.\n\n---\n\n## Sources\n\n- [Will Styler, UCSD \u2014 Ergonomic Keyboard Mega-Review](https://wstyler.ucsd.edu/posts/ergo_keyboards.html) \u2014 2015 (long-term multi-keyboard evaluation, personal funds, no sponsorship)\n- [Paul Lefebvre \u2014 Mistel Barocco MD770 Review, DEV.to](https://dev.to/lefebvre/mistel-barocco-md770-split-mechanical-keyboard-review-3ke4) \u2014 August 2020\n- [JovianMoon.io \u2014 Piantor Pro RSI Journey](https://jovianmoon.io/posts/rsi-36-key-keyboard) \u2014 February 2026\n- [Pascal Getreuer \u2014 Tour of Split Ergo Keyboards](https://getreuer.info/posts/keyboards/tour/index.html) \u2014 2022, updated September 2025\n- [Pretentious Reviews \u2014 Keychron Q11 Review](https://pretentiousreviews.com/reviews/keychron-q11/) \u2014 December 2025\n- [Switch and Click \u2014 Kinesis Freestyle Pro: Completely Frustrating to Use](https://switchandclick.com/kinesis-freestyle-pro-completely-frustrating-to-use/) \u2014 2021\n- [Kinesis Freestyle Edge RGB Plus product page](https://gaming.kinesis-ergo.com/edge/) \u2014 verified June 2026\n- [Beekeeb Piantor Pro](https://shop.beekeeb.com/products/piantor-pro-with-aluminum-case) \u2014 verified June 2026\n- [Mechanicalkeyboards.com \u2014 Mistel MD770](https://mechanicalkeyboards.com/products/mistel-md770) \u2014 verified June 2026\n- [r/ErgoMechKeyboards wiki \u2014 vendor list](https://www.reddit.com/r/ErgoMechKeyboards/wiki/resources/#wiki_vendors) \u2014 cited by getreuer.info as authoritative community resource\n- r/ErgoMechKeyboards search results (Dec 2024\u2013Feb 2026 threads) \u2014 used for community consensus framing; direct Reddit access blocked during research\n\n---\n\n## Open Questions\n\n- Whether the Kinesis Freestyle Edge RGB Plus SmartSet App works reliably on Mac (it failed for one Windows reviewer even). If you're on Linux/Mac, Piantor Pro with QMK/Vial is more reliable.\n- Long-term durability of the MD770 (limited data beyond 2-3 year window). The original Kinesis Freestyle line has users reporting 12+ years of use \u2014 no comparable longevity data for Mistel.\n- Whether the Piantor Pro's aggressive pinky stagger works for everyone. One reviewer (JovianMoon, large hands) loved it; the ocdevel.com community preference data shows the Ferris/Sweep and Forager slightly above Piantor on thumb ergonomics \u2014 worth checking hand size against the layout before buying.\n"}], "grading": {"expectations": [{"text": "At least one specialist community / long-term user source, not SEO listicles", "passed": true, "evidence": "r/ErgoMechKeyboards, getreuer.info practitioner review, individual long-term reports."}, {"text": "Each recommended product supported by 2+ independent sources", "passed": true, "evidence": "Each of the 3 picks carries at least two independent endorsements (e.g. Freestyle: dissertation-long daily use + community consensus)."}, {"text": "Findings carry confidence levels and a Sources section", "passed": true, "evidence": "4 confidence markers + Sources section."}, {"text": "Addresses the longevity criterion (year-plus ownership)", "passed": true, "evidence": "Year-plus signals explicit: dissertation-long use, 12-13 year Kinesis user, documented RSI-recovery journey."}, {"text": "Wrote an investigation header (Question/Domain/Strategy/Hypothesis/Done-when) before findings, or evidence of it appears in the answer", "passed": false, "evidence": "No investigation header in the deliverable."}], "notes": "Explicitly named the SEO distortion (K860 pushed by affiliates, absent from specialist discussion) - exactly the behavior the case tests. Header missing."}}, {"id": "contested-question-contradiction-handling-old_skill", "prompt": "is it actually safe to run postgres in kubernetes for production in 2026 or is that still a bad idea? getting conflicting advice from my team. we're a 3 person startup, ~50GB database", "eval_id": 4, "outputs": [{"name": "answer.md", "type": "text", "content": "# Is Postgres in Kubernetes Safe for Production in 2026?\n\n## Answer\n\nFor a 3-person startup with a 50GB database: **use a managed service unless your team already operates Kubernetes confidently in production.** Postgres on Kubernetes is legitimately production-ready in 2026 with the right operator (CloudNativePG), but the operational complexity requires dual expertise \u2014 both Kubernetes and PostgreSQL \u2014 that small teams rarely have. The conflicting advice your team is getting is real and both sides are correct \u2014 they're just talking about different team contexts.\n\n---\n\n## Why the Advice Conflicts\n\nThe disagreement is a context mismatch, not a factual dispute. The \"yes, it's fine\" camp is right when they mean: large teams already running Kubernetes, with dedicated DevOps and DBA capacity. The \"no, don't do it\" camp is right when they mean: small teams, greenfield, or teams without K8s expertise already in production.\n\nBoth positions reflect real-world experience. The controversy persists because most online advice fails to state which context it applies to.\n\n---\n\n## Key Findings\n\n**1. CloudNativePG is production-ready, and 2025 was a legitimacy milestone.**\nCloudNativePG was accepted into CNCF Sandbox in January 2025 and applied for Incubation by November 2025. It crossed 132 million downloads and 7,700 GitHub stars. Microsoft made it the official recommended pattern for Postgres on AKS. This is no longer an experimental or fringe approach \u2014 major cloud vendors are endorsing it. [Confidence: high \u2014 multiple independent sources]\n\n**2. The tooling maturity gap closed, but the operational complexity gap did not.**\nThe historical objection to Postgres on K8s was \"the operators weren't good enough.\" That's no longer the blocker. The blocker in 2026 is: when something breaks, you need someone who can debug both K8s and Postgres simultaneously. That person is rare. For a 3-person startup, you likely don't have one. [Confidence: high]\n\n**3. The key failure modes are real and have happened recently.**\n- A data-safety bug in the CloudNativePG failover path (lost committed writes via pg_rewind) was fixed but existed in production for some time. A CVE with CVSS 9.4 was patched in 2025. Failover times run 40\u201380 seconds under some failure conditions.\n- The chaos engineering test scenario (node dies, PVC has node affinity, data becomes physically inaccessible) is not hypothetical \u2014 it's a documented production failure mode that requires careful storage configuration to avoid.\n- Didi's K8s architecture failure (MySQL in K8s, 12-hour recovery) is cited by multiple authors as a cautionary real-world example.\n[Confidence: high \u2014 specific incidents documented]\n\n**4. Performance is viable but requires storage configuration work.**\nPostgres on Kubernetes with network storage (EBS, etc.) has measurable latency overhead vs. bare metal. Microsoft demonstrated ~15,000 TPS with single-digit ms latency on AKS, but that required deliberate NVMe configuration. The performance gap to local storage is real \u2014 one analysis cited needing 14x more vCPUs on network storage to match NVMe IOPS. For a 50GB database at startup scale, this likely doesn't matter yet, but it becomes a ceiling at higher scale. [Confidence: high]\n\n**5. The \"lose-lose\" critique (stateless flexibility vs. stateful reliability) applies most to teams without existing K8s infrastructure.**\nThe strongest argument against K8s databases comes from a senior Postgres engineer who ran it at scale and concluded: \"K8s loses stateless flexibility, the database sacrifices reliability and performance.\" This is most true when K8s is being adopted *because of* the database use case. If you're already running K8s and adding Postgres, the tradeoff shifts \u2014 you get operational consolidation benefits. [Confidence: medium \u2014 opinion from practitioner with real-world experience, but not a controlled study]\n\n**6. For 50GB, managed services are cost-competitive and operationally cheap.**\nAt 50GB, you're in the range where a db.t4g.medium on RDS (~$60/month) or Supabase Pro/Team tier, or Neon, or Railway handles your workload without any ops burden. As the startup scales, you have time to build K8s expertise before you're forced to migrate. The \"managed is expensive\" argument is strongest above 1TB+ or multiple database clusters, not at startup scale. [Confidence: high]\n\n**7. If you're already on Kubernetes for your app workloads, the calculation is different.**\nIf your team runs K8s daily for your app tier, adding CloudNativePG is a reasonable next step. You already have the K8s expertise. The incremental ops burden is lower. The infrastructure consolidation reduces vendor surface area. This is the scenario where \"yes, do it\" is the right answer. [Confidence: high]\n\n---\n\n## The Contradiction Resolved\n\n| \"It's fine now\" (Team A) | \"Don't do it\" (Team B) |\n|---|---|\n| Talking about: teams already running K8s | Talking about: teams adopting K8s for the DB |\n| Context: multiple clusters, DevOps capacity | Context: small team, greenfield, ops-constrained |\n| Tool: CloudNativePG, properly configured | Tool: often bare StatefulSet or Helm chart |\n| Evidence: CNCF adoption, Azure endorsement | Evidence: real failure stories, Didi incident, failover bugs |\n| Verdict: correct for their context | Verdict: correct for their context |\n\nYour team disagreement is likely a proxy for: \"do we already operate K8s confidently?\" That's the real question to answer first.\n\n---\n\n## Decision Framework for Your Situation\n\n**Use a managed service (RDS, Supabase, Neon, Railway) if:**\n- You have fewer than 5 engineers and no dedicated DevOps\n- Your team does not currently run Kubernetes in production\n- You want to minimize ops surface and focus engineering on product\n- Your database is your only K8s adoption driver (don't adopt K8s just for the DB)\n\n**Use Postgres on Kubernetes (CloudNativePG) if:**\n- You already run Kubernetes confidently in production for your app tier\n- At least one engineer has real K8s operational experience (not just tutorial experience)\n- You want infrastructure consolidation and are willing to invest in CloudNativePG setup and monitoring\n- You understand the storage configuration tradeoffs (network vs. local NVMe) and have made a deliberate choice\n\n**For your specific case (3-person startup, 50GB database):**\nUnless you're already running K8s and have someone on the team who has debugged a stuck failover or a PVC that won't bind before \u2014 use a managed service. At 50GB and early stage, the per-GB cost of managed Postgres is not a meaningful expense. The opportunity cost of a database outage caused by a K8s complexity failure is.\n\n---\n\n## Contradictions and Surprises\n\n- The \"databases in K8s is bad\" take that's most widely cited (Vonng's Medium article) is from December 2023 and predates CloudNativePG's CNCF acceptance. It remains largely correct in its logic but is more applicable to bare-StatefulSet or poorly-operated K8s deployments than to CloudNativePG-managed clusters in 2026.\n\n- CloudNativePG's failover time (40\u201380s observed in a GitHub issue) is significantly longer than some teams expect or experience with managed services (RDS failover is typically 60\u2013120s, so similar \u2014 but the failure modes and debugging paths are different).\n\n- The \"36% of K8s workloads now run Postgres\" statistic (Kubernetes in the Wild 2025) is frequently cited as evidence that it's safe. Adoption rate is not the same as \"you should do it\" \u2014 many of those clusters are at organizations with dedicated platform engineering teams.\n\n- One practitioner on the HN Aurora/RDS thread moved from Aurora entirely to self-managed Postgres on bare metal NVMe and got better performance. This is a third option (non-K8s self-managed) that sometimes gets overlooked \u2014 but it requires even more ops sophistication.\n\n---\n\n## Open Questions\n\n- What does your current infrastructure look like? Are you already on Kubernetes for your app layer?\n- What's your cloud/hosting provider? (AKS has first-class CloudNativePG support; GKE/EKS have solid but less opinionated paths)\n- What's your current managed service cost? At 50GB, the \"K8s saves money\" argument may not pencil out until you're running multiple DB clusters.\n- Do you have WAL archiving / point-in-time recovery requirements? These are achievable on K8s but add setup complexity.\n\n---\n\n## Sources\n\n- [CloudNativePG official site](https://cloudnative-pg.io/)\n- [CloudNativePG in 2025: CNCF Sandbox, PostgreSQL 18, and a new era for extensions](https://www.gabrielebartolini.it/articles/2025/12/cloudnativepg-in-2025-cncf-sandbox-postgresql-18-and-a-new-era-for-extensions/)\n- [CloudNativePG: Gold Standard for Postgres on Kubernetes \u2014 EnterpriseDB](https://www.enterprisedb.com/blog/cloudnativepg-why-one-worlds-leading-clouds-adopted-gold-standard-postgres-kubernetes)\n- [Should you run PostgreSQL on Kubernetes? \u2014 Glasskube](https://glasskube.dev/blog/postgres-on-kubernetes/)\n- [Run PostgreSQL in Kubernetes: Solutions, Pros and Cons \u2014 Percona](https://www.percona.com/blog/run-postgresql-in-kubernetes-solutions-pros-and-cons/)\n- [Run PostgreSQL on Kubernetes: A Practical Guide with Benchmarks \u2014 Percona](https://www.percona.com/blog/run-postgresql-on-kubernetes-a-practical-guide-with-benchmarks-best-practices/)\n- [Database in Kubernetes: Is that a good idea? \u2014 Vonng / Medium](https://medium.com/@fengruohang/database-in-kubernetes-is-that-a-good-idea-daf5775b5c1f)\n- [Chaos testing a Postgres cluster managed by CloudNativePG \u2014 Coroot](https://coroot.com/blog/engineering/chaos-testing-a-postgres-cluster-managed-by-cloudnativepg/)\n- [Postgres on Kubernetes or VMs: A Guide & Framework \u2014 EDB](https://www.enterprisedb.com/blog/postgres-kubernetes-or-vms-guide-framework-running-databases-best-way)\n- [Running high-performance PostgreSQL on AKS \u2014 Microsoft Azure Blog](https://azure.microsoft.com/en-us/blog/running-high-performance-postgresql-on-azure-kubernetes-service/)\n- [Storage Strategies for PostgreSQL on Kubernetes \u2014 Percona](https://www.percona.com/blog/storage-strategies-for-postgresql-on-kubernetes/)\n- [KubeCon 2025: Bookmarks on Memory and Postgres \u2014 Ardent Performance](https://ardentperf.com/2025/11/16/kubecon-2025-bookmarks-on-memory-and-postgres/)\n- [Failover taking too long \u2014 CloudNativePG GitHub Issue #6154](https://github.com/cloudnative-pg/cloudnative-pg/issues/6154)\n- [CloudNativePG in 2024: Milestones, Innovations, and Reflections](https://www.gabrielebartolini.it/articles/2024/12/cloudnativepg-in-2024-milestones-innovations-and-reflections/)\n- [CNCF: Cloud Neutral Postgres Databases with Kubernetes and CloudNativePG](https://www.cncf.io/blog/2024/11/20/cloud-neutral-postgres-databases-with-kubernetes-and-cloudnativepg/)\n- [PostgreSQL on Kubernetes: Dos and Don'ts \u2014 Conf42](https://www.conf42.com/Internet_of_Things_IoT_2024_Chris_Engelbert_kubernetes_postgresql_cluster)\n- [PostgreSQL Kubernetes Cost Calculator \u2014 Percona](https://www.percona.com/calculator/postgresql-kubernetes-cost-savings)\n- [Kubernetes in the Wild 2025 report \u2014 36% of K8s DB workloads are Postgres](https://www.percona.com/blog/run-postgresql-on-kubernetes-a-practical-guide-with-benchmarks-best-practices/)\n"}], "grading": {"expectations": [{"text": "Represents both positions with at least one source each", "passed": true, "evidence": "Both camps presented with evidence (CNCF/CloudNativePG maturity vs Didi incident, failover bug, PVC data-loss scenario)."}, {"text": "Explains the context-dependence that resolves the contradiction", "passed": true, "evidence": "'Context mismatch, not factual dispute' framing; the do-you-already-debug-K8s test."}, {"text": "Gives a concrete recommendation for the stated context", "passed": true, "evidence": "Managed service unless K8s already in production for the app tier."}, {"text": "Sources dated or recency-checked", "passed": true, "evidence": "13 dated lines (CNCF Jan 2025, 2021-vs-2026 framing)."}], "notes": "Excellent contradiction handling with concrete failure incidents. Arguably the strongest old_skill run; nearly half the with_skill run's token cost."}}, {"id": "contested-question-contradiction-handling-with_skill", "prompt": "is it actually safe to run postgres in kubernetes for production in 2026 or is that still a bad idea? getting conflicting advice from my team. we're a 3 person startup, ~50GB database", "eval_id": 4, "outputs": [{"name": "answer.md", "type": "text", "content": "# Is it safe to run Postgres in Kubernetes for production in 2026?\n\n## Answer\n\nFor a 3-person startup with a ~50GB database, running Postgres in Kubernetes is technically safe in 2026 \u2014 the operator ecosystem (CloudNativePG in particular) has matured to production-grade. The real question is whether it is the right tradeoff for your team right now. If your team already runs Kubernetes and has at least one person comfortable operating it, CNPG is a reasonable choice. If Kubernetes is not already part of your stack or nobody owns it day-to-day, a managed service (RDS, Cloud SQL, Neon, Supabase) delivers better reliability per engineer-hour at your scale. The \"don't run databases in Kubernetes\" consensus that existed before 2022 is outdated; the new consensus is \"it depends on your team's operational context.\"\n\n---\n\n## Key Findings\n\n**1. The operator ecosystem matured enough for production by 2023-2024, and is now clearly production-grade.**\n\nCloudNativePG (CNPG) is the dominant Kubernetes-native Postgres operator as of 2026: 8.6k GitHub stars (vs. ~4.4k for Crunchy PGO), 200+ contributors from multiple organizations, 6-8 week release cadence, and a CNCF Sandbox project with public governance. Its production adopters include IBM, Tesla, GEICO Tech, Microsoft Azure, Novo Nordisk, REWE, Telnyx, and Mirakl (300+ clusters, 8 TB). This is not a hobbyist project or a startup bet \u2014 these are production workloads at regulated companies.\n\nSource: [CloudNativePG ADOPTERS.md](https://github.com/cloudnative-pg/cloudnative-pg/blob/main/ADOPTERS.md), verified June 2026. [Confidence: high]\n\nRefutation attempt: Searched GitHub issues for data loss. Found real bugs \u2014 notably [issue #8701](https://github.com/cloudnative-pg/cloudnative-pg/issues/8701) (failover in distributed topology with lagging replicas leads to timeline divergence, marked \"wontfix\" as a known edge case in distributed topologies) and [#8369](https://github.com/cloudnative-pg/cloudnative-pg/issues/8369) (EBS size limit edge case). These are edge cases in specific configurations, not systemic failures. The issues are tracked, closed, and documented. CNPG is not data-loss-free, but neither is any database system.\n\n**2. The \"don't run databases in Kubernetes\" advice dates from 2017-2021 and reflected real gaps that have since closed.**\n\nThe original concerns were legitimate: StatefulSet limitations, immature storage primitives (local PVs became stable in Kubernetes 1.14 in 2019), PVC resize not working, no good operators. CNPG was purpose-built to address these: it manages Pods directly (not StatefulSets), handles failover natively without Patroni, embeds the HA manager as PID 1 in the container, and supports volume snapshots for fast backup/recovery. The January 2024 HN discussion (107 points, 90 comments) on \"Self-hosting HA Postgres on Kubernetes\" shows the split: skeptics citing old problems, multiple practitioners confirming PVC resize works fine, and a response from the CNPG maintainer (gbartolini) correcting the outdated claims.\n\nSource: [HN discussion #38843589](https://news.ycombinator.com/item?id=38843589), January 2024. [Confidence: high]\n\n**3. The operational complexity argument is real but context-dependent \u2014 and it specifically hits small teams hardest.**\n\nThe strongest practitioner argument against Postgres-on-K8s is not \"it's broken\" but \"it stacks complexity on top of complexity.\" One HN commenter put it clearly: \"K8s operational complexities on top of DB operational complexities is really scary.\" Another: \"I keep my DB outside the cluster. RDS will fail, but it will likely come back up without much action on my part. K8s will fail, and you will spend untold human hours figuring out the k8s failure modes before you get to the database failure modes.\"\n\nCounterpoint from the same thread: \"The alternatives are obviously bad. Add bash scripts for WAL backups. Install pgbouncer. Setup replication. Install HA software. Configure TLS. Add monitoring. How quickly can you failover? Can your replacement?\" The K8s operator model encodes all of this. Both perspectives are correct in different contexts.\n\nFor a 3-person team, the cost is: someone has to learn and own the Kubernetes layer. If nobody does, you get the worst of both worlds. If one person already owns K8s for your other services, CNPG adds marginal complexity, not a new system.\n\nSource: HN #38843589 and #39809111 community discussions, January-March 2024. [Confidence: high]\n\n**4. The managed-vs-K8s tradeoff shifts significantly at small scale.**\n\nThe CNCF blog by the CNPG maintainer explicitly identifies organizations \"without dedicated DBAs or Kubernetes expertise\" as the natural DBaaS customer. The Brella case study in ADOPTERS.md (an event management platform) explicitly migrated *from* Cloud SQL *to* CNPG, noting cost savings and more control. The opposite migration (startup abandoning CNPG for managed service) also appears in the HN data.\n\nAt 50GB, you are nowhere near the scale where managed service costs justify the operational investment. RDS db.t3.medium (~$60/mo) vs. db.r6g.xlarge (~$400/mo) depending on IOPS needs; Cloud SQL similar. The cost argument for self-hosting Postgres in K8s starts making sense at hundreds of databases or at significant data volumes with high IOPS, not at 50GB.\n\nSource: CNCF blog (Nov 2024), CNPG ADOPTERS.md (June 2026). [Confidence: high]\n\n**5. Crunchy PGO \u2014 the other major operator \u2014 has governance concerns in 2026.**\n\nCrunchy Data was acquired by Snowflake in late 2024/early 2025. The CNPG maintainer's comparison (May 2026) documents an 8-month release gap in PGO (March to November 2025), no public governance, and production image licensing restrictions for organizations over 50 employees. If you choose an operator route, CNPG is the lower-risk choice from a vendor-dependency and open-governance standpoint.\n\nSource: [gabrielebartolini.it comparison article](https://www.gabrielebartolini.it/articles/2026/05/cloudnativepg-and-crunchy-pgo-an-honest-opinionated-comparison/), May 2026. Authored by CNPG co-founder \u2014 acknowledge bias, but the governance data is objective. [Confidence: medium-high]\n\n---\n\n## How It Works / The Decision Matrix\n\n| Scenario | Recommendation |\n|----------|---------------|\n| Already running K8s for other workloads, someone owns it | CNPG is viable. Treat it as a first-class operational concern, not an afterthought. |\n| Not running K8s yet, considering it just for the database | Use a managed service. The K8s overhead doesn't pay off at this scale. |\n| Running K8s, but no one person owns it operationally | Use a managed service. The \"everyone owns it\" model fails for databases. |\n| On a cloud with expensive RDS and tight budget | CNPG can save money, but budget for the operational time investment. |\n| On-prem or compliance requirements preventing cloud DBaaS | CNPG + bare-metal K8s is the best available path. |\n\n**At 50GB specifically:** This is a size where both paths work. 50GB is fast to back up, fast to restore (CNPG demonstrated 2-minute recovery of a 4.5 TB database via volume snapshots at KubeCon 2023 \u2014 your 50GB would be under a minute), and fits comfortably on standard cloud block storage with plenty of headroom. Size is not a limiting factor either way.\n\n**Prerequisites if you go K8s:**\n- Use CNPG, not Bitnami's HA chart (documented split-brain bug, confirmed in Reddit thread Oct 2024), not Zalando (WAL file management issues reported in practice).\n- Require WAL archiving to object storage (S3/GCS/Azure Blob) from day one. This is the safety net.\n- Run 3 instances for proper quorum (not 2 \u2014 issue #8679 confirms failover quorum requires >2 instances).\n- Configure synchronous replication if RPO matters (async is the default and acceptable for most startups).\n- Put PgBouncer in front via CNPG's native Pooler resource.\n- Use dedicated nodes for the database pods if budget allows; block storage PVCs otherwise.\n\n---\n\n## Contradictions and What Resolves Them\n\n**The core contradiction your team is experiencing:** \"It's totally safe now\" vs. \"still a bad idea.\" Both camps are partially right. This is a classic case of context-dependence disguised as a factual disagreement.\n\n- The \"safe now\" camp is talking about: the operator technology itself (CNPG's HA, failover, backup mechanisms). This claim is correct; the technology is production-grade.\n- The \"bad idea\" camp is talking about: the operational overhead on a small team, the failure modes that require Kubernetes expertise to debug, the complexity multiplier. This claim is also correct.\n\nNeither side is wrong. They're answering different questions.\n\n**The Bitnami split-brain issue** cited in the Reddit thread (Oct 2024) is operator-specific (Bitnami's HA chart), not a Kubernetes-level problem. It reinforces the \"choose the operator carefully\" message rather than undermining K8s Postgres generally.\n\n**The \"K8s is not for stateful systems\" claim** in the HN thread was rebutted in real time by the Kubernetes PVC resize feature author (gnufied), who confirmed volume resize, IOPS modification, and volume snapshots are all production-ready. The claim is outdated by at least 2 years.\n\n---\n\n## Sources\n\n- [CloudNativePG vs Crunchy PGO comparison (gabrielebartolini.it)](https://www.gabrielebartolini.it/articles/2026/05/cloudnativepg-and-crunchy-pgo-an-honest-opinionated-comparison/) \u2014 May 2026\n- [CNPG ADOPTERS.md (GitHub)](https://github.com/cloudnative-pg/cloudnative-pg/blob/main/ADOPTERS.md) \u2014 verified June 2026\n- [CNCF blog: Cloud Neutral Postgres with CloudNativePG](https://www.cncf.io/blog/2024/11/20/cloud-neutral-postgres-databases-with-kubernetes-and-cloudnativepg/) \u2014 November 2024\n- [HN: Self-hosting a HA Postgres cluster on Kubernetes (#38843589)](https://news.ycombinator.com/item?id=38843589) \u2014 January 2024, 90 comments\n- [HN: Ask HN: Best way to set up self-managed Postgres clusters? (#39809111)](https://news.ycombinator.com/item?id=39809111) \u2014 March 2024, 16 comments\n- [Reddit r/kubernetes: Best production-grade postgres operator](https://www.reddit.com/r/kubernetes/comments/1fzk9nl/best_production_grade_postgres_operator_for/) \u2014 October 2024\n- [Portworx: Choosing a Kubernetes Operator for PostgreSQL](https://portworx.com/blog/choosing-a-kubernetes-operator-for-postgresql/) \u2014 December 2024\n- [Medium: Modern PostgreSQL on EKS: A CloudNativePG Blueprint](https://harddikpatel.medium.com/modern-postgresql-on-eks-a-cloudnativepg-blueprint-75823de68316) \u2014 August 2025\n- [CNPG GitHub Issues: data loss searches](https://github.com/cloudnative-pg/cloudnative-pg/issues?q=is%3Aissue+data+loss) \u2014 verified June 2026\n\n---\n\n## Open Questions\n\n- What cloud/infrastructure provider are you on? The managed service cost calculation changes significantly (GCP Cloud SQL and Neon are cheaper than RDS for your scale; Supabase Pro tier is ~$25/mo).\n- Does your team already run Kubernetes? This is the single most important contextual variable.\n- Is there a compliance/data residency requirement that rules out managed services? If yes, CNPG is clearly the answer.\n- What's the RPO/RTO requirement? A startup that can tolerate 15 minutes of downtime with point-in-time recovery has very different needs than one that needs zero data loss.\n\nA follow-up round targeting your specific cloud provider's managed Postgres pricing and CNPG's current operator version changelog would sharpen the cost/effort comparison considerably.\n"}], "grading": {"expectations": [{"text": "Represents both positions with at least one source each", "passed": true, "evidence": "Safe-now camp (CNPG maturity, Tesla/GEICO/300+ clusters) and still-risky camp (ops overhead, K8s failure modes) both sourced."}, {"text": "Explains the context-dependence that resolves the contradiction", "passed": true, "evidence": "Frames the two camps as answering different questions (operator tech vs small-team ops capacity)."}, {"text": "Gives a concrete recommendation for the stated context", "passed": true, "evidence": "If K8s already in stack with an owner: CNPG (3 instances, WAL to object storage); else managed service."}, {"text": "Sources dated or recency-checked", "passed": true, "evidence": "23 dated lines; flags the 'don't do it' consensus as 3-4 years stale."}, {"text": "Wrote an investigation header (Question/Domain/Strategy/Hypothesis/Done-when) before findings, or evidence of it appears in the answer", "passed": false, "evidence": "No investigation header in the deliverable."}], "notes": "Added operator-specific safety detail (Bitnami split-brain bug, Zalando WAL issues) the baseline lacked. Highest token cost of any run (120k, 2.5x its baseline). Header missing."}}, {"id": "negative-evidence-and-stopping-old_skill", "prompt": "I want a CLI tool that automates UI testing for Compose Multiplatform desktop apps - something like playwright but for compose. what are my options?", "eval_id": 5, "outputs": [{"name": "answer.md", "type": "text", "content": "# CLI UI Testing for Compose Multiplatform Desktop: What Are Your Options?\n\n## Answer\n\nThere is no Playwright equivalent for Compose Multiplatform desktop. The ecosystem has one first-party in-process testing framework (JetBrains' `compose-ui-test`) and one third-party wrapper (Ultron) that simplifies its syntax. For out-of-process black-box automation from a CLI \u2014 the Playwright model \u2014 nothing exists yet. Your prior research on Compose Pilot identified this gap accurately and the gap is still open as of June 2026.\n\n---\n\n## What Exists Today\n\n### Option 1: compose-ui-test (Official, in-process only)\n\n**What it is:** JetBrains' first-party testing library, built on top of the Jetpack Compose testing API. Tests run inside the JVM process alongside your app code.\n\n**Desktop support:**\n- JUnit-based desktop API via `compose.desktop.uiTestJUnit4` and `createComposeRule()` \u2014 stable, runs with `./gradlew desktopTest`\n- Common cross-platform API via `runComposeUiTest` \u2014 experimental, runs with `./gradlew jvmTest`\n\n**What you can do:**\n- `onNodeWithTag(\"button\").performClick()`\n- `onNodeWithText(\"Hello\").assertIsDisplayed()`\n- `onNodeWithTag(\"text\").assertTextEquals(\"Submit\")`\n- Interact with LazyLists, trigger keyboard events, wait for idle state\n\n**What you cannot do:**\n- Run against a running app from outside the process (no CLI driver)\n- Test the packaged/distributed binary\n- Automate from a language other than Kotlin\n- Automate a running app you didn't build with test dependencies\n\n**Invocation:**\n```bash\n./gradlew desktopTest        # JUnit-based desktop tests\n./gradlew jvmTest            # Common runComposeUiTest tests\n```\n\n**Reference:** https://kotlinlang.org/docs/multiplatform/compose-desktop-ui-testing.html\n\n---\n\n### Option 2: Ultron (Third-party wrapper, in-process only)\n\n**What it is:** Open-source library (Apache 2.0, 253 stars, last release Oct 2025 v2.6.2) that wraps `compose-ui-test` with cleaner syntax, retry logic, and Page Object pattern support.\n\n**Desktop support:** Present but labeled Alpha state. Uses `runUltronUiTest` instead of `runComposeUiTest`.\n\n**What it adds over raw compose-ui-test:**\n- Cleaner syntax: `hasTestTag(\"button\").click()` vs `composeTestRule.onNode(hasTestTag(\"button\")).performClick()`\n- Automatic retry on flaky operations (configurable timeout, default 5s)\n- Page Objects that work without threading `SemanticsNodeInteractionProvider` through every class\n- LazyList helpers for scroll-to-item and item assertions\n- Allure report integration (Android-only currently)\n\n**What it cannot do:** Everything compose-ui-test can't do. It's a wrapper, not a new architecture. Still in-process, still requires test source sets, still no CLI driver.\n\n**Dependency:**\n```kotlin\ntestImplementation(\"com.atiurin:ultron-compose:<latest_version>\")\n```\n\n**Reference:** https://github.com/open-tool/ultron, https://open-tool.github.io/ultron/docs/compose/multiplatform/\n\n---\n\n### Option 3: AWT Robot (OS-level, coordinate-only)\n\n**What it is:** Java's `java.awt.Robot` class, available in any JVM app, lets you inject mouse clicks and keystrokes at screen coordinates.\n\n**Desktop support:** Works on macOS, Windows, Linux \u2014 no app instrumentation needed. Purely OS-level.\n\n**What it can do:**\n- Click at pixel coordinates: `robot.mouseMove(x, y); robot.mousePress(InputEvent.BUTTON1_DOWN_MASK)`\n- Type text via key events\n- Take screenshots via `robot.createScreenCapture(Rectangle)`\n\n**What it cannot do:**\n- Find elements by label, test tag, or semantic role \u2014 completely coordinate-blind\n- Scroll to elements, query whether a button is enabled, assert text content\n- Adapt to layout changes without hardcoding coordinates\n\n**Verdict:** Usable as a last resort for smoke testing a fixed layout. Breaks immediately on any layout change. Not a viable Playwright replacement.\n\n---\n\n### Option 4: OS Accessibility APIs (Platform-specific, partial coverage)\n\nJetBrains documents that Compose Desktop exposes accessibility information via:\n\n| Platform | Status | Technology |\n|---|---|---|\n| macOS | Fully supported | NSAccessibility \u2014 inspectable via Xcode Accessibility Inspector |\n| Windows | Supported | Java Access Bridge (disabled by default; requires `jabswitch.exe /enable` and `jdk.accessibility` module) |\n| Linux | Not supported | No implementation exists |\n\n**What this means:** On macOS and Windows, you could theoretically drive a Compose Desktop app from an external automation tool that speaks the OS accessibility protocol \u2014 the same way screen readers and tools like Appium drive native apps.\n\n**Practical reality:** No tool in the Kotlin ecosystem wraps this into a clean CLI today. JetBrains themselves filed a YouTrack issue (COMPOSE-1371) in April 2024 titled \"Black box testing of UI written on Compose with native widgets\" and proposed two approaches: accessibility API or exposing `ComposePanel.semanticNode` for external access. That issue has been closed without a public resolution, meaning the feature either landed quietly or was deferred.\n\n**Platform-specific accessibility tools that could theoretically work on Windows/macOS:**\n- **WinAppDriver** (Windows only, uses UIA) \u2014 Microsoft's Appium-compatible driver for Windows apps; Compose Desktop's Java Access Bridge exposure might make elements visible here, but this is unverified\n- **macOS Accessibility Inspector** \u2014 inspection tool, not a test driver\n- **JAWS / NVDA speech viewers** \u2014 screen readers, not automation tools\n\n---\n\n### What Does Not Work\n\n| Tool | Reason |\n|---|---|\n| Maestro | Mobile only (Android + iOS). No desktop support, no plans for it. |\n| Appium | Mobile only. No desktop variant for JVM/Compose apps. |\n| Playwright | Browser/web only. Not applicable. |\n| Paparazzi (cashapp) | Android screenshot testing only. No desktop support. |\n| UI Automator | Android only. |\n| Flutter integration_test | Flutter only. Different runtime entirely. |\n\n---\n\n## The Gap (Confirmed)\n\nNo tool exists that:\n1. Runs outside the app process (black-box, CLI-driven)\n2. Has element-aware semantics (find by tag, label, role \u2014 not pixel coordinates)\n3. Works on Compose Desktop\n4. Supports Linux (zero accessibility support in Compose Desktop on Linux)\n\nThis is the gap your Compose Pilot research identified in March 2026. A GitHub search for \"compose multiplatform desktop ui test\" repositories returned a single unrelated result (an ESC/POS printer library). No community tool has emerged since.\n\n---\n\n## Recommendation\n\n**For component and interaction tests (most common need):** Use `compose-ui-test` with `./gradlew desktopTest` or `jvmTest`. If you want cleaner syntax and retry semantics, add Ultron (`com.atiurin:ultron-compose`). Both run from CLI via Gradle with no additional setup.\n\n**For end-to-end / black-box tests against a running app:** Nothing ready-to-use exists. Your Compose Pilot architecture (embedded HTTP agent in-process + CLI client over localhost) is the correct approach and remains the first mover in this space.\n\n**For screenshot regression tests:** No desktop equivalent of Paparazzi exists. The `ImageComposeScene` API in compose-ui-test lets you render composables to a bitmap in tests, which you can diff manually, but there's no framework around it.\n\n---\n\n## Key Known Limitations of compose-ui-test on Desktop\n\nFrom live GitHub issues (confirmed fixed or wontfix):\n\n1. **`waitForIdle` behavior differs from Android** \u2014 desktop requires explicit `waitForIdle()` calls in more places than Android does (issue #2427, closed)\n2. **Key-typed events couldn't be generated in tests** \u2014 was a bug, fixed (issue #3710, closed Sep 2024)\n3. **Test API doesn't fully integrate with child scenes in `Window`/`DialogWindow`** \u2014 was a bug, fixed (issue #3587, closed Sep 2024)\n4. **`IllegalArgumentException` from `performClick()` thrown randomly** \u2014 intermittent flakiness issue, closed Sep 2024\n5. **ProGuard strips semantics in release builds** \u2014 confirmed; if you run tests against a release build with ProGuard, semantics tree access breaks\n\n---\n\n## Sources\n\n- [Testing Compose Multiplatform UI \u2014 official docs](https://kotlinlang.org/docs/multiplatform/compose-test.html)\n- [Testing Compose Multiplatform UI with JUnit (Desktop) \u2014 official docs](https://kotlinlang.org/docs/multiplatform/compose-desktop-ui-testing.html)\n- [Compose Desktop Accessibility \u2014 official docs](https://kotlinlang.org/docs/multiplatform/compose-desktop-accessibility.html)\n- [GitHub issue #4687: Black box testing of UI written on Compose with native widgets](https://github.com/JetBrains/compose-multiplatform/issues/4687)\n- [open-tool/ultron \u2014 GitHub](https://github.com/open-tool/ultron)\n- [Ultron Multiplatform docs](https://open-tool.github.io/ultron/docs/compose/multiplatform/)\n- [cashapp/paparazzi \u2014 GitHub](https://github.com/cashapp/paparazzi) (Android only, confirmed)\n- `/home/juiz/research/kmp-ui-automation-tool.md` \u2014 prior research, March 2026\n\n## Contradictions and Surprises\n\n- The JetBrains \"black box testing\" GitHub issue (#4687) was **closed**, but the YouTrack issue it references (COMPOSE-1371) returned empty content when fetched \u2014 suggesting it may have moved to internal tracking or been intentionally closed without a public resolution. This is worth monitoring.\n- Ultron explicitly labels its multiplatform support as \"Alpha\" \u2014 its primary audience is Android. Desktop coverage is secondary.\n- Linux has zero accessibility support from JetBrains with no roadmap mention. Any accessibility-based out-of-process tool would be macOS/Windows-only by definition.\n\n## Open Questions\n\n- Has COMPOSE-1371 landed any `ComposePanel.semanticNode` exposure in a recent release? JetBrains' YouTrack was inaccessible during this research.\n- Does WinAppDriver actually discover Compose Desktop elements via Java Access Bridge on Windows? This is theoretically possible but unverified.\n- Is there any community work on a `compose-pilot` or equivalent that launched after March 2026?\n"}], "grading": {"expectations": [{"text": "States clearly that no direct equivalent exists", "passed": true, "evidence": "'No Playwright equivalent for Compose Desktop exists' stated as the answer."}, {"text": "Lists where it looked (coverage as evidence)", "passed": true, "evidence": "'What definitively does not work' list (Maestro, Appium, Playwright, Paparazzi, UI Automator) documents coverage."}, {"text": "Nearest alternatives described with actual gaps", "passed": true, "evidence": "compose-ui-test, Ultron (alpha), AWT Robot, accessibility APIs - each with honest limitations."}, {"text": "No fabricated tools or misrepresented platform support", "passed": true, "evidence": "Matches known ground truth from the prior Compose Pilot research; YouTrack COMPOSE-1371 status honestly flagged as unclear."}], "notes": "Solid negative-evidence handling, but missed compose-driver - the one genuinely new development since the user's earlier research."}}, {"id": "negative-evidence-and-stopping-with_skill", "prompt": "I want a CLI tool that automates UI testing for Compose Multiplatform desktop apps - something like playwright but for compose. what are my options?", "eval_id": 5, "outputs": [{"name": "answer.md", "type": "text", "content": "# Compose Multiplatform Desktop UI Testing: What Are Your Options?\n\n## Answer\n\nThere is no Playwright-equivalent external CLI tool for Compose Multiplatform desktop \u2014 a tool that drives a running app from the outside via a protocol, cross-platform, with a stable API. The closest thing to that today is **compose-driver** (experimental, v0.5.0, 2025\u20132026), which runs the UI in-process via a local HTTP server. The practical primary option for real test automation is the **JetBrains-official in-process testing API** (`compose.desktop.uiTestJUnit4`) invoked via `./gradlew desktopTest`. External-process automation via platform accessibility APIs is theoretically possible on Windows and macOS but has no verified working solution specific to Compose desktop, and has no path at all on Linux.\n\n---\n\n## Key Findings\n\n### 1. Official JetBrains testing API \u2014 the only mature, supported option\n\nThe official testing API lives inside the Compose Multiplatform SDK. For desktop it uses JUnit4 under the hood.\n\n**Setup:**\n```kotlin\n// shared/build.gradle.kts\nval desktopTest by getting {\n    dependencies {\n        implementation(compose.desktop.uiTestJUnit4)\n        implementation(compose.desktop.currentOs)\n    }\n}\n```\n\n**Run from CLI:**\n```bash\n./gradlew desktopTest\n```\n\n**API:**\n```kotlin\n@get:Rule val rule = createComposeRule()\n\n@Test fun myTest() {\n    rule.setContent { MyComposable() }\n    rule.onNodeWithTag(\"btn\").performClick()\n    rule.onNodeWithTag(\"result\").assertTextEquals(\"Done\")\n}\n```\n\nThe common `runComposeUiTest` function (no JUnit TestRule) also works for desktop as of CMP 1.6.0 (Feb 2024, experimental). CMP 1.11 (late 2025/2026) promoted this to non-experimental for non-Android targets and switched to `StandardTestDispatcher`, meaning coroutines no longer run eagerly \u2014 `waitUntil()` / `waitForIdle()` required for async composables.\n\n**Headless / CI:** Desktop tests do require a display context. On Linux CI (GitHub Actions, etc.) you need `xvfb-run ./gradlew desktopTest`. Mac/Windows CI runners work without extra steps. Desktop is confirmed to be the fastest feedback loop \u2014 no emulator needed, warm build under 30 seconds.\n\n**Status:** Stable enough for production use. The common-test path was experimental through 1.10, graduated in 1.11.\n\n[Source: JetBrains official docs](https://kotlinlang.org/docs/multiplatform/compose-desktop-ui-testing.html) \u2014 verified June 2026\n[Source: KMP Bits write-up](https://www.kmpbits.com/posts/compose-ui-test-cmp) \u2014 June 2025\n\n---\n\n### 2. compose-driver \u2014 experimental HTTP-based headless driver (closest to Playwright)\n\n**What it is:** A Gradle Settings plugin that auto-generates a `:compose-driver-desktop` subproject wrapping your composables in a test harness that exposes a local HTTP API. AI agents (or your own CLI scripts) send REST-style requests to drive the UI. Zero changes to production code.\n\n**How to run:**\n```bash\n./gradlew :compose-driver-desktop:run --args=\"--composable=com.example.MyScreen\"\n# Then curl or script against http://localhost:8080\n# POST /click, /textInput, GET /screenshot, /tree\n```\n\n**Key traits:**\n- Truly headless on JVM \u2014 no display required, virtual clock, renders in memory\n- Supports screenshot + accessibility tree snapshots\n- Desktop recommended over Android/Robolectric path for multiplatform work (faster startup)\n- Can record GIF if ffmpeg installed\n- Designed with AI coding agents in mind, but nothing stops scripted use\n\n**Maturity:** v0.5.0, experimental. Authored by Jordan Demeulenaere (JetBrains). Sparse docs, no stable API guarantee. Built on top of the same `ComposeUiTest` internals as option 1 \u2014 it's an HTTP facade, not a reimplementation.\n\n**Refutation attempt:** No reported failures or known blockers on desktop use. The main limitation is it's in-process (same JVM as the composable), not a black-box driver of a running native binary. It cannot test packaging, window management, tray icons, or OS-level dialogs.\n\n[Source: github.com/jdemeulenaere/compose-driver](https://github.com/jdemeulenaere/compose-driver) \u2014 verified June 2026\n[Source: DEV.to article by author](https://dev.to/jdemeulenaere/vibe-coding-mobile-apps-with-compose-driver-3379) \u2014 2026\n\n---\n\n### 3. Ultron \u2014 test abstraction layer, not a standalone CLI tool\n\nUltron is a Kotlin library wrapping the Compose testing API with Page Object pattern support and better stability (retry logic, Allure report integration). It simplifies writing tests, not running them from outside.\n\n**Desktop support status:** Alpha as of mid-2025. Multiplatform support is listed as alpha in the official docs.\n\n**CLI story:** Same as option 1 \u2014 `./gradlew desktopTest`. Ultron doesn't add a CLI; it adds ergonomic Kotlin test DSL.\n\n**When to use:** If you're writing a lot of tests and want better Page Object patterns and retries built in, add Ultron on top of the official API. Not a replacement for a driver.\n\n[Source: open-tool.github.io/ultron/docs/compose/multiplatform/](https://open-tool.github.io/ultron/docs/compose/multiplatform/) \u2014 verified June 2026\n[Source: github.com/open-tool/ultron](https://github.com/open-tool/ultron) \u2014 verified June 2026\n\n---\n\n### 4. External process automation (FlaUI / WinAppDriver / Appium) \u2014 largely a dead end for Compose\n\nThis is the \"real Playwright\" pattern: a separate process driving the running app via OS accessibility APIs. Here is what the evidence actually says:\n\n| Platform | Accessibility API | Compose Desktop Status |\n|----------|-------------------|------------------------|\n| Windows | Java Access Bridge (JAB) \u2014 NOT native UIA | Supported but JAB must be explicitly enabled; no verified FlaUI/WinAppDriver integration with Compose apps found |\n| macOS | Native macOS Accessibility API | Supported; Accessibility Inspector (Xcode) works; no Playwright-style CLI driver found |\n| Linux | AT-SPI | **Not supported** \u2014 JetBrains docs explicitly state no accessibility support on Linux |\n\nThe critical finding: Compose desktop on Windows goes through **Java Access Bridge**, not the native Windows UI Automation (UIA) API that FlaUI and WinAppDriver use. FlaUI/WinAppDriver target UIA \u2014 they cannot see JAB-exposed elements without a JAB-to-UIA bridge layer. No such bridge with verified Compose support was found in the literature.\n\nWinAppDriver itself is effectively abandoned (last major release 2020). Winium is abandoned (last release 2016).\n\n**Refutation:** Searched specifically for \"Compose desktop FlaUI works\", \"Compose desktop Windows UI Automation accessible external tools\" \u2014 found zero community reports of a working external driver for Compose desktop apps on any platform. The absence of discussion in the Kotlin/Compose community is itself negative evidence.\n\n[Source: JetBrains accessibility docs](https://kotlinlang.org/docs/multiplatform/compose-desktop-accessibility.html) \u2014 verified June 2026\n[Source: testguild.com desktop automation tools 2026](https://testguild.com/automation-tools-desktop/) \u2014 2026\n\n---\n\n### 5. Screenshot testing (Roborazzi / Paparazzi / ComposablePreviewScanner) \u2014 complementary, not behavioral\n\nThese tools render composables headlessly and diff pixel output against golden images. They're not behavioral test drivers \u2014 they can't click buttons or assert state changes. Useful for visual regression, not UI automation.\n\nComposablePreviewScanner auto-generates screenshot tests from `@Preview` annotations across Android and Compose Multiplatform. Desktop targets work.\n\n[Source: github.com/sergio-sastre/ComposablePreviewScanner](https://github.com/sergio-sastre/ComposablePreviewScanner) \u2014 verified June 2026\n\n---\n\n## Comparison Matrix\n\n| Option | In-process / External | CLI | Headless | Desktop stable | Multiplatform | Maturity |\n|--------|----------------------|-----|----------|---------------|---------------|----------|\n| JetBrains testing API (`uiTestJUnit4`) | In-process | `./gradlew desktopTest` | Yes (xvfb on Linux) | Yes | Common test: 1.11+ | Stable |\n| compose-driver | In-process (HTTP facade) | `./gradlew :compose-driver-desktop:run` + curl | Yes (JVM, no display) | Yes | Android + JVM | Experimental v0.5.0 |\n| Ultron | In-process (wrapper) | Same as above | Same as above | Alpha | Android + CMP | Alpha |\n| FlaUI / WinAppDriver | External process | Yes | No (needs real window) | Not verified for Compose | Windows only | WinAppDriver abandoned |\n| Screenshot testing (Roborazzi etc.) | In-process | `./gradlew test` | Yes | Yes | Yes | Stable for Android; CMP partial |\n\n---\n\n## Contradictions and Surprises\n\n- **Surprise:** compose-driver is headless on JVM \u2014 it uses the Compose testing harness's virtual rendering, so it doesn't need a display at all. This is meaningfully different from the JUnit API, which does appear to need a display context (hence xvfb on Linux CI). This makes compose-driver potentially better suited for cloud CI pipelines than the official API, despite being less mature.\n\n- **Surprise:** Compose desktop on Windows uses Java Access Bridge, not native UIA. This is the single biggest blocker for external process automation tools, and it's buried in the accessibility docs rather than the testing docs. Almost no one writing about \"how to automate Compose desktop with external tools\" seems aware of it.\n\n- **Contradiction (resolved):** Some sources describe the common test API (`runComposeUiTest`) as \"experimental\" while others call it production-ready. Context: it was experimental through CMP 1.10, graduated in CMP 1.11. The JUnit4 desktop-specific API (`createComposeRule`) has been stable longer.\n\n- **Linux:** No external automation path exists. In-process testing (`./gradlew desktopTest` with xvfb) is your only option.\n\n---\n\n## Practical Recommendation for Your Use Case\n\nGiven you're building **Compose Pilot** \u2014 a debug/inspection agent for Compose Multiplatform \u2014 the relevant finding is:\n\n1. **compose-driver** is architecturally very close to what you'd want to build: HTTP API, headless JVM, in-process, uses ComposeUiTest internals. Study it as a reference implementation before building your own. It targets AI agents but is general enough.\n\n2. The **official testing API** is the foundation everything builds on. Any tool in this space wraps `ComposeUiTest` / `SemanticsNodeInteractionProvider`.\n\n3. There is no external-process black-box driver. The only \"external\" angle possible today is via platform accessibility APIs, and it's unverified / not supported on Linux. If you want a Playwright-level external driver, you'd be building it.\n\n---\n\n## Sources\n\n- [Testing Compose Multiplatform UI](https://kotlinlang.org/docs/multiplatform/compose-test.html) \u2014 JetBrains official, June 2026\n- [Testing Compose Multiplatform UI with JUnit](https://kotlinlang.org/docs/multiplatform/compose-desktop-ui-testing.html) \u2014 JetBrains official, June 2026\n- [Support for desktop accessibility features](https://kotlinlang.org/docs/multiplatform/compose-desktop-accessibility.html) \u2014 JetBrains official, June 2026\n- [github.com/jdemeulenaere/compose-driver](https://github.com/jdemeulenaere/compose-driver) \u2014 verified June 2026\n- [Vibe coding mobile apps with Compose Driver](https://dev.to/jdemeulenaere/vibe-coding-mobile-apps-with-compose-driver-3379) \u2014 2026\n- [Multiplatform | Ultron docs](https://open-tool.github.io/ultron/docs/compose/multiplatform/) \u2014 verified June 2026\n- [github.com/open-tool/ultron](https://github.com/open-tool/ultron) \u2014 verified June 2026\n- [Clean Lap: UI Testing in Compose Multiplatform | KMP Bits](https://www.kmpbits.com/posts/compose-ui-test-cmp) \u2014 2025\n- [Compose Multiplatform UI Tests (Marko Novakovic)](https://markonovakovic.medium.com/compose-multiplatform-ui-tests-d59b398bb984) \u2014 Medium, 2024\n- [How to run headless unit tests for GUIs on GitHub actions](https://arbitrary-but-fixed.net/2022/01/21/headless-gui-github-actions.html) \u2014 2022 (xvfb pattern, still current)\n- [github.com/sergio-sastre/ComposablePreviewScanner](https://github.com/sergio-sastre/ComposablePreviewScanner) \u2014 verified June 2026\n- [Best Desktop Automation Testing Tools 2026](https://testguild.com/automation-tools-desktop/) \u2014 2026 (FlaUI/WinAppDriver status)\n\n---\n\n## Open Questions\n\n1. Does compose-driver's HTTP facade work with the full running app window (including window chrome, system dialogs) or only with individual composable roots it wraps? The current answer appears to be \"only wrapped composables\" \u2014 needs verification from source code.\n2. Does enabling Java Access Bridge on Windows actually allow any automation tool (UiPath, etc.) to traverse a Compose desktop app's element tree? No community confirmation found.\n3. Is there any JetBrains-internal work on an AT-SPI bridge for Linux? None found publicly; would be tracked in compose-multiplatform GitHub issues.\n4. compose-driver is described as targeting AI coding tools \u2014 is there an MCP server wrapper planned? Author mentioned it as future work in the DEV.to article.\n\n## Promote to context/\n\n**For `context/compose-pilot.md`:**\n- No external black-box driver exists for Compose desktop. All viable test tooling is in-process, wrapping `ComposeUiTest` / the semantics tree.\n- compose-driver (`github.com/jdemeulenaere/compose-driver`) is the closest reference architecture: Gradle plugin, HTTP API, headless JVM, zero production code changes. Built by a JetBrains employee. Study before designing Compose Pilot's agent API.\n- Compose desktop on Windows uses Java Access Bridge, not native UIA. External tools that target Windows UIA (FlaUI, WinAppDriver) will not work without a bridge layer that does not yet exist.\n- Linux has no accessibility support in Compose desktop at all \u2014 no AT-SPI bridge.\n- Any Compose Pilot architecture must be in-process (JVM) to access the semantics tree. External process control is not currently viable.\n"}], "grading": {"expectations": [{"text": "States clearly that no direct equivalent exists", "passed": true, "evidence": "'No Playwright-equivalent external CLI driver for Compose Multiplatform desktop' stated up front."}, {"text": "Lists where it looked (coverage as evidence)", "passed": true, "evidence": "Coverage explicit: JAB-vs-UIA analysis on Windows, no AT-SPI on Linux, macOS unexplored by tooling, 'zero community reports.'"}, {"text": "Nearest alternatives described with actual gaps", "passed": true, "evidence": "Official uiTestJUnit4 (in-process), compose-driver v0.5.0 (experimental HTTP driver), Ultron (alpha) - each with status and limits."}, {"text": "No fabricated tools or misrepresented platform support", "passed": true, "evidence": "compose-driver is a real repo (jdemeulenaere, JetBrains); claims hedged with experimental/alpha status."}, {"text": "Wrote an investigation header (Question/Domain/Strategy/Hypothesis/Done-when) before findings, or evidence of it appears in the answer", "passed": false, "evidence": "No investigation header in the deliverable."}], "notes": "Best run of the eval: confirmed the negative AND surfaced compose-driver, a closest-match tool the baseline missed entirely, plus a Promote-to-context section for Compose Pilot. Slowest run (344s). Header missing."}}], "previous_feedback": {}, "previous_outputs": {}, "benchmark": {"metadata": {"skill_name": "investigating", "skill_path": "<path/to/skill>", "executor_model": "<model-name>", "analyzer_model": "<model-name>", "timestamp": "2026-06-10T06:10:11Z", "evals_run": [], "runs_per_configuration": 3}, "runs": [], "run_summary": {"delta": {"pass_rate": "+0.00", "time_seconds": "+0.0", "tokens": "+0"}}, "notes": []}};
+
+    // ---- State ----
+    let feedbackMap = {};  // run_id -> feedback text
+    let currentIndex = 0;
+    let visitedRuns = new Set();
+
+    // ---- Init ----
+    async function init() {
+      // Load saved feedback from server — but only if this isn't a fresh
+      // iteration (indicated by previous_feedback being present). When
+      // previous feedback exists, the feedback.json on disk is stale from
+      // the prior iteration and should not pre-fill the textareas.
+      const hasPrevious = Object.keys(EMBEDDED_DATA.previous_feedback || {}).length > 0
+        || Object.keys(EMBEDDED_DATA.previous_outputs || {}).length > 0;
+      if (!hasPrevious) {
+        try {
+          const resp = await fetch("/api/feedback");
+          const data = await resp.json();
+          if (data.reviews) {
+            for (const r of data.reviews) feedbackMap[r.run_id] = r.feedback;
+          }
+        } catch { /* first run, no feedback yet */ }
+      }
+
+      document.getElementById("skill-name").textContent = EMBEDDED_DATA.skill_name;
+      showRun(0);
+
+      // Wire up feedback auto-save
+      const textarea = document.getElementById("feedback");
+      let saveTimeout = null;
+      textarea.addEventListener("input", () => {
+        clearTimeout(saveTimeout);
+        document.getElementById("feedback-status").textContent = "";
+        saveTimeout = setTimeout(() => saveCurrentFeedback(), 800);
+      });
+    }
+
+    // ---- Navigation ----
+    function navigate(delta) {
+      const newIndex = currentIndex + delta;
+      if (newIndex >= 0 && newIndex < EMBEDDED_DATA.runs.length) {
+        saveCurrentFeedback();
+        showRun(newIndex);
+      }
+    }
+
+    function updateNavButtons() {
+      document.getElementById("prev-btn").disabled = currentIndex === 0;
+      document.getElementById("next-btn").disabled =
+        currentIndex === EMBEDDED_DATA.runs.length - 1;
+    }
+
+    // ---- Show a run ----
+    function showRun(index) {
+      currentIndex = index;
+      const run = EMBEDDED_DATA.runs[index];
+
+      // Progress
+      document.getElementById("progress").textContent =
+        `${index + 1} of ${EMBEDDED_DATA.runs.length}`;
+
+      // Prompt
+      document.getElementById("prompt-text").textContent = run.prompt;
+
+      // Config badge
+      const badge = document.getElementById("config-badge");
+      const configMatch = run.id.match(/(with_skill|without_skill|new_skill|old_skill)/);
+      if (configMatch) {
+        const config = configMatch[1];
+        const isBaseline = config === "without_skill" || config === "old_skill";
+        badge.textContent = config.replace(/_/g, " ");
+        badge.className = "config-badge " + (isBaseline ? "config-baseline" : "config-primary");
+        badge.style.display = "inline-block";
+      } else {
+        badge.style.display = "none";
+      }
+
+      // Outputs
+      renderOutputs(run);
+
+      // Previous outputs
+      renderPrevOutputs(run);
+
+      // Grades
+      renderGrades(run);
+
+      // Previous feedback
+      const prevFb = (EMBEDDED_DATA.previous_feedback || {})[run.id];
+      const prevEl = document.getElementById("prev-feedback");
+      if (prevFb) {
+        document.getElementById("prev-feedback-text").textContent = prevFb;
+        prevEl.style.display = "block";
+      } else {
+        prevEl.style.display = "none";
+      }
+
+      // Feedback
+      document.getElementById("feedback").value = feedbackMap[run.id] || "";
+      document.getElementById("feedback-status").textContent = "";
+
+      updateNavButtons();
+
+      // Track visited runs and promote done button when all visited
+      visitedRuns.add(index);
+      const doneBtn = document.getElementById("done-btn");
+      if (visitedRuns.size >= EMBEDDED_DATA.runs.length) {
+        doneBtn.classList.add("ready");
+      }
+
+      // Scroll main content to top
+      document.querySelector(".main").scrollTop = 0;
+    }
+
+    // ---- Render outputs ----
+    function renderOutputs(run) {
+      const container = document.getElementById("outputs-body");
+      container.innerHTML = "";
+
+      const outputs = run.outputs || [];
+      if (outputs.length === 0) {
+        container.innerHTML = '<div class="empty-state">No output files</div>';
+        return;
+      }
+
+      for (const file of outputs) {
+        const fileDiv = document.createElement("div");
+        fileDiv.className = "output-file";
+
+        // Always show file header with download link
+        const header = document.createElement("div");
+        header.className = "output-file-header";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = file.name;
+        header.appendChild(nameSpan);
+        const dlBtn = document.createElement("a");
+        dlBtn.className = "dl-btn";
+        dlBtn.textContent = "Download";
+        dlBtn.download = file.name;
+        dlBtn.href = getDownloadUri(file);
+        header.appendChild(dlBtn);
+        fileDiv.appendChild(header);
+
+        const content = document.createElement("div");
+        content.className = "output-file-content";
+
+        if (file.type === "text") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          content.appendChild(pre);
+        } else if (file.type === "image") {
+          const img = document.createElement("img");
+          img.src = file.data_uri;
+          img.alt = file.name;
+          content.appendChild(img);
+        } else if (file.type === "pdf") {
+          const iframe = document.createElement("iframe");
+          iframe.src = file.data_uri;
+          content.appendChild(iframe);
+        } else if (file.type === "xlsx") {
+          renderXlsx(content, file.data_b64);
+        } else if (file.type === "binary") {
+          const a = document.createElement("a");
+          a.className = "download-link";
+          a.href = file.data_uri;
+          a.download = file.name;
+          a.textContent = "Download " + file.name;
+          content.appendChild(a);
+        } else if (file.type === "error") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          pre.style.color = "var(--red)";
+          content.appendChild(pre);
+        }
+
+        fileDiv.appendChild(content);
+        container.appendChild(fileDiv);
+      }
+    }
+
+    // ---- XLSX rendering via SheetJS ----
+    function renderXlsx(container, b64Data) {
+      try {
+        const raw = Uint8Array.from(atob(b64Data), c => c.charCodeAt(0));
+        const wb = XLSX.read(raw, { type: "array" });
+
+        for (let i = 0; i < wb.SheetNames.length; i++) {
+          const sheetName = wb.SheetNames[i];
+          const ws = wb.Sheets[sheetName];
+
+          if (wb.SheetNames.length > 1) {
+            const sheetLabel = document.createElement("div");
+            sheetLabel.style.cssText =
+              "font-weight:600; font-size:0.8rem; color:#b0aea5; margin-top:0.5rem; margin-bottom:0.25rem;";
+            sheetLabel.textContent = "Sheet: " + sheetName;
+            container.appendChild(sheetLabel);
+          }
+
+          const htmlStr = XLSX.utils.sheet_to_html(ws, { editable: false });
+          const wrapper = document.createElement("div");
+          wrapper.innerHTML = htmlStr;
+          container.appendChild(wrapper);
+        }
+      } catch (err) {
+        container.textContent = "Error rendering spreadsheet: " + err.message;
+      }
+    }
+
+    // ---- Grades ----
+    function renderGrades(run) {
+      const section = document.getElementById("grades-section");
+      const content = document.getElementById("grades-content");
+
+      if (!run.grading) {
+        section.style.display = "none";
+        return;
+      }
+
+      const grading = run.grading;
+      section.style.display = "block";
+      // Reset to collapsed
+      content.classList.remove("open");
+      document.getElementById("grades-arrow").classList.remove("open");
+
+      const summary = grading.summary || {};
+      const expectations = grading.expectations || [];
+
+      let html = '<div style="padding: 1rem;">';
+
+      // Summary line
+      const passRate = summary.pass_rate != null
+        ? Math.round(summary.pass_rate * 100) + "%"
+        : "?";
+      const badgeClass = summary.pass_rate >= 0.8 ? "grade-pass" : summary.pass_rate >= 0.5 ? "" : "grade-fail";
+      html += '<div class="grades-summary">';
+      html += '<span class="grade-badge ' + badgeClass + '">' + passRate + '</span>';
+      html += '<span>' + (summary.passed || 0) + ' passed, ' + (summary.failed || 0) + ' failed of ' + (summary.total || 0) + '</span>';
+      html += '</div>';
+
+      // Assertions list
+      html += '<ul class="assertion-list">';
+      for (const exp of expectations) {
+        const statusClass = exp.passed ? "pass" : "fail";
+        const statusIcon = exp.passed ? "\u2713" : "\u2717";
+        html += '<li class="assertion-item">';
+        html += '<span class="assertion-status ' + statusClass + '">' + statusIcon + '</span>';
+        html += '<span>' + escapeHtml(exp.text) + '</span>';
+        if (exp.evidence) {
+          html += '<div class="assertion-evidence">' + escapeHtml(exp.evidence) + '</div>';
+        }
+        html += '</li>';
+      }
+      html += '</ul>';
+
+      html += '</div>';
+      content.innerHTML = html;
+    }
+
+    function toggleGrades() {
+      const content = document.getElementById("grades-content");
+      const arrow = document.getElementById("grades-arrow");
+      content.classList.toggle("open");
+      arrow.classList.toggle("open");
+    }
+
+    // ---- Previous outputs (collapsible) ----
+    function renderPrevOutputs(run) {
+      const section = document.getElementById("prev-outputs-section");
+      const content = document.getElementById("prev-outputs-content");
+      const prevOutputs = (EMBEDDED_DATA.previous_outputs || {})[run.id];
+
+      if (!prevOutputs || prevOutputs.length === 0) {
+        section.style.display = "none";
+        return;
+      }
+
+      section.style.display = "block";
+      // Reset to collapsed
+      content.classList.remove("open");
+      document.getElementById("prev-outputs-arrow").classList.remove("open");
+
+      // Render the files into the content area
+      content.innerHTML = "";
+      const wrapper = document.createElement("div");
+      wrapper.style.padding = "1rem";
+
+      for (const file of prevOutputs) {
+        const fileDiv = document.createElement("div");
+        fileDiv.className = "output-file";
+
+        const header = document.createElement("div");
+        header.className = "output-file-header";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = file.name;
+        header.appendChild(nameSpan);
+        const dlBtn = document.createElement("a");
+        dlBtn.className = "dl-btn";
+        dlBtn.textContent = "Download";
+        dlBtn.download = file.name;
+        dlBtn.href = getDownloadUri(file);
+        header.appendChild(dlBtn);
+        fileDiv.appendChild(header);
+
+        const fc = document.createElement("div");
+        fc.className = "output-file-content";
+
+        if (file.type === "text") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          fc.appendChild(pre);
+        } else if (file.type === "image") {
+          const img = document.createElement("img");
+          img.src = file.data_uri;
+          img.alt = file.name;
+          fc.appendChild(img);
+        } else if (file.type === "pdf") {
+          const iframe = document.createElement("iframe");
+          iframe.src = file.data_uri;
+          fc.appendChild(iframe);
+        } else if (file.type === "xlsx") {
+          renderXlsx(fc, file.data_b64);
+        } else if (file.type === "binary") {
+          const a = document.createElement("a");
+          a.className = "download-link";
+          a.href = file.data_uri;
+          a.download = file.name;
+          a.textContent = "Download " + file.name;
+          fc.appendChild(a);
+        }
+
+        fileDiv.appendChild(fc);
+        wrapper.appendChild(fileDiv);
+      }
+
+      content.appendChild(wrapper);
+    }
+
+    function togglePrevOutputs() {
+      const content = document.getElementById("prev-outputs-content");
+      const arrow = document.getElementById("prev-outputs-arrow");
+      content.classList.toggle("open");
+      arrow.classList.toggle("open");
+    }
+
+    // ---- Feedback (saved to server -> feedback.json) ----
+    function saveCurrentFeedback() {
+      const run = EMBEDDED_DATA.runs[currentIndex];
+      const text = document.getElementById("feedback").value;
+
+      if (text.trim() === "") {
+        delete feedbackMap[run.id];
+      } else {
+        feedbackMap[run.id] = text;
+      }
+
+      // Build reviews array from map
+      const reviews = [];
+      for (const [run_id, feedback] of Object.entries(feedbackMap)) {
+        if (feedback.trim()) {
+          reviews.push({ run_id, feedback, timestamp: new Date().toISOString() });
+        }
+      }
+
+      fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reviews, status: "in_progress" }),
+      }).then(() => {
+        document.getElementById("feedback-status").textContent = "Saved";
+      }).catch(() => {
+        // Static mode or server unavailable — no-op on auto-save,
+        // feedback will be downloaded on final submit
+        document.getElementById("feedback-status").textContent = "Will download on submit";
+      });
+    }
+
+    // ---- Done ----
+    function showDoneDialog() {
+      // Save current textarea to feedbackMap (but don't POST yet)
+      const run = EMBEDDED_DATA.runs[currentIndex];
+      const text = document.getElementById("feedback").value;
+      if (text.trim() === "") {
+        delete feedbackMap[run.id];
+      } else {
+        feedbackMap[run.id] = text;
+      }
+
+      // POST once with status: complete — include ALL runs so the model
+      // can distinguish "no feedback" (looks good) from "not reviewed"
+      const reviews = [];
+      const ts = new Date().toISOString();
+      for (const r of EMBEDDED_DATA.runs) {
+        reviews.push({ run_id: r.id, feedback: feedbackMap[r.id] || "", timestamp: ts });
+      }
+      const payload = JSON.stringify({ reviews, status: "complete" }, null, 2);
+      fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: payload,
+      }).then(() => {
+        document.getElementById("done-overlay").classList.add("visible");
+      }).catch(() => {
+        // Server not available (static mode) — download as file
+        const blob = new Blob([payload], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "feedback.json";
+        a.click();
+        URL.revokeObjectURL(url);
+        document.getElementById("done-overlay").classList.add("visible");
+      });
+    }
+
+    function closeDoneDialog() {
+      // Reset status back to in_progress
+      saveCurrentFeedback();
+      document.getElementById("done-overlay").classList.remove("visible");
+    }
+
+    // ---- Toast ----
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("visible");
+      setTimeout(() => toast.classList.remove("visible"), 2000);
+    }
+
+    // ---- Keyboard nav ----
+    document.addEventListener("keydown", (e) => {
+      // Don't capture when typing in textarea
+      if (e.target.tagName === "TEXTAREA") return;
+
+      if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault();
+        navigate(-1);
+      } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault();
+        navigate(1);
+      }
+    });
+
+    // ---- Util ----
+    function getDownloadUri(file) {
+      if (file.data_uri) return file.data_uri;
+      if (file.data_b64) return "data:application/octet-stream;base64," + file.data_b64;
+      if (file.type === "text") return "data:text/plain;charset=utf-8," + encodeURIComponent(file.content);
+      return "#";
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // ---- View switching ----
+    function switchView(view) {
+      document.querySelectorAll(".view-tab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".view-panel").forEach(p => p.classList.remove("active"));
+      document.querySelector(`[onclick="switchView('${view}')"]`).classList.add("active");
+      document.getElementById("panel-" + view).classList.add("active");
+    }
+
+    // ---- Benchmark rendering ----
+    function renderBenchmark() {
+      const data = EMBEDDED_DATA.benchmark;
+      if (!data) return;
+
+      // Show the tabs
+      document.getElementById("view-tabs").style.display = "flex";
+
+      const container = document.getElementById("benchmark-content");
+      const summary = data.run_summary || {};
+      const metadata = data.metadata || {};
+      const notes = data.notes || [];
+
+      let html = "";
+
+      // Header
+      html += "<h2 style='font-family: Poppins, sans-serif; margin-bottom: 0.5rem;'>Benchmark Results</h2>";
+      html += "<p style='color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.25rem;'>";
+      if (metadata.skill_name) html += "<strong>" + escapeHtml(metadata.skill_name) + "</strong> &mdash; ";
+      if (metadata.timestamp) html += metadata.timestamp + " &mdash; ";
+      if (metadata.evals_run) html += "Evals: " + metadata.evals_run.join(", ") + " &mdash; ";
+      html += (metadata.runs_per_configuration || "?") + " runs per configuration";
+      html += "</p>";
+
+      // Summary table
+      html += '<table class="benchmark-table">';
+
+      function fmtStat(stat, pct) {
+        if (!stat) return "—";
+        const suffix = pct ? "%" : "";
+        const m = pct ? (stat.mean * 100).toFixed(0) : stat.mean.toFixed(1);
+        const s = pct ? (stat.stddev * 100).toFixed(0) : stat.stddev.toFixed(1);
+        return m + suffix + " ± " + s + suffix;
+      }
+
+      function deltaClass(val) {
+        if (!val) return "";
+        const n = parseFloat(val);
+        if (n > 0) return "benchmark-delta-positive";
+        if (n < 0) return "benchmark-delta-negative";
+        return "";
+      }
+
+      // Discover config names dynamically (everything except "delta")
+      const configs = Object.keys(summary).filter(k => k !== "delta");
+      const configA = configs[0] || "config_a";
+      const configB = configs[1] || "config_b";
+      const labelA = configA.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const labelB = configB.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const a = summary[configA] || {};
+      const b = summary[configB] || {};
+      const delta = summary.delta || {};
+
+      html += "<thead><tr><th>Metric</th><th>" + escapeHtml(labelA) + "</th><th>" + escapeHtml(labelB) + "</th><th>Delta</th></tr></thead>";
+      html += "<tbody>";
+
+      html += "<tr><td><strong>Pass Rate</strong></td>";
+      html += "<td>" + fmtStat(a.pass_rate, true) + "</td>";
+      html += "<td>" + fmtStat(b.pass_rate, true) + "</td>";
+      html += '<td class="' + deltaClass(delta.pass_rate) + '">' + (delta.pass_rate || "—") + "</td></tr>";
+
+      // Time (only show row if data exists)
+      if (a.time_seconds || b.time_seconds) {
+        html += "<tr><td><strong>Time (s)</strong></td>";
+        html += "<td>" + fmtStat(a.time_seconds, false) + "</td>";
+        html += "<td>" + fmtStat(b.time_seconds, false) + "</td>";
+        html += '<td class="' + deltaClass(delta.time_seconds) + '">' + (delta.time_seconds ? delta.time_seconds + "s" : "—") + "</td></tr>";
+      }
+
+      // Tokens (only show row if data exists)
+      if (a.tokens || b.tokens) {
+        html += "<tr><td><strong>Tokens</strong></td>";
+        html += "<td>" + fmtStat(a.tokens, false) + "</td>";
+        html += "<td>" + fmtStat(b.tokens, false) + "</td>";
+        html += '<td class="' + deltaClass(delta.tokens) + '">' + (delta.tokens || "—") + "</td></tr>";
+      }
+
+      html += "</tbody></table>";
+
+      // Per-eval breakdown (if runs data available)
+      const runs = data.runs || [];
+      if (runs.length > 0) {
+        const evalIds = [...new Set(runs.map(r => r.eval_id))].sort((a, b) => a - b);
+
+        html += "<h3 style='font-family: Poppins, sans-serif; margin-bottom: 0.75rem;'>Per-Eval Breakdown</h3>";
+
+        const hasTime = runs.some(r => r.result && r.result.time_seconds != null);
+        const hasErrors = runs.some(r => r.result && r.result.errors > 0);
+
+        for (const evalId of evalIds) {
+          const evalRuns = runs.filter(r => r.eval_id === evalId);
+          const evalName = evalRuns[0] && evalRuns[0].eval_name ? evalRuns[0].eval_name : "Eval " + evalId;
+
+          html += "<h4 style='font-family: Poppins, sans-serif; margin: 1rem 0 0.5rem; color: var(--text);'>" + escapeHtml(evalName) + "</h4>";
+          html += '<table class="benchmark-table">';
+          html += "<thead><tr><th>Config</th><th>Run</th><th>Pass Rate</th>";
+          if (hasTime) html += "<th>Time (s)</th>";
+          if (hasErrors) html += "<th>Crashes During Execution</th>";
+          html += "</tr></thead>";
+          html += "<tbody>";
+
+          // Group by config and render with average rows
+          const configGroups = [...new Set(evalRuns.map(r => r.configuration))];
+          for (let ci = 0; ci < configGroups.length; ci++) {
+            const config = configGroups[ci];
+            const configRuns = evalRuns.filter(r => r.configuration === config);
+            if (configRuns.length === 0) continue;
+
+            const rowClass = ci === 0 ? "benchmark-row-with" : "benchmark-row-without";
+            const configLabel = config.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+
+            for (const run of configRuns) {
+              const r = run.result || {};
+              const prClass = r.pass_rate >= 0.8 ? "benchmark-delta-positive" : r.pass_rate < 0.5 ? "benchmark-delta-negative" : "";
+              html += '<tr class="' + rowClass + '">';
+              html += "<td>" + configLabel + "</td>";
+              html += "<td>" + run.run_number + "</td>";
+              html += '<td class="' + prClass + '">' + ((r.pass_rate || 0) * 100).toFixed(0) + "% (" + (r.passed || 0) + "/" + (r.total || 0) + ")</td>";
+              if (hasTime) html += "<td>" + (r.time_seconds != null ? r.time_seconds.toFixed(1) : "—") + "</td>";
+              if (hasErrors) html += "<td>" + (r.errors || 0) + "</td>";
+              html += "</tr>";
+            }
+
+            // Average row
+            const rates = configRuns.map(r => (r.result || {}).pass_rate || 0);
+            const avgRate = rates.reduce((a, b) => a + b, 0) / rates.length;
+            const avgPrClass = avgRate >= 0.8 ? "benchmark-delta-positive" : avgRate < 0.5 ? "benchmark-delta-negative" : "";
+            html += '<tr class="benchmark-row-avg ' + rowClass + '">';
+            html += "<td>" + configLabel + "</td>";
+            html += "<td>Avg</td>";
+            html += '<td class="' + avgPrClass + '">' + (avgRate * 100).toFixed(0) + "%</td>";
+            if (hasTime) {
+              const times = configRuns.map(r => (r.result || {}).time_seconds).filter(t => t != null);
+              html += "<td>" + (times.length ? (times.reduce((a, b) => a + b, 0) / times.length).toFixed(1) : "—") + "</td>";
+            }
+            if (hasErrors) html += "<td></td>";
+            html += "</tr>";
+          }
+          html += "</tbody></table>";
+
+          // Per-assertion detail for this eval
+          const runsWithExpectations = {};
+          for (const config of configGroups) {
+            runsWithExpectations[config] = evalRuns.filter(r => r.configuration === config && r.expectations && r.expectations.length > 0);
+          }
+          const hasAnyExpectations = Object.values(runsWithExpectations).some(runs => runs.length > 0);
+          if (hasAnyExpectations) {
+            // Collect all unique assertion texts across all configs
+            const allAssertions = [];
+            const seen = new Set();
+            for (const config of configGroups) {
+              for (const run of runsWithExpectations[config]) {
+                for (const exp of (run.expectations || [])) {
+                  if (!seen.has(exp.text)) {
+                    seen.add(exp.text);
+                    allAssertions.push(exp.text);
+                  }
+                }
+              }
+            }
+
+            html += '<table class="benchmark-table" style="margin-top: 0.5rem;">';
+            html += "<thead><tr><th>Assertion</th>";
+            for (const config of configGroups) {
+              const label = config.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+              html += "<th>" + escapeHtml(label) + "</th>";
+            }
+            html += "</tr></thead><tbody>";
+
+            for (const assertionText of allAssertions) {
+              html += "<tr><td>" + escapeHtml(assertionText) + "</td>";
+
+              for (const config of configGroups) {
+                html += "<td>";
+                for (const run of runsWithExpectations[config]) {
+                  const exp = (run.expectations || []).find(e => e.text === assertionText);
+                  if (exp) {
+                    const cls = exp.passed ? "benchmark-delta-positive" : "benchmark-delta-negative";
+                    const icon = exp.passed ? "\u2713" : "\u2717";
+                    html += '<span class="' + cls + '" title="Run ' + run.run_number + ': ' + escapeHtml(exp.evidence || "") + '">' + icon + "</span> ";
+                  } else {
+                    html += "— ";
+                  }
+                }
+                html += "</td>";
+              }
+              html += "</tr>";
+            }
+            html += "</tbody></table>";
+          }
+        }
+      }
+
+      // Notes
+      if (notes.length > 0) {
+        html += '<div class="benchmark-notes">';
+        html += "<h3>Analysis Notes</h3>";
+        html += "<ul>";
+        for (const note of notes) {
+          html += "<li>" + escapeHtml(note) + "</li>";
+        }
+        html += "</ul></div>";
+      }
+
+      container.innerHTML = html;
+    }
+
+    // ---- Start ----
+    init();
+    renderBenchmark();
+  </script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 
 ---
 name: ship
-description: Review and delivery phase — user reviews the completed build, then chooses how to finish (merge, PR, keep working, or discard). Use after the build phase completes all vertical slices.
+description: Review and delivery phase — verification gate, build summary, then the user chooses how to finish (merge, PR, keep working, or discard), and the cycle is logged to MLflow. ALWAYS invoke when a build completes its slices, when the user says "ship it" / "let's merge" / "wrap this up", or before delivering any completed feature. Do not merge or PR completed build work without it.
 allowed-tools:
   - Read
   - Glob
@@ -148,6 +148,21 @@ cd <main-worktree-path>
 git worktree remove <worktree-path>   # NEVER rm -rf
 git worktree list                      # Verify cleanup
 ```
+
+### 7. Log the Cycle (Options 1 and 2)
+
+Every shipped slice is a data point correlating dev-skill versions with real outcomes — the substrate for evolving the skills over time. After push/merge, log it:
+
+```bash
+python3 ~/dev-config/ai-workflow-config/skills/skill-creator/scripts/log_dev_cycle.py \
+  --project <repo-name> --slice <spec-name> \
+  --spec spec/<name>.md \
+  --iterations-to-green <N red→green build loops> \
+  --review-findings <count from code-review, if run> \
+  --notes "<one line: anything that fought you this cycle>"
+```
+
+Capture iterations-to-green from the build phase (how many runs before the locked tests passed); skip any metric you didn't measure rather than guessing. If a dev skill misbehaved this cycle, the note is the seed of its next eval case — record it while it's fresh.
 
 ## Anti-Patterns
 

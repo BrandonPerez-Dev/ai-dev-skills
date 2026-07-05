@@ -1,0 +1,30 @@
+{
+  "expectations": [
+    {
+      "text": "Cites a primary Anthropic source (docs/platform), not only blogs",
+      "passed": true,
+      "evidence": "platform.claude.com docs + SDK source via Context7; blogs explicitly excluded in the Strategy line."
+    },
+    {
+      "text": "States when claims were verified / source dates (recency discipline)",
+      "passed": true,
+      "evidence": "10 dated lines; 'as of June 10, 2026' framing throughout."
+    },
+    {
+      "text": "Gives one concrete default recommendation",
+      "passed": true,
+      "evidence": "claude-sonnet-4-6, triangulated from the selection matrix and SDK tool_runner examples."
+    },
+    {
+      "text": "Output includes a Sources section",
+      "passed": true,
+      "evidence": "Present, 4 primary URLs."
+    },
+    {
+      "text": "Wrote an investigation header (Question/Domain/Strategy/Hypothesis/Done-when) at the top of the deliverable",
+      "passed": true,
+      "evidence": "Full header block opens the document, including a falsifiable hypothesis and explicit done-when criteria."
+    }
+  ],
+  "notes": "Header fix verified. New detail vs iter-1: Fable 5 stop_reason refusal handling note for tool loops."
+}

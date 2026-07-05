@@ -46,7 +46,7 @@ The outer loop tells you WHAT to build. The inner loop tells you HOW to build ea
 ### 0. Check Prerequisites
 
 Before writing any code:
-- Test plan exists (from **test-planning** skill or design doc)
+- Test plan exists (from **test-planning** skill or the plan at `changes/NNN-<topic>/plan.md`)
 - Integration test contracts are user-approved
 - Test infrastructure is ready (database, CI, mock servers)
 - If greenfield: walking skeleton is green
@@ -125,7 +125,7 @@ Move to the next slice in the test plan. Repeat from step 1.
 
 | Layer | Mocks? | Speed | Confidence | When |
 |-------|--------|-------|------------|------|
-| **Integration** | Controlled: real. Uncontrolled: real test env preferred, else mock at HTTP client. | Slow | High | First — from `spec/<capability>.md` contract |
+| **Integration** | Controlled: real. Uncontrolled: real test env preferred, else mock at HTTP client. | Slow | High | First — from `spec/<name>.md` contract |
 | **Unit** | Yes — isolate the component | Fast | Medium | During build, at each layer |
 | **E2E** | None | Very slow | Highest | Sparingly — critical user journeys only |
 

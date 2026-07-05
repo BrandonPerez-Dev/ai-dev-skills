@@ -52,9 +52,9 @@ TypeScript interfaces and API contracts before implementation. Contracts are the
 
 **Where contracts live:**
 - Architecture produces contracts **inline in the design conversation** — TypeScript interfaces, Zod schemas, endpoint signatures, event types. These are draft artifacts for the current discussion, not files written to disk.
-- **Test-planning promotes** these contracts into `spec/<capability>.md`, where they live permanently. That's the handoff point: architecture drafts, test-planning lands them.
+- **Test-planning promotes** these contracts into `spec/<name>.md`, where they live permanently. That's the handoff point: architecture drafts, test-planning lands them.
 - On greenfield, test-planning creates the initial `spec/` files using the architecture draft as seed content.
-- On subsequent features, architecture drafts deltas against existing `spec/<capability>.md` contracts; test-planning applies those deltas.
+- On subsequent features, architecture drafts deltas against existing `spec/<name>.md` contracts; test-planning applies those deltas.
 - **Never duplicate contracts** in `changes/NNN-<topic>/plan.md` — that folder holds rationale (the "why"), not contracts (the "what").
 
 **REST endpoints:**
@@ -168,7 +168,7 @@ SSE is the primary real-time pattern for AI agent UIs. Key decisions:
 Architecture produces a design artifact that feeds three destinations:
 
 1. **Immediate:** structured markdown rendered in the design conversation (the format below). This is conversational output, not a file written to disk. Downstream skills (plan, test-planning) read it from conversation context.
-2. **Promoted by test-planning:** the Contracts section lands in `spec/<capability>.md` (permanent living spec).
+2. **Promoted by test-planning:** the Contracts section lands in `spec/<name>.md` (permanent living spec).
 3. **Promoted by plan or architecture:** system-level Decisions land in `context/<topic>.md` (mutable architectural truth); feature-specific decisions land in `changes/NNN-<topic>/plan.md` (per-change rationale).
 
 ```markdown
@@ -177,7 +177,7 @@ Architecture produces a design artifact that feeds three destinations:
 
 ## Contracts
 [TypeScript interfaces and Zod schemas — the source of truth]
-[Note which spec/<capability>.md file(s) these will land in]
+[Note which spec/<name>.md file(s) these will land in]
 
 ## Components
 [Table of components with types and responsibilities]
@@ -199,7 +199,7 @@ Architecture produces a design artifact that feeds three destinations:
 ## Guidelines
 
 - **Contract first.** Define interfaces and schemas before implementing anything. Frontend and backend can build in parallel against the contract.
-- **Contracts are durable artifacts.** Everything declared in the Contracts section becomes part of `spec/<capability>.md` — the living system specification. Assume the contract will be read by agents doing future features, not just the current one.
+- **Contracts are durable artifacts.** Everything declared in the Contracts section becomes part of `spec/<name>.md` — the living system specification. Assume the contract will be read by agents doing future features, not just the current one.
 - **Match existing patterns.** Don't introduce new patterns without justification. Consistency reduces cognitive load.
 - **Minimum viable architecture.** Simplest thing that works. Every abstraction must justify its existence. YAGNI ruthlessly — don't design for hypothetical future requirements.
 - **Flag unknowns.** Ask rather than guess. Uncertainty is cheaper to resolve through conversation than through code.

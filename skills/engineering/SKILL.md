@@ -1,15 +1,17 @@
 ---
-name: design
+name: engineering
 description: >-
-  Collaborative design phase orchestrator. Loads project context, researches the
-  landscape, runs plan to declare which spec files change, runs test-planning to
-  land integration test contracts inside those spec files, then hands off to
-  build. Promotes architectural decisions to context/ along the way.
+  The engineering-cycle orchestrator: loads project context, researches the
+  landscape, runs slicing to declare which spec files change, runs test-planning
+  to land integration test contracts inside those spec files, then hands off to
+  build. Promotes architectural decisions to context/ along the way. ALWAYS
+  invoke for non-trivial feature or system work; do not start multi-layer
+  changes without it.
 when_to_use: >-
   Use when work involves uncertainty about approach, touches multiple layers or
   services, has cross-cutting concerns (security, performance, accessibility),
   integrates with unfamiliar systems, or needs teammate alignment. Skip if the
-  solution is obvious — go direct to plan or build.
+  solution is obvious — go direct to slicing or build.
 allowed-tools:
   - Read
   - Write
@@ -24,9 +26,9 @@ allowed-tools:
 effort: high
 ---
 
-# Design
+# Engineering
 
-Lightweight orchestrator for design. Research what you need to know, plan what changes, land contracts in spec/, hand off to build as soon as the first slice spec has its test contract.
+Lightweight orchestrator for the engineering cycle. Research what you need to know, slice what changes, land contracts in spec/, hand off to build as soon as the first slice spec has its test contract.
 
 ## The Model
 
@@ -36,7 +38,7 @@ Three persistent layers at the project root:
 - **`spec/`** — behavioral specs. Each file describes one slice of behavior with its integration test contract in plain text. Specs are the source of truth for what's committed and what proves done.
 - **`changes/NNN-<topic>/`** — narrative for a single change. Plan + research notes.
 
-Design's job is to walk the user from "we want to build X" to "spec files updated with validated test contracts and build is starting." It doesn't write code. It doesn't write tests. It orchestrates the skills that do.
+Engineering's job is to walk the user from "we want to build X" to "spec files updated with validated test contracts and build is starting." It doesn't write code. It doesn't write tests. It orchestrates the skills that do.
 
 <HARD-GATE>
 Do not write implementation code during design. The output is updated spec files and a plan. Implementation during design creates sunk costs that bias decisions — you'll shape the spec to justify the code instead of the other way around.
@@ -48,17 +50,17 @@ Do not invoke build until at least one slice spec has a user-validated integrati
 
 ## Scale the Effort
 
-| Complexity | Design Effort | Example |
+| Complexity | Effort | Example |
 |---|---|---|
-| **Small** | Skip design, go to plan or build directly | Add a new API field, simple CLI command |
-| **Medium** | Quick research → plan → test-planning | New endpoint with service logic, API integration |
-| **Large** | Full research → architecture → plan → test-planning | Multi-service integration, new system |
+| **Small** | Skip orchestration, go to slicing or build directly | Add a new API field, simple CLI command |
+| **Medium** | Quick research → slicing → test-planning | New endpoint with service logic, API integration |
+| **Large** | Full research → architecture → slicing → test-planning | Multi-service integration, new system |
 
 Default to **medium**. Escalate if you discover unexpected complexity.
 
 ## Confidence and Autonomy
 
-Design has gates — points where you pause for user input. Not every gate needs a hard stop. **Declare confidence before each gate** and adjust behavior accordingly.
+Engineering has gates — points where you pause for user input. Not every gate needs a hard stop. **Declare confidence before each gate** and adjust behavior accordingly.
 
 ### Confidence Levels
 
@@ -115,9 +117,9 @@ Do NOT redesign behavior that already exists in `spec/` without explicit user di
 
 **If neither directory exists** — greenfield project. Skip this step. test-planning will bootstrap `spec/` during its own flow. `context/` gets seeded as architectural decisions emerge during planning.
 
-### 1. Research (if needed)
+### 1. Investigate (if needed)
 
-Invoke **research** when you need to understand:
+Invoke **investigating** when you need to understand:
 - Existing codebase patterns and conventions
 - External libraries, APIs, or services
 - Similar implementations for reference
@@ -134,9 +136,9 @@ Present findings as:
 
 **Promote to context/.** System-level architectural findings get written to `context/` after user confirmation. Feature-specific details stay in `changes/`.
 
-### 2. Plan
+### 2. Slice
 
-Invoke **plan**. The plan declares:
+Invoke **slicing**. The plan it produces declares:
 - Which specs are added, modified, or superseded
 - Constraints and non-goals for this change
 - The first slice spec (entry point for build)
@@ -146,7 +148,13 @@ The plan does NOT enumerate slice definitions — those live as files in `spec/`
 
 During planning, invoke utility skills as specific questions need deeper thinking — **architecture**, **ui-ux-design**, **ai-agent-building** — not as separate mandatory phases.
 
-### 3. Test Planning (mandatory)
+### 3. Grill the Plan
+
+Invoke **grill** on the plan. The slicing conversation builds the plan up; this step tries to knock it down. Plans that skip the grill carry wrong assumptions into locked tests, where they're expensive.
+
+Scale it like everything else: small change → one sanity question; large change → a full session. Same confidence gates as the rest of the flow.
+
+### 4. Test Planning (mandatory)
 
 Invoke **test-planning** after the plan declares which specs change. This is not optional — slice specs aren't ready without validated integration test contracts.
 
@@ -158,7 +166,7 @@ Test-planning will:
 
 A slice spec without a user-validated test contract is an unfinished idea. Don't hand it to build.
 
-### 4. Test Writing
+### 5. Test Writing
 
 Invoke **test-writer** to translate contracts into executable test code. test-writer:
 - Reads contracts from the spec files (the source of truth)
@@ -169,11 +177,11 @@ Invoke **test-writer** to translate contracts into executable test code. test-wr
 
 Tests can be written per-slice as contracts validate — you don't need every spec finalized before starting on one.
 
-### 5. Review (optional)
+### 6. Review (optional)
 
 If teammate review is wanted: invoke **commit-and-pr** to push the plan and updated specs, wait for approval. For solo work: skip.
 
-### 6. Transition to Build
+### 7. Transition to Build
 
 **You don't wait for every spec to be finalized.** When the first slice spec has a validated test contract + committed red test:
 - High confidence: notify the user and invoke **build**
@@ -186,15 +194,15 @@ If teammate review is wanted: invoke **commit-and-pr** to push the plan and upda
 - **Lead with decisions.** "We should use X because Y" — not "Here's everything about X."
 - **One question at a time.**
 - **Flag uncertainty.** Present 2–3 options with tradeoffs. Don't silently pick when alternatives exist.
-- **Check in at transitions.** After research, before planning. After test-planning, before building.
+- **Check in at transitions.** After research, before slicing. During the grill (one question at a time). After test-planning, before building.
 
 ## Anti-Patterns
 
 | Anti-Pattern | Fix |
 |---|---|
 | Running all utility skills as separate phases | Invoke only when a specific question needs deeper thinking |
-| Research without a question | State what you need to learn before invoking research |
-| Designing what's already known | Skip to plan if the landscape is clear |
+| Research without a question | State what you need to learn before invoking investigating |
+| Designing what's already known | Skip to slicing if the landscape is clear |
 | Dumping research findings without interpretation | Lead with the decision, not the data |
 | Transitioning to build with no signal | At minimum notify (FYI at high confidence, confirm at medium/low) |
 | Restating spec content in the plan | The plan points at specs; specs hold contracts |
@@ -214,15 +222,17 @@ User: "Add Stripe payment processing to the checkout flow"
    - `spec/checkout.md` (modified) — adds payment intent step
    - `spec/orders.md` (modified) — adds "paid" state to lifecycle
 
-4. **Test Planning** — Writes integration test contract into `spec/payments-create-intent.md` (setup: cart with items; action: POST /api/payment-intents; expected: 200 + intent ID; side effects: Stripe API call with correct amount; error cases: empty cart, declined card, network error). Validates with user. Repeats for other in-scope specs.
+4. **Grill** — Invoke **grill** on the plan. Surfaces: "Orders spec says an order is immutable after submission; the plan adds a 'paid' state mutation. Supersede that invariant or model payment as a separate record?" → user picks separate `payment` record; `spec/orders.md` modification shrinks. Term sharpened: Stripe's "checkout session" vs our existing "cart" — glossary updated in `context/`. Grill section written into the plan.
 
-5. **Test Writing** — Generates red integration tests from each spec's contract. Commits them.
+5. **Test Planning** — Writes integration test contract into `spec/payments-create-intent.md` (setup: cart with items; action: POST /api/payment-intents; expected: 200 + intent ID; side effects: Stripe API call with correct amount; error cases: empty cart, declined card, network error). Validates with user. Repeats for other in-scope specs.
 
-6. **Transition** — First slice spec has contract + red test → invoke build.
+6. **Test Writing** — Generates red integration tests from each spec's contract. Commits them.
 
-## After Design
+7. **Transition** — First slice spec has contract + red test → invoke build.
 
-The terminal state of design is invoking **build** (or the user starting a build session).
+## After Engineering
+
+The terminal state of engineering is invoking **build** (or the user starting a build session).
 
 ### Build Loop
 
