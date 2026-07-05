@@ -43,7 +43,7 @@ Do not write test code. Do not write implementation code. Output is contract tex
 ## Input
 
 One of:
-- **Plan path** — `changes/NNN-<topic>/plan.md` listing all in-scope specs
+- **Scope** — the specs marked `status: planned`/`in-progress` (the default)
 - **Single spec path** — `spec/<name>.md` to write contracts for one slice
 - **Slice PR** — the agent reads slice branch state and finds specs needing contracts
 
@@ -129,7 +129,7 @@ On greenfield, the first slice spec's contract describes the walking skeleton pa
 
 ### 6. Update Open Questions
 
-If any contracts are low-confidence, update `changes/NNN-<topic>/open-questions.md` with the new blocking questions.
+If any contracts are low-confidence, record the blocking question in the affected spec's `## Notes` ("Open (blocking): …") and post the 🔴 PR comment on that line.
 
 ### 7. Next Slice
 

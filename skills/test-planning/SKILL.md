@@ -5,12 +5,12 @@ description: >-
   slice. Each contract names setup, action, input, expected output, side
   effects, and error cases in plain text. Reads context/ for architectural
   constraints that inform mock boundaries. On greenfield, bootstraps spec/
-  from the plan. Heavy user involvement with checkpoints.
+  from the sliced scope. Heavy user involvement with checkpoints.
 when_to_use: >-
-  Use after slicing declares which specs this change adds, modifies, or
-  supersedes — typically invoked by engineering between slicing and test-writer. Also
-  use directly when you need to update a spec's contract without going through
-  a full design pass.
+  Use after slicing lands scope (specs marked planned/in-progress) — typically
+  invoked by engineering between slicing and test-writer. Also use directly
+  when you need to update a spec's contract without going through a full
+  design pass.
 allowed-tools:
   - Read
   - Write
@@ -40,11 +40,17 @@ Each `spec/<name>.md` file describes one thing:
 Spec files are flat, named descriptively (`create-workflow.md`, `workflow-lifecycle.md`, `payment-intent-flow.md`), and self-contained. No subdirectories. No grouping into capability files.
 
 <HARD-GATE>
-Contracts live in `spec/<name>.md`, never in `changes/NNN/plan.md`. The plan holds rationale only. Don't duplicate — the spec file is the single source of truth; git history is the change log.
+Contracts live in `spec/<name>.md` and nowhere else — the spec file is the
+single source of truth for what proves a slice done. Don't restate contract
+content in context/, commit messages, or conversation summaries; point at the
+spec instead.
 </HARD-GATE>
 
 <HARD-GATE>
-Contracts require user visibility. At high confidence, present and proceed unless flagged. At medium/low confidence, wait for explicit validation. If the contract is wrong, the AI will perfectly implement the wrong thing — when in doubt, round confidence down.
+Contracts require user visibility. At high confidence, present and proceed
+unless flagged. At medium/low confidence, wait for explicit validation. If the
+contract is wrong, the AI will perfectly implement the wrong thing — when in
+doubt, round confidence down.
 </HARD-GATE>
 
 ## Why This Is Separate from Writing Tests
@@ -62,41 +68,41 @@ If you skip test planning and jump to writing tests, the AI writes tests that pa
 
 | Situation | Approach | Depth |
 |-----------|----------|-------|
-| Greenfield (first change in project) | Bootstrap `spec/` — derive slice spec files from the plan's What/Why/Constraints | Deep — every contract validated; spec/ is being defined for the first time |
-| Adding to existing system | Read in-scope spec files from the plan, edit in place to extend/refine contracts, or create new slice spec files | Medium — validate new contracts, respect existing invariants |
+| Greenfield (first change in project) | Bootstrap `spec/` — derive slice spec files from the sliced scope and `context/` decisions | Deep — every contract validated; spec/ is being defined for the first time |
+| Adding to existing system | Work the specs marked `planned`/`in-progress`, edit in place to extend/refine contracts | Medium — validate new contracts, respect existing invariants |
 | Refactoring | Characterization contracts first: capture current behavior in spec/ (if missing), then plan changes | Medium — contracts should NOT change |
 | Bug fix | Add a failing-test contract to the relevant slice spec that reproduces the bug | Light — one contract, user confirms the bug scenario |
 
 ## Process
 
-### 0. Load Context and Spec
+### 0. Load Context and Scope
 
 Before planning contracts:
 
-**`context/` — always loaded.** Read all files. Architectural decisions here inform mock boundaries — e.g., if `context/proxy.md` says "all LLM calls go through LiteLLM," that determines which dependencies are real vs mocked.
+**`context/` — always loaded.** Read all files. Architectural decisions here inform mock boundaries — e.g., if `context/proxy.md` says "all LLM calls go through LiteLLM," that determines which dependencies are real vs mocked. Standing rejections tell you which designs not to re-propose.
 
-**`spec/` — loaded per change.**
+**`spec/` — the scope.**
 - Read `spec/README.md` if it exists.
-- If the plan has a "Spec changes" section, load those exact files.
-- If no plan or no spec changes section, ask the user which specs this work touches.
+- The in-scope specs are those marked `status: planned` or `in-progress` (slicing set these). If invoked directly with specific spec names/paths, use those.
+- Read each in-scope spec's stub — its `## Does`, `## Notes` (slice decisions, non-goals, open questions), and `## Changes` tell you the intent; `context/` tells you the constraints.
 
 **If `spec/` doesn't exist (greenfield, first change):**
-Bootstrap `spec/` during this skill's run. Derive slice spec file names from the plan's What/Why/Constraints. Propose the list before creating any files:
+Bootstrap `spec/` during this skill's run. Derive slice spec file names from the sliced scope (the conversation + `context/` decisions). Propose the list before creating any files:
 
 > "I'm going to create these slice specs: `create-workflow.md`, `list-workflows.md`, `workflow-lifecycle.md` (invariants). Does this slicing match how you think about the feature?"
 
-Only create files after confirmation. Seed each with the plan's relevant rationale.
+Only create files after confirmation. Seed each with the relevant rationale in its `## Notes`.
 
 **What counts as one spec file:**
 - One testable slice = one file (`create-workflow.md`)
-- One coherent set of cross-cutting rules = one file (`workflow-lifecycle.md` for "orders transition forward only" + related invariants)
-- A multi-step workflow that needs to be tested end-to-end = one file (`checkout-flow.md`)
+- One coherent set of cross-cutting rules = one file (`workflow-lifecycle.md`)
+- A multi-step workflow that needs end-to-end testing = one file (`checkout-flow.md`)
 
-**Not** one file per source module. **Not** one file per capability that bundles many slices. **One slice or one invariant set per file.**
+**Not** one file per source module. **Not** one file per capability bundling many slices. **One slice or one invariant set per file.**
 
 ### 1. Understand the Change
 
-Read the plan at `changes/NNN-<topic>/plan.md`. Before planning contracts, understand:
+From the in-scope specs' stubs, `context/`, and the user, establish:
 - What does the user do? (the action)
 - What should happen? (the expected outcome)
 - What systems are touched? (the path through layers)
@@ -105,13 +111,13 @@ If any of these are unclear, ask. Wrong assumptions cascade through every test.
 
 ### 2. Identify or Confirm Slice Names
 
-For each slice spec the plan declared (added or modified), confirm the slice it represents. A slice:
+For each in-scope spec, confirm the slice it represents. A slice:
 - Has a clear user action ("create a workflow run")
 - Touches every layer from API to data/external system
 - Can be integration tested independently
 - Delivers visible value when complete
 
-If the plan declared a spec that turns out to be too big (two slices smushed together), propose splitting. If two declared specs are actually one slice, propose merging. Confirm with the user before proceeding.
+If a spec turns out to be too big (two slices smushed together), propose splitting. If two specs are actually one slice, propose merging. Confirm with the user before proceeding.
 
 **Checkpoint 1: validate slice naming with the user — confidence-gated.**
 
@@ -133,11 +139,11 @@ High confidence: present the list as FYI and move on. Medium/low: present and wa
 
 Present boundary decisions to the user — they know which systems have usable test environments better than the AI does. Ask: "Does [service] have a test mode we can hit in CI?"
 
-**Promote to context/.** When mock boundary decisions reveal system-level patterns ("all external APIs go through a proxy," "test suite uses real Postgres, never SQLite"), write these to `context/testing.md` or the relevant topic file.
+**Promote to context/.** When mock boundary decisions reveal system-level patterns ("all external APIs go through a proxy," "test suite uses real Postgres, never SQLite"), write these to `context/testing.md` or the relevant topic file — with any rejected alternative and its why-not.
 
 ### 4. Write Integration Test Contracts into Each Spec File
 
-For each slice spec, write or extend the integration test contract directly in the file. The contract lands in `spec/<name>.md`, not in the plan.
+For each slice spec, write or extend the integration test contract directly in the file.
 
 **Contract shape (plain text inside the spec file):**
 
@@ -159,6 +165,7 @@ A slice spec can have **multiple error cases and edge cases** — each is a test
 
 **Editing the spec file:**
 - If the file exists, propose additions or modifications. New cases are new bullets; modified cases show before/after.
+- Superseding an existing contract case (flagged by grill or slicing) is done here explicitly: mark the old case superseded, name the successor, and route the re-lock through test-writer.
 - If the file doesn't exist (new slice spec), create it using the slice spec format below.
 
 **Checkpoint 2: validate contract edits with the user — confidence-gated.**
@@ -186,12 +193,12 @@ Build handles the V0a (boundary scaffold) / V0b (walking skeleton wiring) split 
 
 Infrastructure checks (server starts, DB connects, CI runs tests) are build's pre-flight responsibility, not test contracts.
 
-### 7. Confirm Spec Updates Landed
+### 7. Commit and Confirm
 
 After all checkpoints:
-- Every contract declared in the plan has landed in the relevant `spec/<name>.md`
+- Every in-scope spec has its contract landed in the file
 - `spec/README.md` updated if a new slice or invariant spec was added
-- The plan still references which spec files were modified — no contract content duplicated there
+- Commit the spec edits; the commit message summarizes contracts landed, mock boundaries decided, and any supersessions executed — that message is the durable test-planning record
 
 Report to the user:
 > "Contracts applied. `spec/create-workflow.md` and `spec/workflow-lifecycle.md` updated. test-writer will read from spec/ directly."
@@ -230,10 +237,10 @@ depends_on: []      # other spec file names this slice requires
 - [If no test exists yet (slice is `planned` / `in-progress`), state that explicitly: "No test exists yet — test-writer will produce one when this slice is built."]
 
 ## Notes
-- [Decisions, rationale, things to remember about this slice]
+- [Slice-specific decisions (with rejected alternatives where real), non-goals, open questions]
 
 ## Changes
-- NNN (YYYY-MM-DD) — [what was added in this change]
+- YYYY-MM-DD — [what changed and why, one line per change]
 ```
 
 The `## Tests` section is the forward pointer from spec → enforcing test. test-planning leaves the placeholder (or a "no test yet" note for `planned` slices); **test-writer** fills it in when it commits the test files. Build reads it to find the locked tests it must implement against.
@@ -259,36 +266,8 @@ status: built       # invariants are typically already enforced; this tracks whe
 - [Cross-cutting decisions, history]
 
 ## Changes
-- NNN (YYYY-MM-DD) — [what changed]
+- YYYY-MM-DD — [what changed]
 ```
-
-## Output Format
-
-Test-planning produces edits to `spec/*.md` files (primary output) and a brief summary back to the engineering orchestrator:
-
-```markdown
-## Test Planning Summary
-
-### Spec files modified
-- `spec/create-workflow.md` — added integration test contract + 3 error cases
-- `spec/workflow-lifecycle.md` — added new transition rule (paid → shipped)
-
-### Spec files created
-- `spec/list-workflows.md` (new) — slice spec for GET /api/workflows
-
-### Mock boundaries
-- Real: Postgres, workflow service, internal queue
-- Mocked at HTTP client: GitHub webhook delivery (no sandbox), email provider
-
-### Context updates
-- `context/testing.md` — added "external APIs without sandbox mock at HTTP client" decision
-
-### Test infrastructure notes
-- [Setup needed: test database, fixtures, mock servers]
-- [CI considerations]
-```
-
-The summary gets pasted into `changes/NNN/plan.md` as a "Test planning result" section. The contracts themselves live in `spec/`.
 
 ## Test-less Specs Block Modification
 
@@ -313,4 +292,4 @@ When a change touches a spec whose `## Tests` section is empty or backlogged ("n
 - **Pacing depends on confidence.** High: present contracts together and proceed. Medium/low: one at a time. When in doubt, round confidence down.
 - **Error cases are not optional.** Every contract needs failure scenarios. The happy path is the easy part.
 - **One slice per spec file.** Don't bundle. Don't nest. Each file describes one testable thing.
-- **The integration test contract is the definition of done.** Without it, a slice spec is an unfinished idea — don't hand it to test-writer.
+- **The integration test contract is the definition of done.** Without it, a slice spec is an unfinished idea — don't hand it to build.

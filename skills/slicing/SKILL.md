@@ -2,9 +2,9 @@
 name: slicing
 description: >-
   Lightweight iterative planning — discover constraints through conversation,
-  decide which spec files this change adds, modifies, or supersedes, and hand
-  off to test-planning + build. The plan captures rationale for a specific
-  change; the slices themselves live as files in spec/.
+  land them directly in spec/ (slice stubs) and context/ (decisions), and hand
+  off to test-planning + build. Spec + context are the source; git history is
+  the change record.
 when_to_use: >-
   Before building any non-trivial feature, when invoked by the engineering skill, or
   when aligning with a teammate on approach before coding. Skip for single-line
@@ -19,23 +19,22 @@ allowed-tools:
   - WebSearch
   - WebFetch
   - Skill
-argument-hint: "[topic or path/to/existing-plan.md]"
+argument-hint: "[topic]"
 effort: high
 ---
 
 # Slicing
 
-Discover what matters through conversation, decide which spec files change, hand off to test-planning and build. Planning a medium feature should take 10–15 minutes, not hours.
+Discover what matters through conversation, land it directly in the durable layers, hand off to test-planning and build. Planning a medium feature should take 10–15 minutes, not hours.
 
 ## The Model
 
-There are three persistent directories at the project root:
+There are two persistent directories at the project root — together they tell the **entire plain-text story of the codebase** (spec as source):
 
-- **`context/`** — architectural truth. Tech choices, integration patterns, infrastructure commitments. Loaded by every planning session.
-- **`spec/`** — behavioral specs. Each file describes one slice of behavior with its integration test contract in plain text. Specs are the source of truth for *what work has been committed to* and *what proves it done*. A spec file with an integration test contract is what build implements against.
-- **`changes/NNN-<topic>/`** — narrative for a single change. Captures *why* this change is happening, what decisions were made, and which specs are added/modified/superseded.
+- **`context/`** — architectural truth. Tech choices, integration patterns, infrastructure commitments, and **decisions ADR-style**: what was chosen, why, and what was *rejected* and why not. `context/research/` holds dated research references (a cache — refresh when stale).
+- **`spec/`** — behavioral specs. Each file describes one slice of behavior with its integration test contract in plain text, a `status` (`planned | in-progress | built | superseded`), and its own `## Changes` log. Specs are the source of truth for *what work has been committed to* and *what proves it done*.
 
-**Specs are persistent. Plans are transient.** A plan tells the story of one change. Specs accumulate and evolve over many changes. Each spec carries its own status (`planned | in-progress | built | superseded`) and its own change log.
+The change record is git: diffs on `context/` and `spec/` show *what* changed; commit messages and the PR description carry the per-change narrative; rejected alternatives live in `context/` where the decision lives. Scope-in-flight is visible as which specs carry `status: planned` or `in-progress`.
 
 <HARD-GATE>
 Read the codebase before planning. Planning against an imagined architecture leads to constraints that the code can't satisfy and slices that don't fit existing seams.
@@ -66,7 +65,9 @@ Surface architectural decisions as proposals, not open-ended questions:
 
 > "For auth, QuickBooks requires OAuth 2.0 — no API key option. I'll use their Node SDK for the token flow. Sound right?"
 
-Each confirmed decision becomes a constraint line in the plan. **System-level decisions** (technology choices, integration patterns, infrastructure commitments beyond this change) also get written to `context/` — feature-specific decisions stay in the plan only.
+Each confirmed decision lands **directly where it lives**:
+- **System-level decisions** (technology choices, integration patterns, commitments beyond this change) → the relevant `context/<topic>.md`, ADR-style: the decision, its rationale, and any **rejected alternative with the why-not** ("Rejected: X — because Y"). Rejected alternatives are first-class — they prevent re-litigating settled questions.
+- **Slice-specific decisions and non-goals** → the affected spec's `## Notes` (created in step 4 if the spec is new).
 
 Cover the decisions that matter for *this* change:
 - Transport & protocol
@@ -79,87 +80,63 @@ Skip categories that are obvious. Spend time where a wrong default wastes hours.
 
 Present constraints in groups of 2–3, confirm each group before moving on.
 
-If a constraint involves component boundaries, data flow between services, or API contract design, invoke **architecture** for that specific question. If there's a UI component, invoke **ui-ux-design**.
+If a constraint involves component boundaries, data flow between services, or API contract design, invoke **architecture** for that specific question. If there's a UI component, invoke **ui-ux-design**. If research produced dated, sourced findings worth keeping, save them to `context/research/<topic>.md` (a dated cache) and cite them from the topic file.
 
-### 4. Decide Which Specs Change
+### 4. Land the Scope in spec/
 
 Walk through the existing `spec/` files and decide for each one whether this change:
-- **Adds** a new spec (new slice of behavior not yet committed to)
-- **Modifies** an existing spec (extends done-criteria, adds test cases, updates invariants)
-- **Supersedes** an existing spec (the old slice is being replaced or removed)
+- **Adds** a new spec — create the **stub now**: frontmatter (`status: planned`, `depends_on`), `## Does` (one sentence), a skeletal `## Done when`, `## Notes` (slice-specific decisions, non-goals, open questions), and a `## Changes` entry naming the why. test-planning fills in the contract.
+- **Modifies** an existing spec — mark it `in-progress`, append the intent to its `## Notes` and `## Changes` (what's changing and why; what's being **superseded** gets named explicitly).
+- **Supersedes** an existing spec — set its status, point at the successor.
 
-A new spec gets created when this change introduces a slice that doesn't already exist. An existing spec gets modified when the change extends or refines work that's already committed to. This is the design choice that separates good planning from bad planning — **default to modifying existing specs over creating new ones** unless the slice is genuinely new behavior.
+The set of specs now marked `planned`/`in-progress` **is** the scope declaration — downstream skills (test-planning, test-writer, build) read it from spec statuses, not from a plan file.
 
-The actual spec content (intent, integration test contract, error cases, invariants) is written by **test-planning** in collaboration with the user, not by this skill. The plan only declares *which* specs change and *why*.
+Default to **modifying existing specs over creating new ones** unless the slice is genuinely new behavior. Contract content (test contract, error cases) is written by **test-planning** with the user, not by this skill.
 
 ### 5. Identify the First Slice + Walking Skeleton
 
-For greenfield projects (no `spec/` yet), the first slice spec is the **walking skeleton** — thinnest end-to-end path proving the infrastructure works. Build handles the V0a (boundary scaffold) / V0b (walking skeleton wiring) split internally; the plan only declares the slice's scope.
+For greenfield projects (no `spec/` yet), the first slice spec is the **walking skeleton** — thinnest end-to-end path proving the infrastructure works. Build handles the V0a/V0b split internally.
 
-For changes to existing projects, identify which spec is the entry point — usually the most foundational, the one with the fewest dependencies on other in-scope specs. Build will start there.
+For changes to existing projects, identify which in-scope spec is the entry point — usually the most foundational, fewest dependencies. Note it in that spec's `## Notes` ("entry point for this change"). Build starts there.
 
 ### 6. Suggest Build Skills
 
-Suggest which skills the build phase will need:
-- Language/runtime — `rust-quality`, `frontend-build`, etc.
-- Domain — `ai-agent-building`, `mcp-builder` if relevant
-- Infrastructure — `boilerplate-cicd` if the project lacks CI/linting
+Suggest which skills the build phase will need (language/runtime, domain, infrastructure). User confirms. Record in the entry-point spec's `## Notes` if non-obvious.
 
-Present suggestions. User confirms. Record in the plan's "Build skills" section.
+### 7. Commit the Planning Write-Backs
 
-### 7. Save the Plan
+Commit the spec stubs + context edits as one planning commit. The commit message carries the change narrative (what & why, key decisions, named supersessions) — it is the durable "plan" record, alongside the diff itself.
 
-Save to `changes/NNN-<topic>/plan.md`:
-- `changes/` at project root (`mkdir -p changes` if needed)
-- Find highest existing `NNN-*` prefix, increment by 1. Start at `001` if empty.
-- All rationale, research, and notes for this change go in the same directory.
+## Hand Off
 
-Today's date for the plan header: !`date +%Y-%m-%d`
-
-### 8. Hand Off
-
-Either the user moves to **test-planning** to land contracts in the affected spec files, or you invoke it directly. After test-planning lands integration test contracts in the specs, **test-writer** translates them into executable tests, and **build** implements until green.
+Either the user moves to **test-planning** to land contracts in the `planned`/`in-progress` specs, or you invoke it directly. After contracts land, **test-writer** translates them into locked tests, and **build** implements until green.
 
 You don't need every spec finalized before build starts — once one spec has its test contract landed, build can start on that slice while later specs get detailed.
 
-## Plan Format
+## Spec Stub Format (what slicing creates)
 
 ```markdown
-# Slicing: [Change Name]
+---
+status: planned
+depends_on: []
+---
 
-> Date: YYYY-MM-DD
-> Status: planning | building | complete
+# [Slice Name]
 
-## What & Why
-[2–3 sentences: what this change accomplishes and why now]
+## Does
+[One sentence — what this slice accomplishes for the user]
 
-## Spec changes
-- `spec/<name>.md` — modified — [what's changing: new test cases, extended done-criteria, etc.]
-- `spec/<name>.md` (new) — [what slice this describes]
-- `spec/<name>.md` (superseded by `spec/<new-name>.md`) — [why]
+## Done when
+- [Observable outcome — skeletal; test-planning refines]
 
-## Context changes
-- `context/<topic>.md` — [what's changing or being added]
-- [omit this section if no context/ changes needed]
+## Notes
+- [Slice-specific decisions, with rejected alternatives where they were real choices]
+- Out of scope: [non-goals for this slice, with where they land instead]
+- Open: [unresolved questions that might affect later slices]
 
-## Constraints
-- [Decision: rationale]
-- [Decision: rationale]
-
-## Non-Goals
-- [What this change explicitly does NOT do]
-
-## Build skills
-- [skill-name — why it's needed]
-
-## First slice
-- `spec/<name>.md` — [why this is the entry point]
-
-## Open Questions
-- [Anything unresolved that might affect later slices]
+## Changes
+- YYYY-MM-DD — created (sliced): [why this slice, in one line]
 ```
-
-The plan is the narrative for *this change*. It does not duplicate spec content — it points at the specs being touched and explains why. Spec files carry the test contracts, done criteria, and historical change log.
 
 ## Scaling
 
@@ -169,23 +146,23 @@ The plan is the narrative for *this change*. It does not duplicate spec content 
 | **Medium** | 5–10 bullets | 2–4 | 10–15 min |
 | **Large** | 10–15 bullets | 4–8, often with new specs | 15–20 min |
 
-If planning takes more than 20 minutes, the change is too big — split it into multiple changes that touch different specs.
+If planning takes more than 20 minutes, the change is too big — split it into separate changes that touch different specs.
 
 ## Anti-Patterns
 
 | Anti-Pattern | Fix |
 |---|---|
+| **Writing scope or rationale into a standalone planning doc** | Constraints → context/ and spec Notes; narrative → the planning commit message + PR description. |
 | **Inventing new specs when an existing one fits** | Default to modifying. Only add when the slice is genuinely new behavior. |
-| **Duplicating spec content in the plan** | Plans point at specs; specs hold the contracts. Don't restate. |
+| **Decisions without their rejected alternatives** | A bare decision re-litigates itself later. Record "Rejected: X — because Y" next to it in context/. |
 | **Planning without reading `spec/` and `context/`** | Hard gate — without these you'll re-discover known constraints. |
-| **Skipping non-goals** | Non-goals prevent scope creep. Always include them. |
-| **Writing prose constraints** | Constraints are bullets, not paragraphs. |
-| **Detailing every spec change upfront** | Only detail the first 2–3 slices fully. Later specs get fleshed out as build approaches them. |
-| **Planning > 20 minutes** | Change is too big — split, or you're over-specifying. |
+| **Skipping non-goals** | Non-goals prevent scope creep. They live in the spec's Notes (slice-level) or context/ (durable boundaries). |
+| **Duplicating the same fact in context AND spec Notes** | Single entry: system-level → context/; slice-level → spec Notes. Never both. |
+| **Detailing every spec change upfront** | Stub the first 2–3 slices fully; later specs get fleshed out as build approaches them. |
 
 ## Guidelines
 
-- **Specs are the source of truth.** The plan is a pointer to a change. The work commitments live in `spec/`.
+- **Spec + context are the source.** If it matters beyond this conversation, it lands in one of them — exactly once.
+- **Git is the changelog.** Diffs show what changed; commit messages say why; the PR description tells the story of the change.
 - **Constraints prevent wrong turns.** This is where planning time pays off — not prose descriptions.
-- **Every slice spec needs an integration test contract.** test-planning enforces this. The plan's job is to declare which specs are in scope; test-planning fills in the contract.
-- **A spec without a test contract is an unfinished idea.** Don't hand it to build.
+- **Every slice spec needs an integration test contract** before build. test-planning enforces this; a spec without one is an unfinished idea.

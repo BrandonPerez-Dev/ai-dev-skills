@@ -22,17 +22,16 @@ allowed-tools:
 
 # Build
 
-Execute slice specs from the plan. One at a time, integration-test first, working software after every slice.
+Execute the in-scope slice specs. One at a time, integration-test first, working software after every slice.
 
 ## The Model
 
-Three persistent layers at the project root:
+Two persistent layers at the project root:
 
-- **`context/`** — architectural truth. Always loaded before any code is written.
-- **`spec/`** — behavioral specs. Each file describes one slice with its integration test contract in plain text + done criteria + status frontmatter.
-- **`changes/NNN-<topic>/plan.md`** — narrative for this change; declares which specs are in scope and in what order.
+- **`context/`** — architectural truth. Always loaded before any code is written. Decisions carry their rationale and rejected alternatives.
+- **`spec/`** — behavioral specs. Each file describes one slice with its integration test contract in plain text, done criteria, and status frontmatter (`planned | in-progress | built | superseded`).
 
-Build reads the plan to know which specs are in scope for *this* change, then implements each spec until its locked integration test is green, marks the spec's status `built`, and moves to the next.
+The in-scope slices for the current change are the specs marked `planned` or `in-progress`. Build implements each until its locked integration test is green, marks the spec's status `built`, and moves to the next. Git carries the change narrative — commit messages say why, diffs say what.
 
 ## When to Use
 
@@ -46,16 +45,16 @@ Build reads the plan to know which specs are in scope for *this* change, then im
 
 | Mode | Input | When |
 |---|---|---|
-| **Full plan** | Path to `changes/NNN/plan.md` with all in-scope specs ready | Build sequentially through them |
-| **Partial plan** | Plan with some specs ready, others still in test-planning | Build ready specs; pause when you hit one that's still being detailed |
+| **Full scope** | All specs marked `planned`/`in-progress` are contract-ready | Build sequentially through them in dependency order |
+| **Partial scope** | Some in-scope specs ready, others still in test-planning | Build ready specs; pause when you hit one that's still being detailed |
 | **Single spec** | Path to one `spec/<name>.md` | Parallel session — this build pass implements one slice |
 
 ### Reading State
 
-1. If given a plan path, read it. Otherwise search `changes/` for the most recently modified `plan.md`.
-2. Read all files in `context/` — architectural commitments that constrain implementation.
-3. Read the in-scope `spec/<name>.md` files (from the plan's "Spec changes" section).
-4. Filter by status — `planned` or `in-progress` specs are buildable; `built` are done; `superseded` are skipped.
+1. Read all files in `context/` — architectural commitments that constrain implementation.
+2. Find the in-scope specs: `spec/*.md` with `status: planned` or `in-progress` (or the single spec you were given).
+3. Order them by `depends_on`.
+4. `built` specs are done; `superseded` are skipped.
 
 <HARD-GATE>
 Read `context/` and the in-scope `spec/` files in full before writing any feature code. Architectural commitments and slice contracts compound — implementing against an imagined spec produces cascading failures harder to debug than the original issue.
@@ -66,8 +65,8 @@ Read `context/` and the in-scope `spec/` files in full before writing any featur
 Before writing any code:
 - Dev environment works — build runs, existing tests pass, server starts if applicable
 - Each in-scope slice spec contains an integration test contract (setup, action, input, expected output, side effects, error cases)
-- Each in-scope slice spec has a corresponding locked test file from test-writer
-- Dependencies between specs are clear (each spec's `depends_on` frontmatter or content)
+- Each in-scope slice spec has a corresponding locked test file from test-writer (its `## Tests` section points at it)
+- Dependencies between specs are clear (each spec's `depends_on` frontmatter)
 
 If pre-flight fails, fix it before writing feature code. If a spec has no test contract, escalate to test-planning. If a contract has no committed red test, escalate to test-writer.
 
@@ -159,11 +158,11 @@ Never advance to the next slice with any test red. All integration tests (curren
 
 #### 3. Commit + Update Spec Status
 
-Commit the slice. Then update the slice spec's frontmatter `status` to `built` and append to its "Changes" log:
+Commit the slice. Then update the slice spec's frontmatter `status` to `built` and append to its `## Changes` log:
 
 ```markdown
 ## Changes
-- 008 (2026-05-13) — initial implementation
+- 2026-05-13 — implemented; integration test green
 ```
 
 #### 3b. Simplify
@@ -176,7 +175,7 @@ Brief status to user: "`create-workflow` done — integration test green, 3 unit
 
 #### 4. Next Slice
 
-Move to the next `planned`/`in-progress` spec in the plan. If the next spec doesn't have a validated integration test contract yet, pause and tell the user: "`<spec-name>` needs a test contract before I can build it" — either user details it now (via test-planning → test-writer), or you skip to a different ready spec.
+Move to the next `planned`/`in-progress` spec in dependency order. If the next spec doesn't have a validated integration test contract yet, pause and tell the user: "`<spec-name>` needs a test contract before I can build it" — either user details it now (via test-planning → test-writer), or you skip to a different ready spec.
 
 ---
 
@@ -186,7 +185,7 @@ Fresh subagent per slice + two-stage review. The controller (you) stays clean; s
 
 ### Setup
 
-1. Read the plan and extract the in-scope slice specs
+1. Find the in-scope specs (status `planned`/`in-progress`) and order by `depends_on`
 2. Read all `context/` files into your controller context — these get passed to every subagent
 3. Read each in-scope `spec/<name>.md` into your controller context so you can paste relevant sections into subagent prompts
 4. Create a task per slice
@@ -212,7 +211,7 @@ Provide the subagent with:
 - The slice spec's full content (pasted, not just a path — subagents have fresh context)
 - The locked test file(s) committed by test-writer
 - Instruction: "Implement against the locked tests. Do not modify test files. Do not modify the contract in spec/. Make the tests green by implementing the business logic."
-- Constraints from the plan
+- Relevant `context/` constraints
 - Context from previous slices (architectural decisions, what was built)
 - Working directory
 
@@ -228,7 +227,7 @@ Dispatch a reviewer subagent with:
 
 #### 3. Code Quality Review
 
-Dispatch with the **code-review** skill. Provide commit range, plan path, spec file path, and file list. Pass → refactor. Fail → resume implementer to fix.
+Dispatch with the **code-review** skill. Provide commit range, spec file path, and file list. Pass → refactor. Fail → resume implementer to fix.
 
 #### 3b. Simplify
 
@@ -236,7 +235,7 @@ Invoke **refactor** on the slice's changes. Commit refactoring separately: `refa
 
 #### 4. Mark Complete
 
-Update slice spec status to `built`, append to its Changes log, update task, status to user, move to next slice.
+Update slice spec status to `built`, append to its `## Changes` log, update task, status to user, move to next slice.
 
 ### Subagent Red Flags
 
@@ -249,9 +248,9 @@ Update slice spec status to `built`, append to its Changes log, update task, sta
 
 ---
 
-## Handling Partial Plans
+## Handling Partial Scope
 
-When building from a partial plan:
+When some in-scope specs aren't contract-ready:
 - Build all ready slices in dependency order
 - When you reach a spec without a test contract, stop and report
 - Either the user fills it in (via test-planning), or you skip to a different ready spec
@@ -297,11 +296,11 @@ This gives each slice a full context window and its own subagent capacity.
 - Linter clean
 - No regressions in any previously built spec's tests
 - Slice spec frontmatter updated to `status: built`
-- Slice spec Changes log updated with this change number
+- Slice spec `## Changes` log updated
 
-After the final slice in the plan, also verify:
+After the final in-scope slice, also verify:
 - The feature works when actually used (manual smoke test)
-- Plan updated if reality diverged from the planned spec changes
+- `context/` updated if reality diverged from the decisions recorded there (with the why)
 
 ## Output Format
 
@@ -317,18 +316,18 @@ After the final slice in the plan, also verify:
 Slices built: <N>
 Tests: <integration count> integration, <unit count> unit
 Spec status: <list of specs marked `built`>
-Deviations from plan: <any changes, or "None">
+Deviations from the sliced scope: <any changes, or "None">
 
 Ready for ship.
 ```
 
 ## After Build
 
-The terminal state is invoking **ship** (or the user starting a ship session). All in-scope slice specs should be `status: built`, all tests green, plan updated if scope shifted.
+The terminal state is invoking **ship** (or the user starting a ship session). All in-scope slice specs should be `status: built`, all tests green, `context/` updated if decisions shifted during implementation.
 
 ## Guidelines
 
-- **Specs are the source of truth.** The plan tells you which slices are in scope; the slice specs tell you what done looks like.
+- **Specs are the source of truth.** Spec statuses tell you which slices are in scope; the slice specs tell you what done looks like.
 - **The integration test is the contract.** Tests are committed before you write code. Make them green. Don't change them.
 - **One slice at a time.** Parallel slices in subagents are fine for *independent* slices, but never for dependent ones.
 - **Full-suite gate every slice.** TDAD-style regression awareness — passing your slice's test while breaking older tests is the #1 silent failure mode.
