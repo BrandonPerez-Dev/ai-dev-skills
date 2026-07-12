@@ -56,7 +56,7 @@ or the test is wrong — investigate before proceeding.
 ## Input
 
 One of:
-- **Plan path** — `changes/NNN-<topic>/plan.md` listing all in-scope specs
+- **Scope** — the specs marked `status: planned`/`in-progress` with completed contracts (the default)
 - **Single spec path** — `spec/<name>.md` with a completed integration test contract
 - **Slice PR context** — reads slice branch state to find specs ready for test writing
 

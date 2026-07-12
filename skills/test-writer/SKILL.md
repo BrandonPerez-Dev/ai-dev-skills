@@ -84,7 +84,7 @@ Different contracts produce different test types. Integration tests are always t
 
 Before writing any test code:
 - [ ] At least one slice spec at `spec/<name>.md` contains a user-validated integration test contract (from **test-planning**)
-- [ ] Plan at `changes/NNN-<topic>/plan.md` lists which spec files are in scope
+- [ ] The in-scope specs are identifiable: those marked `status: planned`/`in-progress`, or the specific spec(s) you were invoked with
 - [ ] Test infrastructure is ready (database, test runner, mock servers)
 - [ ] Existing test patterns in the codebase have been read (match conventions)
 - [ ] Greenfield first change: you are WRITING the walking skeleton test for the first slice (it won't exist yet — that's expected). Subsequent changes: the walking skeleton test is already committed and passing.
@@ -93,7 +93,7 @@ If prerequisites are missing, stop. Don't improvise — go back to test-planning
 
 ### 1. Pick the Next Slice Spec
 
-Work one slice at a time, in dependency order from the plan. Do not write tests for multiple slices in one pass. Report which slice you're working on.
+Work one slice at a time, in dependency order (each spec's `depends_on` frontmatter). Do not write tests for multiple slices in one pass. Report which slice you're working on.
 
 ### 2. Read the Contract from the Spec
 
@@ -105,9 +105,9 @@ Read the relevant `spec/<name>.md` file. Find:
 - **Side effects** — database changes, events emitted, external calls made
 - **Error cases** — what happens with bad input, missing deps, failure scenarios
 
-Each of these maps directly to a test. Also check any invariant spec files referenced by the plan — invariants relevant to this slice should produce tests that enforce them.
+Each of these maps directly to a test. Also check any invariant spec files this slice references (its `## Notes` or `depends_on`) — invariants relevant to this slice should produce tests that enforce them.
 
-The spec file is the authoritative source. Do not read contracts from the plan — that's a pointer, the spec is the truth.
+The spec file is the authoritative source for contracts. Do not reconstruct expectations from conversation or commit messages — the spec is the truth.
 
 ### 3. Read Existing Test Patterns
 

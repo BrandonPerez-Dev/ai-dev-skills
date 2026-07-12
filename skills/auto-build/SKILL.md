@@ -30,13 +30,12 @@ Execute slice specs autonomously. One at a time, integration-test first, working
 
 ## The Model
 
-Three persistent layers at the project root:
+Two persistent layers at the project root:
 
 - **`context/`** — architectural truth. Always loaded before any code is written.
-- **`spec/`** — behavioral specs. Each file describes one slice with its integration test contract and done criteria.
-- **`changes/NNN-<topic>/plan.md`** — narrative for this change; declares which specs are in scope.
+- **`spec/`** — behavioral specs. Each file describes one slice with its integration test contract, done criteria, and `status` frontmatter. The in-scope specs are those marked `planned`/`in-progress`.
 
-Build reads the plan, implements each spec until its locked test is green, marks the spec `built`, invokes refactor, and moves to the next.
+Build finds the in-scope specs, implements each until its locked test is green, marks the spec `built`, invokes refactor, and moves to the next.
 
 <HARD-GATE>
 Never modify test files written by auto-test-writer. Tests are locked contracts
@@ -49,16 +48,15 @@ modifying tests to match buggy code.
 ## Input
 
 One of:
-- **Plan path** — `changes/NNN-<topic>/plan.md` with in-scope specs ready
+- **Scope** — the specs marked `status: planned`/`in-progress` (the default)
 - **Single spec path** — `spec/<name>.md` for one slice
 - **Slice PR context** — reads slice branch to find specs with committed red tests
 
 ### Reading State
 
-1. Read the plan (or find the most recent one in `changes/`)
-2. Read all files in `context/` — architectural constraints
-3. Read in-scope `spec/<name>.md` files
-4. Filter by readiness: needs `status: planned` or `in-progress` AND committed red tests
+1. Read all files in `context/` — architectural constraints
+2. Find the in-scope `spec/<name>.md` files (`status: planned`/`in-progress`) and read them; order by `depends_on`
+3. Filter by readiness: needs a validated contract AND committed red tests
 
 <HARD-GATE>
 Read `context/` and the in-scope `spec/` files in full before writing any feature code.

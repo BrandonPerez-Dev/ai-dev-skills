@@ -46,7 +46,7 @@ The outer loop tells you WHAT to build. The inner loop tells you HOW to build ea
 ### 0. Check Prerequisites
 
 Before writing any code:
-- Test plan exists (from **test-planning** skill or the plan at `changes/NNN-<topic>/plan.md`)
+- Test contracts exist in the relevant `spec/<name>.md` (from the **test-planning** skill)
 - Integration test contracts are user-approved
 - Test infrastructure is ready (database, CI, mock servers)
 - If greenfield: walking skeleton is green
