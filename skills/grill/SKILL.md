@@ -83,7 +83,16 @@ Find the existing spec contract or `context/` decision this scope contradicts or
 
 Name it explicitly: keep the old decision, or supersede it on purpose — never both implicitly. A superseded **locked contract** (spec test contract, locked test) is flagged for test-planning → test-writer to re-lock; grill names the supersession, it never edits locked artifacts itself.
 
-### 4. Refutation Attempt
+### 4. Necessity and Scope
+
+Correctness lenses ask "is this right?" — this lens asks "should this exist, at this size, now?" Slicing and specs amplify scope; nothing downstream of the grill pushes back on it. Apply per slice, not once overall:
+
+- **Observed demand** — name the real, already-observed need this slice serves. A hypothetical actor ("if we ever have N reviewers…") is not demand. If the demand is speculative, name the evidence that would justify building it — that becomes the revival trigger.
+- **The one-branch version** — state the simplest behavior that covers 100% of *current* reality (often "detect the case → stop and ask"). If the slice builds resolution machinery where a one-branch version suffices, the machinery gets parked, spec `status: parked`, with the revival trigger in its Notes.
+- **Concept budget** — count the new load-bearing terms this scope mints per behavior it adds. Terms that exist only to name internal machinery are glossary debt; prefer reusing existing vocabulary. A scope that adds more nouns than behaviors is over-designed.
+- **Wiring completeness declaration** — everything a spec declares (functions, statuses, vocabulary) must be exercised by the same change that builds it, or explicitly descoped/parked before build. Grill states this expectation so review can enforce it: spec'd-but-unwired at review time is a defect, not a future feature.
+
+### 5. Refutation Attempt
 
 Close with one refutation attempt: state the strongest argument that the design is wrong or oversized:
 
@@ -95,7 +104,7 @@ Close with one refutation attempt: state the strongest argument that the design 
 
 Resolve it — either the refutation holds (the scope changes) or it doesn't. A rejected refutation is a **rejected alternative**: record it ADR-style in the relevant `context/` topic file ("Rejected: X — because Y") so it never gets re-litigated from scratch.
 
-### 5. Research (when needed)
+### 6. Research (when needed)
 
 If a tension or refutation requires evidence beyond what's in the codebase:
 
@@ -113,6 +122,7 @@ Durable findings go to `context/research/<topic>.md` (dated cache), cited from t
 | Confirmed terminology | `context/` (glossary or topic file) |
 | Slice-scoped resolution (affects one spec's behavior) | that spec's `## Notes` (+ `## Changes` entry) |
 | Contract change / locked-test supersession | flagged, executed by test-planning → test-writer |
+| Parked slice (speculative scope) | spec `status: parked` + revival trigger in its Notes |
 | Challenge survived unchanged (no durable delta) | one line in the grill commit message |
 | Dated evidence gathered | `context/research/<topic>.md`, cited from the topic file |
 
@@ -123,7 +133,7 @@ Commit the write-backs as a grill commit; its message lists each challenge → r
 | Change Size | Grill Depth | Time |
 |---|---|---|
 | **Small** (1-2 specs) | One sanity question + quick terminology check | 2-5 min |
-| **Medium** (2-4 specs) | Full three lenses + refutation | 10-15 min |
+| **Medium** (2-4 specs) | Full lenses (incl. necessity per slice) + refutation | 10-15 min |
 | **Large** (4+ specs, new system) | Full lenses + research + deep refutation | 15-30 min |
 
 ## Anti-Patterns
@@ -137,5 +147,7 @@ Commit the write-backs as a grill commit; its message lists each challenge → r
 | **Recording a decision without its rejected alternative** | The why-not is the part that prevents re-litigating. Write "Rejected: X — because Y." |
 | **Editing a locked contract directly** | Grill names supersessions; test-planning → test-writer executes them. |
 | **Skipping the refutation** | The refutation is the most valuable part. Always attempt one. |
+| **Scope without observed demand** | Machinery for hypothetical actors gets parked with a revival trigger, not built. Ask for the one-branch version. |
+| **Minting nouns faster than behaviors** | New glossary terms are debt. Reuse existing vocabulary; a concept that only names internal machinery doesn't earn a term. |
 | **Research without a specific question** | State what you need to learn before spawning research. |
 | **Over-grilling small changes** | One sanity question is enough for a 1-spec change. |

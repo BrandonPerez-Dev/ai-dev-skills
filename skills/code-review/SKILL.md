@@ -75,6 +75,8 @@ Focus on things that matter. Ignore things a linter handles.
 - Contract violations — API returns different shape than type says, schema mismatch
 - Missing error handling on system boundaries — unhandled external API failures, missing validation on user input
 - Breaking changes without migration path
+- Spec'd-but-unwired — functions, statuses, or vocabulary the spec declares that no live path exercises. Wire it in this change or descope it (spec `status: parked`); dead-on-arrival machinery is a defect, not a future feature
+- Composition seams without a composition test — two units that are only ever tested in isolation but ship wired together (merge→scan, transform→gate). Each unit green proves nothing about the pair
 
 **Suggestions (approve with comments):**
 - Edge cases not covered
