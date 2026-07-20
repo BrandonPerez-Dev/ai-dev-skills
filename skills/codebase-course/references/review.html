@@ -439,11 +439,19 @@ function renderDashboard() {
   if (cards.length === 0) {
     $dash.innerHTML = `
       <div class="empty">
-        <h2>No decks yet</h2>
-        <p>Import a <code>deck.json</code> produced by <code>codebase-course</code>
-        or <code>pr-walkthrough</code> to start studying.</p>
-        <p class="orphan-note">Your progress lives in this browser and can be exported anytime.</p>
-        <button class="btn primary" onclick="document.getElementById('file-deck').click()">Import a deck</button>
+        <h2>No decks loaded</h2>
+        ${!window.STUDY_DECKS ? `
+          <p>There's no <code>decks.js</code> next to this page, so nothing auto-loaded.
+          You may be opening the skill's template copy rather than your study hub.</p>
+          <p class="orphan-note">Build or refresh the hub, then open its <code>index.html</code>:</p>
+          <p><code>study.py hub --add &lt;repo&gt;/study</code></p>
+        ` : `
+          <p>Import a <code>deck.json</code> produced by <code>codebase-course</code>
+          or <code>pr-walkthrough</code> to start studying.</p>
+        `}
+        <p class="orphan-note">Progress lives in this browser, per page path — study from one
+        copy so your history stays in one place. Export anytime.</p>
+        <button class="btn primary" onclick="document.getElementById('file-deck').click()">Import a deck manually</button>
       </div>`;
     return;
   }
