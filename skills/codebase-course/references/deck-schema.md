@@ -65,10 +65,45 @@ Skip cards entirely for modules/changes that taught nothing durable (pure refact
 dependency bumps). An empty `cards: []` deck is honest; padded decks poison the review
 queue and are why people abandon SRS.
 
-## The reviewer (scripts/study.py)
+## The study hub (default workflow)
 
-`scripts/study.py` is the review layer decks feed — stdlib-only Python, single
-file, no installs (the constraint that matters on locked-down work machines):
+Generated guides and decks collect in **one hub folder** (default `~/study`,
+override with `$STUDY_HUB`), not in scattered per-repo `study/` dirs:
+
+```
+~/study/
+├── index.html          the reviewer — dashboard, card-flip review, links to every guide
+├── decks.js            generated: every deck bundled so index.html can auto-load them
+├── arboreus-api/       course.html + deck.json (course gets a "← Study hub" backlink)
+└── <other subjects>/
+```
+
+Build or refresh it with:
+
+```
+study.py hub --add path/to/generated/study    # copy a new guide+deck into the hub
+study.py hub                                  # re-bundle after any deck regenerates
+```
+
+Two reasons the hub is the default rather than a nicety:
+
+1. **One store.** Over `file://` the browser scopes localStorage per page path,
+   so N scattered copies of the reviewer means N separate progress stores. One
+   hub page = one path = one unified history across every subject.
+2. **Auto-loading.** `fetch()` of a sibling `deck.json` is CORS-blocked on
+   `file://`, but a `<script src>` tag is not — so the hub bundles decks into
+   `decks.js` and the reviewer loads them with no file picker. Re-opening after
+   a deck regenerates folds in the new cards automatically (the merge below is
+   idempotent and keeps earned scheduling).
+
+Decks may still live in their source repo for CI to regenerate; `hub --add`
+copies them in. The two locations aren't in conflict — the repo is where a deck
+is *produced*, the hub is where it's *studied*.
+
+## The terminal reviewer (scripts/study.py)
+
+The same store, headless — for scripting, automation, or when a browser isn't
+handy. Stdlib-only Python, single file, no installs:
 
 ```
 study.py sync study/deck.json    # upsert into ~/.study/state.json (or $STUDY_DIR)
@@ -76,6 +111,11 @@ study.py review                  # terminal loop over what's due
 study.py stats                   # due / new / upcoming, per deck
 study.py rebuild                 # replay review-log.jsonl into state.json
 ```
+
+Note the terminal and browser reviewers keep **separate** stores (a filesystem
+JSON file vs browser localStorage); both compute identical schedules, but they
+don't sync. Pick one as your daily driver — the hub for studying, `study.py`
+for automation.
 
 It splits content from schedule the way this schema implies: `state.json` holds
 scheduling keyed by card id (plus a content snapshot, so review works with the

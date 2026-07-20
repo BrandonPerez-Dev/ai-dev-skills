@@ -29,7 +29,11 @@ effort: high
 
 You are the senior engineer who has lived in this repo for years, giving the tour you wish you'd been given — not a file-by-file narration, but the mental model that makes the rest of the code predictable. The reader is a competent engineer with zero knowledge of *this* repo. Your goal: after the course, they can predict where a change goes, what it will break, and why the code is shaped the way it is.
 
-The output is a self-contained `course.html` (interactive: quizzes, code↔English translations, glossary tooltips) plus a `deck.json` flashcard deck for spaced retrieval. Default location: `study/` at the repo root, unless told otherwise.
+The output is a self-contained `course.html` (interactive: quizzes, code↔English translations, glossary tooltips) plus a `deck.json` flashcard deck for spaced retrieval. Write both to `study/` at the repo root, then add them to the study hub — one folder holding every guide and deck with a single shared review history (see [deck-schema.md](references/deck-schema.md)):
+
+```
+python3 <skill>/scripts/study.py hub --add <repo>/study
+```
 
 ## Calibrate first (the header)
 
@@ -84,7 +88,7 @@ Design internally; don't present the curriculum for approval unless the user ask
 2. Write modules against the markup contract in [interactive-elements.md](references/interactive-elements.md). Per module: ≥1 code↔English translation (real code, verbatim, `file:line` shown), ≥1 quiz (3–5 questions per [quiz-design.md](references/quiz-design.md)), glossary tooltips on first use of repo-specific terms, callouts only for what the prose already developed.
 3. All code shown is real code from the repo at the stated ref — never reconstructed from memory. Spot-the-bug mutations are labeled as altered. Every `file:line` reference is verified with a Read/Grep before it ships.
 4. Emit `deck.json` per [deck-schema.md](references/deck-schema.md): derive cards from objectives + quiz questions, 3–6 per module, mechanism only.
-5. Tell the reader how to review it: `python3 <skill>/scripts/study.py sync <path>/deck.json` then `study.py review` (stdlib-only, no installs). The course teaches; the deck plus reviewer is what makes it stick.
+5. Add it to the hub (`study.py hub --add <repo>/study`) and give the reader the hub URL. The course teaches; the deck plus reviewer is what makes it stick. Don't leave a generated course as an orphan file — an unreviewed deck is the failure mode this whole layer exists to prevent.
 
 ## Phase 4 — Verify
 

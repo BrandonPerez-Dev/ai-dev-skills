@@ -8,6 +8,7 @@ Stdlib only, single file, no installs. Copy it anywhere Python 3.9+ runs.
     study.py review [--deck NAME] [--limit N]               # review what's due
     study.py stats                                          # what's waiting
     study.py rebuild                                        # replay the log into state
+    study.py hub [--hub ~/study] [--add DIR ...]            # build the browser study hub
 
 Files (default ~/.study, override with $STUDY_DIR or --dir):
     state.json        scheduling + card content. The precious file. Atomic writes,
@@ -569,6 +570,117 @@ def cmd_rebuild(args) -> None:
 
 
 # ---------------------------------------------------------------------------
+# hub — one folder holding every study guide + deck, plus the browser reviewer.
+#
+# Why a hub instead of a study/ dir per repo: over file:// the browser scopes
+# localStorage per page path, so N scattered review.html copies means N separate
+# progress stores. One hub = one path = one store. The generated decks.js also
+# lets the reviewer auto-load decks, which fetch() can't do over file://.
+# ---------------------------------------------------------------------------
+
+REVIEWER_SRC = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                            "..", "references", "review.html")
+
+
+def hub_dir(cli_hub=None) -> str:
+    return os.path.abspath(
+        cli_hub or os.environ.get("STUDY_HUB") or os.path.expanduser("~/study")
+    )
+
+
+BACKLINK_MARKER = "<!--hub-backlink-->"
+BACKLINK = BACKLINK_MARKER + """
+<style>
+.hub-back{position:fixed;top:.7rem;left:.7rem;z-index:99;font:600 .8rem/1 system-ui,sans-serif;
+ text-decoration:none;padding:.45rem .8rem;border-radius:99px;
+ background:rgba(255,255,255,.82);color:#1c1e21;border:1px solid #e4e1da;backdrop-filter:blur(6px)}
+.hub-back:hover{border-color:#c2410c;color:#c2410c}
+@media (prefers-color-scheme:dark){.hub-back{background:rgba(27,29,34,.82);color:#e8e6e1;border-color:#2a2d34}
+ .hub-back:hover{border-color:#fb923c;color:#fb923c}}
+@media print{.hub-back{display:none}}
+</style>
+<a class="hub-back" href="../index.html">&larr; Study hub</a>
+"""
+
+
+def add_hub_backlink(course_path: str) -> None:
+    """Give a hub-copied course a way back to the reviewer. Idempotent."""
+    if not os.path.exists(course_path):
+        return
+    with open(course_path, encoding="utf-8") as f:
+        html = f.read()
+    if BACKLINK_MARKER in html:
+        return
+    if "</body>" in html:
+        html = html.replace("</body>", BACKLINK + "</body>", 1)
+    else:
+        html += BACKLINK
+    with open(course_path, "w", encoding="utf-8") as f:
+        f.write(html)
+
+
+def cmd_hub(args) -> None:
+    hub = hub_dir(args.hub)
+    os.makedirs(hub, exist_ok=True)
+
+    # 1. Pull in any newly generated study dirs (each holds course.html + deck.json).
+    for src in (args.add or []):
+        src = os.path.abspath(src)
+        if not os.path.isdir(src):
+            die(f"--add expects a directory containing deck.json: {src}")
+        if not os.path.exists(os.path.join(src, "deck.json")):
+            die(f"no deck.json in {src}")
+        name = args.name or os.path.basename(os.path.dirname(src.rstrip("/"))) \
+            if os.path.basename(src.rstrip("/")) == "study" else os.path.basename(src.rstrip("/"))
+        dest = os.path.join(hub, name)
+        os.makedirs(dest, exist_ok=True)
+        for fn in ("deck.json", "course.html"):
+            s = os.path.join(src, fn)
+            if os.path.exists(s):
+                shutil.copy2(s, os.path.join(dest, fn))
+        add_hub_backlink(os.path.join(dest, "course.html"))
+        print(f"added {name} ← {src}")
+
+    # 2. Install/refresh the reviewer as the hub's index page (single path = single store).
+    reviewer = os.path.normpath(REVIEWER_SRC)
+    if os.path.exists(reviewer):
+        shutil.copy2(reviewer, os.path.join(hub, "index.html"))
+    elif not os.path.exists(os.path.join(hub, "index.html")):
+        die(f"reviewer not found at {reviewer} — copy review.html into {hub}/index.html manually")
+
+    # 3. Bundle every deck into decks.js (script tag works over file://; fetch does not).
+    entries, total = [], 0
+    for name in sorted(os.listdir(hub)):
+        sub = os.path.join(hub, name)
+        deck_file = os.path.join(sub, "deck.json")
+        if not os.path.isdir(sub) or not os.path.exists(deck_file):
+            continue
+        try:
+            with open(deck_file, encoding="utf-8") as f:
+                deck = json.load(f)
+        except json.JSONDecodeError as e:
+            print(f"  {name}: skipped — invalid JSON ({e})", file=sys.stderr)
+            continue
+        course = f"{name}/course.html" if os.path.exists(os.path.join(sub, "course.html")) else None
+        entries.append({"name": (deck.get("source") or {}).get("repo") or name,
+                        "course": course, "deck": deck})
+        n = len(deck.get("cards", []))
+        total += n
+        print(f"  {name}: {n} cards" + ("" if course else "  (no course.html)"))
+
+    banner = ("// Generated by `study.py hub` — do not edit.\n"
+              "// Bundles every deck.json in this folder so index.html can load them\n"
+              "// over file://, where fetch() of a sibling file is CORS-blocked.\n")
+    with open(os.path.join(hub, "decks.js"), "w", encoding="utf-8") as f:
+        f.write(banner + "window.STUDY_DECKS = ")
+        json.dump(entries, f, ensure_ascii=False, indent=1)
+        f.write(";\n")
+
+    print(f"\nhub: {len(entries)} deck(s), {total} cards → {hub}")
+    print(f"open: file://{os.path.join(hub, 'index.html')}")
+
+
+# ---------------------------------------------------------------------------
 
 def main() -> None:
     p = argparse.ArgumentParser(
@@ -595,6 +707,13 @@ def main() -> None:
 
     b = sub.add_parser("rebuild", help="replay review-log.jsonl into state.json")
     b.set_defaults(func=cmd_rebuild)
+
+    h = sub.add_parser("hub", help="build the browser study hub (index + bundled decks)")
+    h.add_argument("--hub", help="hub directory (default $STUDY_HUB or ~/study)")
+    h.add_argument("--add", nargs="+", metavar="DIR",
+                   help="study dir(s) holding deck.json (+ course.html) to copy in")
+    h.add_argument("--name", help="override the subject name when using a single --add")
+    h.set_defaults(func=cmd_hub)
 
     args = p.parse_args()
     args.func(args)
