@@ -1,0 +1,691 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Study — Spaced Review</title>
+<style>
+:root {
+  --bg: #faf9f6; --fg: #1c1e21; --muted: #6b6f76;
+  --accent: #c2410c; --accent-soft: #c2410c1a;
+  --card: #ffffff; --border: #e4e1da;
+  --code-bg: #16181d; --code-fg: #d7dae0;
+  --ok: #15803d; --ok-soft: #15803d1a;
+  --bad: #b91c1c; --bad-soft: #b91c1c14;
+  --hard: #b45309; --hard-soft: #b453091a;
+  --easy: #0e7490; --easy-soft: #0e74901a;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #131417; --fg: #e8e6e1; --muted: #9a9ea6;
+    --accent: #fb923c; --accent-soft: #fb923c21;
+    --card: #1b1d22; --border: #2a2d34;
+    --code-bg: #0e0f12; --code-fg: #d7dae0;
+    --ok: #4ade80; --ok-soft: #4ade8021;
+    --bad: #f87171; --bad-soft: #f8717118;
+    --hard: #fbbf24; --hard-soft: #fbbf2418;
+    --easy: #22d3ee; --easy-soft: #22d3ee18;
+  }
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg);
+  font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+h1,h2,h3 { line-height: 1.2; letter-spacing: -0.015em; margin: 0; }
+code, .mono { font-family: ui-monospace, "JetBrains Mono", Menlo, monospace; }
+code { background: var(--accent-soft); padding: 0.1em 0.35em; border-radius: 4px; font-size: 0.86em; }
+button { font: inherit; cursor: pointer; }
+.wrap { max-width: 44rem; margin: 0 auto; padding: 0 1.2rem; }
+
+/* top bar */
+header.top {
+  position: sticky; top: 0; z-index: 5;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(8px); border-bottom: 1px solid var(--border);
+}
+header.top .wrap { display: flex; align-items: center; gap: 0.6rem; padding-top: 0.7rem; padding-bottom: 0.7rem; }
+header.top .brand { font-weight: 700; letter-spacing: -0.02em; margin-right: auto; }
+header.top .brand .dot { color: var(--accent); }
+.btn {
+  background: var(--card); color: var(--fg); border: 1px solid var(--border);
+  border-radius: 8px; padding: 0.4rem 0.8rem; font-size: 0.85rem;
+}
+.btn:hover { border-color: var(--accent); }
+.btn.ghost { background: none; border-color: transparent; color: var(--muted); }
+.btn.ghost:hover { color: var(--fg); border-color: var(--border); }
+.btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
+.btn.primary:hover { filter: brightness(1.06); }
+.btn:disabled { opacity: 0.45; cursor: default; }
+.btn:disabled:hover { border-color: var(--border); filter: none; }
+
+/* dashboard */
+main { padding: 2rem 0 5rem; }
+.hero { margin-bottom: 1.8rem; }
+.hero h1 { font-size: 1.9rem; }
+.hero p { color: var(--muted); margin: 0.4rem 0 0; }
+
+.tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; margin: 1.5rem 0; }
+.tile { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.1rem; }
+.tile .n { font-size: 2rem; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+.tile .l { color: var(--muted); font-size: 0.8rem; margin-top: 0.3rem; }
+.tile.due .n { color: var(--accent); }
+.tile.new .n { color: var(--easy); }
+
+.startbar { display: flex; align-items: center; gap: 1rem; margin: 1.6rem 0; }
+.startbar .btn.primary { font-size: 1rem; padding: 0.7rem 1.4rem; }
+.startbar .hint { color: var(--muted); font-size: 0.85rem; }
+
+.panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.1rem 1.3rem; margin: 1.2rem 0; }
+.panel h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.8rem; }
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+th, td { text-align: left; padding: 0.4rem 0.3rem; border-bottom: 1px solid var(--border); }
+th { color: var(--muted); font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+tr:last-child td { border-bottom: none; }
+.deckname { font-weight: 600; }
+.deckref { color: var(--muted); font-size: 0.78rem; }
+.orphan-note { color: var(--muted); font-size: 0.78rem; }
+
+/* forecast */
+.forecast { display: flex; align-items: flex-end; gap: 0.5rem; height: 90px; margin-top: 0.5rem; }
+.forecast .col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.35rem; height: 100%; justify-content: flex-end; }
+.forecast .bar { width: 100%; max-width: 34px; background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 5px 5px 0 0; min-height: 3px; position: relative; }
+.forecast .bar span { position: absolute; top: -1.2rem; left: 50%; transform: translateX(-50%); font-size: 0.72rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.forecast .day { font-size: 0.72rem; color: var(--muted); }
+
+/* empty state */
+.empty { text-align: center; padding: 3rem 1rem; color: var(--muted); }
+.empty h2 { color: var(--fg); font-size: 1.3rem; margin-bottom: 0.6rem; }
+.empty code { display: inline-block; margin: 0.2rem; }
+.empty .btn.primary { margin-top: 1.2rem; }
+
+/* review mode */
+.review { display: none; }
+.review.active { display: block; }
+.dashboard.hidden { display: none; }
+.rev-top { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1.5rem; color: var(--muted); font-size: 0.85rem; }
+.rev-progress-track { flex: 1; height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.rev-progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.25s ease; }
+
+.cardview { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 1.6rem 1.7rem; min-height: 15rem; display: flex; flex-direction: column; }
+.cardview .meta { display: flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; color: var(--muted); margin-bottom: 1.1rem; }
+.cardview .meta .badge { background: var(--easy-soft); color: var(--easy); padding: 0.1rem 0.5rem; border-radius: 99px; font-weight: 600; }
+.cardview .front { font-size: 1.25rem; font-weight: 600; line-height: 1.45; }
+.cardview .divider { border: none; border-top: 1px solid var(--border); margin: 1.3rem 0; }
+.cardview .back { font-size: 1.02rem; line-height: 1.6; }
+.cardview .back p { margin: 0 0 0.7rem; }
+.cardview .src { margin-top: auto; padding-top: 1.2rem; color: var(--muted); font-size: 0.8rem; }
+.cardview .src code { font-size: 0.85em; }
+
+.revealbar { margin-top: 1.5rem; text-align: center; }
+.revealbar .btn { padding: 0.7rem 2rem; font-size: 0.95rem; }
+.revealbar .kbd { color: var(--muted); font-size: 0.78rem; margin-top: 0.6rem; }
+
+.grades { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.6rem; margin-top: 1.5rem; }
+.grade { display: flex; flex-direction: column; align-items: center; gap: 0.15rem; padding: 0.7rem 0.4rem; border-radius: 10px; border: 1px solid var(--border); background: var(--card); }
+.grade:hover { border-width: 1px; filter: brightness(1.03); }
+.grade .g-name { font-weight: 600; font-size: 0.92rem; }
+.grade .g-int { font-size: 0.78rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.grade .g-key { font-size: 0.68rem; color: var(--muted); opacity: 0.7; }
+.grade.again { border-color: var(--bad); background: var(--bad-soft); } .grade.again .g-name { color: var(--bad); }
+.grade.hard { border-color: var(--hard); background: var(--hard-soft); } .grade.hard .g-name { color: var(--hard); }
+.grade.good { border-color: var(--ok); background: var(--ok-soft); } .grade.good .g-name { color: var(--ok); }
+.grade.easy { border-color: var(--easy); background: var(--easy-soft); } .grade.easy .g-name { color: var(--easy); }
+
+/* session done */
+.done { text-align: center; padding: 3rem 1rem; }
+.done h2 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+.done p { color: var(--muted); }
+.done .btn { margin-top: 1.4rem; }
+
+/* toast */
+#toast { position: fixed; bottom: 1.3rem; left: 50%; transform: translateX(-50%) translateY(2rem); background: var(--fg); color: var(--bg); padding: 0.6rem 1.1rem; border-radius: 8px; font-size: 0.85rem; opacity: 0; transition: all 0.25s ease; pointer-events: none; z-index: 20; }
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+@media (max-width: 560px) {
+  .tiles { grid-template-columns: 1fr 1fr; }
+  .grades { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <span class="brand">Study<span class="dot">.</span></span>
+    <button class="btn ghost" id="btn-import">Import deck</button>
+    <button class="btn ghost" id="btn-export">Export progress</button>
+    <button class="btn ghost" id="btn-import-progress">Import progress</button>
+    <input type="file" id="file-deck" accept="application/json,.json" multiple hidden>
+    <input type="file" id="file-progress" accept="application/json,.json" hidden>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="dashboard" id="dashboard"><!-- rendered --></section>
+  <section class="review" id="review"><!-- rendered --></section>
+</main>
+
+<div id="toast"></div>
+
+<script>
+"use strict";
+
+/* ============================================================= *
+ *  FSRS-6 — ported from ts-fsrs 5.4.1 (MIT).
+ *  Verified bit-exact against the reference impl by
+ *  scripts/test_fsrs_parity_js.mjs (634 cases). Do NOT hand-edit
+ *  the constants or the clamp/round order — parity depends on it.
+ * ---FSRS-START--- */
+const FSRS = (function () {
+  const W = [0.212,1.2931,2.3065,8.2956,6.4133,0.8334,3.0194,0.001,1.8722,
+    0.1666,0.796,1.4835,0.0614,0.2629,1.6483,0.6014,1.8729,0.5425,0.0912,
+    0.0658,0.1542];
+  const S_MIN = 1e-3, S_MAX = 36500;
+  const REQUEST_RETENTION = 0.9, MAXIMUM_INTERVAL = 36500, ENABLE_SHORT_TERM = true;
+  const AGAIN = 1, HARD = 2, GOOD = 3, EASY = 4;
+
+  const roundTo = (n) => Math.round(n * 1e8) / 1e8;   // JS Math.round == ts-fsrs roundTo
+  const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
+
+  const DECAY = -W[20];
+  const FACTOR = roundTo(Math.exp(Math.log(0.9) / DECAY) - 1);
+  const INTERVAL_MODIFIER = roundTo((Math.pow(REQUEST_RETENTION, 1 / DECAY) - 1) / FACTOR);
+
+  const forgettingCurve = (t, s) => roundTo(Math.pow(1 + FACTOR * t / s, DECAY));
+  const initStability = (g) => Math.max(W[g - 1], 0.1);
+  const initDifficulty = (g) => roundTo(W[4] - Math.exp((g - 1) * W[5]) + 1);
+  const linearDamping = (dd, oldD) => roundTo(dd * (10 - oldD) / 9);
+  const meanReversion = (init, cur) => roundTo(W[7] * init + (1 - W[7]) * cur);
+
+  function nextDifficulty(d, g) {
+    const dd = -W[6] * (g - 3);
+    const nd = d + linearDamping(dd, d);
+    return clamp(meanReversion(initDifficulty(EASY), nd), 1, 10);
+  }
+  function nextRecallStability(d, s, r, g) {
+    const hp = g === HARD ? W[15] : 1;
+    const eb = g === EASY ? W[16] : 1;
+    return roundTo(clamp(
+      s * (1 + Math.exp(W[8]) * (11 - d) * Math.pow(s, -W[9])
+        * (Math.exp((1 - r) * W[10]) - 1) * hp * eb),
+      S_MIN, S_MAX));
+  }
+  function nextForgetStability(d, s, r) {
+    return roundTo(clamp(
+      W[11] * Math.pow(d, -W[12]) * (Math.pow(s + 1, W[13]) - 1) * Math.exp((1 - r) * W[14]),
+      S_MIN, S_MAX));
+  }
+  function nextShortTermStability(s, g) {
+    const sinc = Math.pow(s, -W[19]) * Math.exp(W[17] * (g - 3 + W[18]));
+    const masked = g >= HARD ? Math.max(sinc, 1) : sinc;
+    return roundTo(clamp(s * masked, S_MIN, S_MAX));
+  }
+  // (difficulty, stability) -> next [difficulty, stability]. d=s=0 means a new card.
+  function nextState(d, s, t, g) {
+    if (d === 0 && s === 0) return [clamp(initDifficulty(g), 1, 10), initStability(g)];
+    const r = forgettingCurve(t, s);
+    let newS;
+    if (t === 0 && ENABLE_SHORT_TERM) {
+      newS = nextShortTermStability(s, g);
+    } else if (g === AGAIN) {
+      const sAfterFail = nextForgetStability(d, s, r);
+      const nextSMin = s / Math.exp(W[17] * W[18]);
+      newS = clamp(roundTo(nextSMin), S_MIN, sAfterFail);
+    } else {
+      newS = nextRecallStability(d, s, r, g);
+    }
+    return [nextDifficulty(d, g), newS];
+  }
+  const nextInterval = (s) =>
+    Math.min(Math.max(1, Math.round(s * INTERVAL_MODIFIER)), MAXIMUM_INTERVAL);
+
+  return { nextState, nextInterval, forgettingCurve,
+           AGAIN, HARD, GOOD, EASY };
+})();
+/* ---FSRS-END--- */
+
+/* ============================================================= *
+ *  Dates — local day (this is a personal reviewer; "today" is the
+ *  learner's today, not UTC). ISO date strings compare lexically.
+ * ============================================================= */
+function todayStr(now) {
+  const d = now || new Date();
+  const y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, "0"),
+        day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+function addDays(iso, n) {
+  const d = new Date(iso + "T00:00:00");
+  d.setDate(d.getDate() + n);
+  return todayStr(d);
+}
+function daysBetween(a, b) {
+  const da = new Date(a + "T00:00:00"), db = new Date(b + "T00:00:00");
+  return Math.round((db - da) / 86400000);
+}
+function weekday(iso) {
+  return new Date(iso + "T00:00:00").toLocaleDateString(undefined, { weekday: "short" });
+}
+function fmtInterval(days) {
+  if (days < 1) return "<1d";
+  if (days < 30) return days + "d";
+  if (days < 365) return (days / 30).toFixed(days < 100 ? 1 : 0) + "mo";
+  return (days / 365).toFixed(1) + "y";
+}
+
+/* ============================================================= *
+ *  Store — one unified localStorage record across all decks.
+ *  Shape mirrors study.py: { version, cards: {id -> {...}} }.
+ *  Content is replaceable; scheduling (srs) is earned and kept.
+ * ============================================================= */
+const STORE_KEY = "codebase-study-v1";
+const STORE_VERSION = 1;
+const CONTENT_FIELDS = ["concept", "module", "type", "front", "back", "files", "tags"];
+
+function contentKey(card) {
+  return JSON.stringify(CONTENT_FIELDS.map((f) => card[f] ?? null));
+}
+function freshSrs() {
+  return { stability: null, difficulty: null, interval_days: null,
+           repetitions: 0, last_grade: null, last_review: null, due: null };
+}
+function emptyState() { return { version: STORE_VERSION, cards: {} }; }
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (!raw) return emptyState();
+    const s = JSON.parse(raw);
+    if (s.version !== STORE_VERSION || typeof s.cards !== "object") return emptyState();
+    return s;
+  } catch (e) { return emptyState(); }
+}
+function saveState(s) {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(s)); return true; }
+  catch (e) { toast("Could not save — storage may be full or blocked"); return false; }
+}
+
+let STATE = loadState();
+
+/* Upsert a deck's cards by stable id — same merge as study.py sync. */
+function importDeck(deck, sourceLabel) {
+  if (!deck || deck.version !== 1 || !Array.isArray(deck.cards))
+    throw new Error("Not a valid deck.json (need version:1 and a cards array)");
+  const src = deck.source || {};
+  const name = sourceLabel || src.repo || "deck";
+  let added = 0, updated = 0, unchanged = 0, orphaned = 0;
+  const seen = new Set();
+
+  for (const card of deck.cards) {
+    if (!card.id) throw new Error("A card is missing its id");
+    seen.add(card.id);
+    const ck = contentKey(card);
+    const existing = STATE.cards[card.id];
+    const rec = { deck: name, deck_ref: src.ref || null, content_key: ck, status: "active" };
+    for (const f of CONTENT_FIELDS) rec[f] = card[f] ?? null;
+    if (!existing) {
+      rec.added_at = todayStr();
+      rec.srs = freshSrs();
+      STATE.cards[card.id] = rec;
+      added++;
+    } else {
+      rec.added_at = existing.added_at || todayStr();
+      rec.srs = existing.srs || freshSrs();     // schedule survives content changes
+      const was = existing.content_key;
+      STATE.cards[card.id] = rec;
+      (was === ck) ? unchanged++ : updated++;
+    }
+  }
+  for (const [id, c] of Object.entries(STATE.cards)) {
+    if (c.deck === name && !seen.has(id) && c.status !== "orphaned") {
+      c.status = "orphaned"; c.orphaned_at = todayStr(); orphaned++;
+    }
+  }
+  saveState(STATE);
+  return { name, added, updated, unchanged, orphaned, total: deck.cards.length };
+}
+
+/* ============================================================= *
+ *  Queue + review
+ * ============================================================= */
+function collectDue(today) {
+  const reviews = [], news = [];
+  for (const [id, c] of Object.entries(STATE.cards)) {
+    if (c.status !== "active") continue;
+    const due = c.srs.due;
+    if (due === null) news.push([id, c]);
+    else if (due <= today) reviews.push([id, c]);
+  }
+  reviews.sort((a, b) => (a[1].srs.due).localeCompare(b[1].srs.due)
+    || a[1].deck.localeCompare(b[1].deck) || a[0].localeCompare(b[0]));
+  news.sort((a, b) => (a[1].added_at || "").localeCompare(b[1].added_at || "")
+    || a[1].deck.localeCompare(b[1].deck) || a[0].localeCompare(b[0]));
+  return reviews.concat(news);
+}
+
+// What each grade would schedule, for the button previews.
+function previewIntervals(card, today) {
+  const srs = card.srs;
+  const d0 = srs.difficulty || 0, s0 = srs.stability || 0;
+  let elapsed = 0;
+  if (s0 && srs.last_review) elapsed = Math.max(0, daysBetween(srs.last_review, today));
+  const out = {};
+  for (const g of [1, 2, 3, 4]) {
+    const [, s] = FSRS.nextState(d0, s0, elapsed, g);
+    out[g] = FSRS.nextInterval(s);
+  }
+  return out;
+}
+
+function applyGrade(card, grade, today) {
+  const srs = card.srs;
+  const d0 = srs.difficulty || 0, s0 = srs.stability || 0;
+  let elapsed = 0;
+  if (s0 && srs.last_review) elapsed = Math.max(0, daysBetween(srs.last_review, today));
+  const [d, s] = FSRS.nextState(d0, s0, elapsed, grade);
+  const interval = FSRS.nextInterval(s);
+  const due = addDays(today, interval);
+  srs.stability = s; srs.difficulty = d; srs.interval_days = interval;
+  srs.repetitions = (srs.repetitions || 0) + 1;
+  srs.last_grade = grade; srs.last_review = today; srs.due = due;
+  saveState(STATE);
+  return interval;
+}
+
+/* ============================================================= *
+ *  Session state
+ * ============================================================= */
+const GRADE_META = [
+  { g: 1, cls: "again", name: "Again", key: "1" },
+  { g: 2, cls: "hard",  name: "Hard",  key: "2" },
+  { g: 3, cls: "good",  name: "Good",  key: "3" },
+  { g: 4, cls: "easy",  name: "Easy",  key: "4" },
+];
+let SESSION = null;   // { queue, idx, revealed, reviewed, recalled, today }
+
+/* ============================================================= *
+ *  Rendering
+ * ============================================================= */
+const $dash = document.getElementById("dashboard");
+const $rev = document.getElementById("review");
+
+function esc(s) {
+  return String(s == null ? "" : s).replace(/[&<>"]/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+}
+
+function renderDashboard() {
+  document.querySelector(".review").classList.remove("active");
+  $dash.classList.remove("hidden");
+  const today = todayStr();
+  const cards = Object.values(STATE.cards);
+  const active = cards.filter((c) => c.status === "active");
+
+  if (cards.length === 0) {
+    $dash.innerHTML = `
+      <div class="empty">
+        <h2>No decks yet</h2>
+        <p>Import a <code>deck.json</code> produced by <code>codebase-course</code>
+        or <code>pr-walkthrough</code> to start studying.</p>
+        <p class="orphan-note">Your progress lives in this browser and can be exported anytime.</p>
+        <button class="btn primary" onclick="document.getElementById('file-deck').click()">Import a deck</button>
+      </div>`;
+    return;
+  }
+
+  let due = 0, isNew = 0, later = 0;
+  const byDeck = {};
+  for (const c of cards) {
+    const b = byDeck[c.deck] || (byDeck[c.deck] = { active: 0, due: 0, new: 0, later: 0, orphaned: 0, ref: c.deck_ref });
+    if (c.status !== "active") { b.orphaned++; continue; }
+    b.active++;
+    if (c.srs.due === null) { isNew++; b.new++; }
+    else if (c.srs.due <= today) { due++; b.due++; }
+    else { later++; b.later++; }
+  }
+  const queueSize = due + isNew;
+
+  // 7-day forecast
+  const fc = {};
+  for (const c of active) {
+    if (c.srs.due && c.srs.due > today) {
+      const dd = daysBetween(today, c.srs.due);
+      if (dd >= 1 && dd <= 7) { const k = c.srs.due; fc[k] = (fc[k] || 0) + 1; }
+    }
+  }
+  const fcDays = [];
+  for (let i = 1; i <= 7; i++) { const k = addDays(today, i); fcDays.push([k, fc[k] || 0]); }
+  const fcMax = Math.max(1, ...fcDays.map((d) => d[1]));
+
+  const deckRows = Object.entries(byDeck).sort((a, b) => a[0].localeCompare(b[0])).map(([name, b]) => `
+    <tr>
+      <td><span class="deckname">${esc(name)}</span>
+        ${b.ref ? `<span class="deckref mono"> @${esc(b.ref)}</span>` : ""}
+        ${b.orphaned ? `<span class="orphan-note"> · ${b.orphaned} orphaned</span>` : ""}</td>
+      <td class="num" style="color:var(--accent)">${b.due}</td>
+      <td class="num" style="color:var(--easy)">${b.new}</td>
+      <td class="num">${b.later}</td>
+      <td class="num">${b.active}</td>
+    </tr>`).join("");
+
+  $dash.innerHTML = `
+    <div class="hero">
+      <h1>${queueSize > 0 ? `${queueSize} card${queueSize === 1 ? "" : "s"} ready` : "All caught up"}</h1>
+      <p>${queueSize > 0 ? "Due reviews and new cards waiting." : "Nothing due right now — new cards and reviews will surface as they come around."}</p>
+    </div>
+
+    <div class="tiles">
+      <div class="tile due"><div class="n">${due}</div><div class="l">due today</div></div>
+      <div class="tile new"><div class="n">${isNew}</div><div class="l">new</div></div>
+      <div class="tile"><div class="n">${later}</div><div class="l">scheduled</div></div>
+    </div>
+
+    <div class="startbar">
+      <button class="btn primary" id="btn-start" ${queueSize === 0 ? "disabled" : ""}>Start review</button>
+      <span class="hint">${queueSize === 0 ? "Come back later, or import another deck." : "Space to flip · 1–4 to grade · Esc to stop"}</span>
+    </div>
+
+    <div class="panel">
+      <h3>Decks</h3>
+      <table>
+        <thead><tr><th>Deck</th><th class="num">Due</th><th class="num">New</th><th class="num">Scheduled</th><th class="num">Total</th></tr></thead>
+        <tbody>${deckRows}</tbody>
+      </table>
+    </div>
+
+    <div class="panel">
+      <h3>Next 7 days</h3>
+      <div class="forecast">
+        ${fcDays.map(([k, n]) => `
+          <div class="col">
+            <div class="bar" style="height:${n === 0 ? 0 : Math.max(6, Math.round(n / fcMax * 100))}%">
+              ${n > 0 ? `<span>${n}</span>` : ""}
+            </div>
+            <div class="day">${weekday(k)}</div>
+          </div>`).join("")}
+      </div>
+    </div>`;
+
+  const start = document.getElementById("btn-start");
+  if (start) start.onclick = startSession;
+}
+
+function startSession() {
+  const today = todayStr();
+  const queue = collectDue(today);
+  if (queue.length === 0) { renderDashboard(); return; }
+  SESSION = { queue, idx: 0, revealed: false, reviewed: 0, recalled: 0, today };
+  $dash.classList.add("hidden");
+  document.querySelector(".review").classList.add("active");
+  renderCard();
+}
+
+function renderCard() {
+  if (SESSION.idx >= SESSION.queue.length) return renderDone();
+  const [, card] = SESSION.queue[SESSION.idx];
+  const isNew = card.srs.due === null;
+  const n = SESSION.queue.length;
+  const pct = Math.round(SESSION.idx / n * 100);
+  const files = (card.files || []).map((f) => `<code>${esc(f)}</code>`).join(" ");
+
+  $rev.innerHTML = `
+    <div class="rev-top">
+      <span>${SESSION.idx + 1} / ${n}</span>
+      <div class="rev-progress-track"><div class="rev-progress-fill" style="width:${pct}%"></div></div>
+      <button class="btn ghost" id="btn-quit">Esc · stop</button>
+    </div>
+    <div class="cardview">
+      <div class="meta">
+        <span>${esc(card.deck)}</span><span>·</span><span>${esc(card.concept || "")}</span>
+        ${isNew ? `<span class="badge">new</span>` : ""}
+      </div>
+      <div class="front">${esc(card.front)}</div>
+      <div id="answer" style="display:none">
+        <hr class="divider">
+        <div class="back">${esc(card.back).split("\n").map((p) => `<p>${p}</p>`).join("")}</div>
+        ${files ? `<div class="src">src: ${files}</div>` : ""}
+      </div>
+    </div>
+    <div id="reveal-area"></div>`;
+
+  document.getElementById("btn-quit").onclick = renderDashboard;
+  renderRevealArea();
+}
+
+function renderRevealArea() {
+  const area = document.getElementById("reveal-area");
+  if (!SESSION.revealed) {
+    area.innerHTML = `
+      <div class="revealbar">
+        <button class="btn primary" id="btn-reveal">Show answer</button>
+        <div class="kbd">or press Space</div>
+      </div>`;
+    document.getElementById("btn-reveal").onclick = reveal;
+  } else {
+    const [, card] = SESSION.queue[SESSION.idx];
+    const iv = previewIntervals(card, SESSION.today);
+    area.innerHTML = `<div class="grades">
+      ${GRADE_META.map((m) => `
+        <button class="grade ${m.cls}" data-grade="${m.g}">
+          <span class="g-name">${m.name}</span>
+          <span class="g-int">${fmtInterval(iv[m.g])}</span>
+          <span class="g-key">${m.key}</span>
+        </button>`).join("")}
+    </div>`;
+    area.querySelectorAll(".grade").forEach((btn) =>
+      btn.onclick = () => grade(parseInt(btn.dataset.grade, 10)));
+  }
+}
+
+function reveal() {
+  SESSION.revealed = true;
+  const a = document.getElementById("answer");
+  if (a) a.style.display = "block";
+  renderRevealArea();
+}
+
+function grade(g) {
+  const [, card] = SESSION.queue[SESSION.idx];
+  applyGrade(card, g, SESSION.today);
+  SESSION.reviewed++;
+  if (g >= FSRS.GOOD) SESSION.recalled++;
+  SESSION.idx++;
+  SESSION.revealed = false;
+  renderCard();
+}
+
+function renderDone() {
+  const s = SESSION;
+  $rev.innerHTML = `
+    <div class="done">
+      <h2>Session complete</h2>
+      <p>${s.reviewed} reviewed · ${s.recalled} recalled${s.reviewed ? ` · ${Math.round(s.recalled / s.reviewed * 100)}%` : ""}</p>
+      <button class="btn primary" id="btn-back">Back to dashboard</button>
+    </div>`;
+  document.getElementById("btn-back").onclick = renderDashboard;
+  SESSION = null;
+}
+
+/* ============================================================= *
+ *  Import / export
+ * ============================================================= */
+function readFile(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.onerror = () => rej(r.error);
+    r.readAsText(file);
+  });
+}
+async function onDeckFiles(files) {
+  const summaries = [];
+  for (const file of files) {
+    try {
+      const deck = JSON.parse(await readFile(file));
+      summaries.push(importDeck(deck));
+    } catch (e) { toast(`${file.name}: ${e.message}`); }
+  }
+  if (summaries.length) {
+    const t = summaries.map((s) => `${s.name}: +${s.added} new${s.updated ? `, ${s.updated} updated` : ""}${s.orphaned ? `, ${s.orphaned} orphaned` : ""}`).join(" · ");
+    toast(t);
+  }
+  renderDashboard();
+}
+function exportProgress() {
+  const blob = new Blob([JSON.stringify(STATE, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "study-progress.json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast("Exported study-progress.json");
+}
+async function onProgressFile(file) {
+  try {
+    const s = JSON.parse(await readFile(file));
+    if (s.version !== STORE_VERSION || typeof s.cards !== "object") throw new Error("Not a study-progress.json");
+    STATE = s; saveState(STATE); renderDashboard();
+    toast(`Imported progress · ${Object.keys(s.cards).length} cards`);
+  } catch (e) { toast(`Import failed: ${e.message}`); }
+}
+
+/* ============================================================= *
+ *  Wiring
+ * ============================================================= */
+let toastTimer = null;
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 3200);
+}
+
+document.getElementById("btn-import").onclick = () => document.getElementById("file-deck").click();
+document.getElementById("btn-export").onclick = exportProgress;
+document.getElementById("btn-import-progress").onclick = () => document.getElementById("file-progress").click();
+document.getElementById("file-deck").onchange = (e) => { onDeckFiles([...e.target.files]); e.target.value = ""; };
+document.getElementById("file-progress").onchange = (e) => { if (e.target.files[0]) onProgressFile(e.target.files[0]); e.target.value = ""; };
+
+document.addEventListener("keydown", (e) => {
+  if (!SESSION) return;
+  if (e.key === "Escape") { renderDashboard(); return; }
+  if (!SESSION.revealed && (e.key === " " || e.key === "Enter")) { e.preventDefault(); reveal(); return; }
+  if (SESSION.revealed && ["1", "2", "3", "4"].includes(e.key)) { grade(parseInt(e.key, 10)); }
+});
+
+// Power-use / test hook: drive the app without the file picker.
+window.STUDY = {
+  importDeck: (deck, label) => { const r = importDeck(deck, label); renderDashboard(); return r; },
+  reset: () => { STATE = emptyState(); saveState(STATE); renderDashboard(); },
+  state: () => STATE,
+  FSRS,
+};
+
+renderDashboard();
+</script>
+</body>
+</html>
