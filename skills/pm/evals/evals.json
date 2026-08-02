@@ -1,6 +1,6 @@
 {
   "skill_name": "pm",
-  "note": "All cases target the disposable PM-Sandbox project (Nexusdev, id 70844de4-391c-4002-ac3c-6f1e21e4ecd3) so runs never touch the real backlog. Fixtures: NEX-129 daemon loop (unready), NEX-130 assembly (ready), NEX-131 CI PATH fix (ready, small, time-sensitive), NEX-132 dep-ordering (unready), NEX-133 rename cutover (partial), NEX-134 gh-304 (ready; dedup target).",
+  "note": "All cases target the disposable PM-Sandbox project (Nexusdev, id 70844de4-391c-4002-ac3c-6f1e21e4ecd3) so runs never touch the real backlog. Fixtures: NEX-129 daemon loop (unready, mid-ICE, ENABLER), NEX-130 assembly (ready), NEX-131 CI PATH fix (ready, small, time-sensitive), NEX-132 dep-ordering (unready), NEX-133 rename cutover (partial; quiet-window CHORE), NEX-134 gh-304 (ready; dedup target), NEX-135 board-intake (ready; blockedBy NEX-129 — the dependency fixture for case 6).",
   "evals": [
     {
       "id": 1,
@@ -56,6 +56,19 @@
         "Treats the cycle as a cadence bucket, not a frozen commitment (states that flow continues / overflow can be pulled early, does not freeze scope)",
         "Only pulls ready stories into the cycle and excludes the unready ones (NEX-129 daemon loop, NEX-132 dep-ordering have no acceptance criteria)",
         "Proposes the cycle assignments and waits for confirmation before calling save_issue with the cycle param"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "I've got open capacity on the PM-Sandbox backlog (Nexusdev). What should I work on, and in what order?",
+      "expected_output": "A build sequence derived from ICE but adjusted for dependencies: the enabler NEX-129 is pulled ahead of the item it blocks (NEX-135) even though its ICE is mid-pack; blocked items follow their blocker rather than sitting at their raw ICE position; the rename cutover (NEX-133) is separated out as a quiet-window chore instead of being ranked in the queue; both the ICE rank and the dependency-adjusted order are shown where they differ; and any missing blocks/blockedBy relations are proposed before any Linear write.",
+      "expectations": [
+        "Produces a dependency-adjusted build ORDER (explicit first/second/third sequence), not merely a priority ranking",
+        "Reads blocks/blockedBy relations and places blocked items after their blocker instead of at their raw ICE position",
+        "Pulls the enabler NEX-129 ahead of the item it unblocks (NEX-135) even though NEX-129's ICE is not the highest, and treats unblocking-leverage as an Impact signal rather than an unexplained reorder",
+        "Separates non-sequenceable work (the NEX-133 rename quiet-window chore) into its own bucket instead of forcing it into the ordered queue",
+        "Shows both the ICE rank and the dependency-adjusted order where they differ, rather than silently substituting one for the other",
+        "Proposes any missing blocks/blockedBy relation writes and waits for confirmation before writing to Linear"
       ]
     }
   ]

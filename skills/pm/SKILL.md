@@ -86,7 +86,15 @@ Formulas, scales, and citations: `references/prioritization-frameworks.md` — r
 
 Time-criticality can override raw ICE — a low-impact item with a hard deadline is Urgent. Say so when it does.
 
-**Output:** a table — `Issue | Impact | Confidence | Ease | ICE | → Priority | note` — ordered by score, then the proposed Linear writes (which `priority` values change), then wait for confirmation.
+**Order by dependency, not just score.** The ICE rank is the *default* order, not the final one — a pure score list hands back a sequence that can't actually be built in that order. Three adjustments turn the rank into a build sequence:
+
+1. **Topological pull.** Read each candidate's `blockedBy`/`blocks` relations. If an item ranks above a blocker it depends on, pull it down behind that blocker — an enabler always precedes its dependents, even when its own ICE is lower. Do a *stable* sort: keep ICE order everywhere a dependency doesn't force a move. When a low-ICE item unblocks several others, that leverage is real Impact — raise its score to reflect it rather than smuggling the reorder in silently.
+2. **Set the relations you rely on.** If a real dependency isn't modeled in Linear yet, propose the `blocks`/`blockedBy` write so the order is *structural*, not just implied in your head — same propose-then-confirm gate as any write.
+3. **Separate the non-sequenceable.** Not everything belongs in a linear build queue. Pull out **trackers/ledgers** (a standing checklist that never "ships" — its concrete items get extracted as their own stories) and **quiet-window chores** (wide mechanical changes best run when nothing is in flight). Name them as their own bucket instead of forcing them into the rank.
+
+Show both the ICE rank **and** the dependency-adjusted order whenever they differ — the gap is where score and structure disagree, which is information, not noise to hide.
+
+**Output:** a table — `Issue | Impact | Confidence | Ease | ICE | → Priority | note` — ordered by score; then, when it differs, the dependency-adjusted build order (with the non-sequenceable items called out separately); then the proposed Linear writes (`priority` changes and any `blocks`/`blockedBy` relations), then wait for confirmation.
 
 ## Triage
 
@@ -136,6 +144,7 @@ For the capacity/selection mechanics, compose **[[sprint-planning]]** — `pm` s
 | "The order is obvious, just reorder it" | Obvious to you ≠ shown. An unexplained rank is unauditable. | Show ICE (or the reason) per item, even when confident. |
 | "I'll set priorities and mention it after" | A silent write violates the trust boundary. | Propose the writes, wait for confirmation. |
 | "Everything ready is High" | If everything is High, nothing is. Priority requires ordering. | Force-rank; bucket by ICE tier. |
+| "The ICE list *is* the build order" | Score ignores dependencies — a high-ranked item can be blocked, and a low-ranked one can be the enabler that unblocks three others. | Topologically pull blocked items behind their blockers; lift the enabler's Impact; pull ledgers/chores out of the queue entirely. |
 | "This story is basically ready" | Ready = vertical + 3 AC + one-session-sized. | Run the two-hard-gate check; split if it fails. |
 | "Score it with RICE/WSJF to look rigorous" | Reach/economics rarely change a single-scorer order; the math is theater then. | Default ICE; escalate only on the stated triggers. |
 | "I remember Linear's fields" | The board and MCP surface drift. | Read states/labels/tools live first. |
