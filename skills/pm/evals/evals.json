@@ -1,0 +1,62 @@
+{
+  "skill_name": "pm",
+  "note": "All cases target the disposable PM-Sandbox project (Nexusdev, id 70844de4-391c-4002-ac3c-6f1e21e4ecd3) so runs never touch the real backlog. Fixtures: NEX-129 daemon loop (unready), NEX-130 assembly (ready), NEX-131 CI PATH fix (ready, small, time-sensitive), NEX-132 dep-ordering (unready), NEX-133 rename cutover (partial), NEX-134 gh-304 (ready; dedup target).",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Prioritize the backlog in the PM-Sandbox project (Nexusdev team) in Linear and set the issue priorities.",
+      "expected_output": "A stack rank with a visible ICE score (Impact, Confidence, Ease and the product) per issue, each mapped to a Linear priority bucket, followed by proposed priority writes that wait for confirmation before touching Linear.",
+      "expectations": [
+        "Shows a per-issue ICE breakdown with Impact, Confidence, and Ease values AND the multiplied score, not just a bare ordering",
+        "Maps each issue to a Linear priority level (Urgent/High/Medium/Low or 1-4)",
+        "Proposes the priority writes and explicitly waits for user confirmation instead of calling save_issue immediately",
+        "Reads the live PM-Sandbox issues before proposing, rather than assuming",
+        "Does NOT compute RICE or WSJF for these individual issues (uses ICE as the default single-scorer framework)"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "A new bug is proposed for the PM-Sandbox project (Nexusdev): 'github client throws on a 304 from gh api instead of treating it as unchanged'. Triage it.",
+      "expected_output": "A triage decision that separates severity from priority, searches existing PM-Sandbox issues for a duplicate (finds NEX-134) before creating anything, and gives an accept/defer/delete call with a reason — all proposed before any Linear write.",
+      "expectations": [
+        "Distinguishes severity from priority explicitly rather than conflating them into one number",
+        "Searches existing issues for a possible duplicate before proposing to create anything, and surfaces the near-duplicate (NEX-134)",
+        "Gives an explicit accept / defer / delete decision with a stated reason",
+        "Proposes any label/priority/relation writes and waits for confirmation before executing"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Write a Linear story in the PM-Sandbox project for adding automatic retry-with-backoff to the github read client.",
+      "expected_output": "A story that is a vertical slice with a user/operator-facing outcome, has 3+ testable Given/When/Then acceptance criteria, is scoped to a single AI build session, and is proposed as a Linear issue before being created.",
+      "expectations": [
+        "Frames the story as a vertical slice with a user- or operator-facing outcome, not a component/task like 'add a retry function'",
+        "Includes at least 3 testable acceptance criteria in Given/When/Then form",
+        "Explicitly checks or states that the story is sized to complete in one AI build session (splits or flags it if not)",
+        "Proposes the issue for confirmation before calling save_issue"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "The PM-Sandbox project has a pile of backlog issues but no roadmap. Plan one in Linear.",
+      "expected_output": "A Now/Next/Later roadmap organized by decreasing certainty, mapped onto Linear initiatives/projects, that flags the PM-Sandbox project is not linked to an initiative, and proposes the structure before writing it.",
+      "expectations": [
+        "Organizes the roadmap into Now / Next / Later horizons of decreasing certainty rather than fixed dates",
+        "Maps horizons onto Linear initiatives and/or projects (not just an inline text list)",
+        "Flags that the PM-Sandbox project is not linked to an initiative (disconnected roadmap gap)",
+        "Proposes the initiative/project changes and waits for confirmation before writing"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Nexusdev now runs 2-week cycles. Plan the current cycle for the PM-Sandbox backlog.",
+      "expected_output": "A cycle plan that fills the cycle with the top-ICE ready stories up to a rough capacity budget, treats the cycle as a cadence bucket (flow continues; not a frozen scope), pulls only ready stories (NEX-130/131/134, not the unready NEX-129/132), and proposes the cycle assignments before writing.",
+      "expectations": [
+        "Selects stories for the cycle by ICE rank up to a rough throughput/capacity budget, rather than dumping the whole backlog in",
+        "Treats the cycle as a cadence bucket, not a frozen commitment (states that flow continues / overflow can be pulled early, does not freeze scope)",
+        "Only pulls ready stories into the cycle and excludes the unready ones (NEX-129 daemon loop, NEX-132 dep-ordering have no acceptance criteria)",
+        "Proposes the cycle assignments and waits for confirmation before calling save_issue with the cycle param"
+      ]
+    }
+  ]
+}
