@@ -1,6 +1,6 @@
 {
   "skill_name": "pm",
-  "note": "All cases target the disposable PM-Sandbox project (Nexusdev, id 70844de4-391c-4002-ac3c-6f1e21e4ecd3) so runs never touch the real backlog. Fixtures: NEX-129 daemon loop (unready, mid-ICE, ENABLER), NEX-130 assembly (ready), NEX-131 CI PATH fix (ready, small, time-sensitive), NEX-132 dep-ordering (unready), NEX-133 rename cutover (partial; quiet-window CHORE), NEX-134 gh-304 (ready; dedup target), NEX-135 board-intake (ready; blockedBy NEX-129 — the dependency fixture for case 6).",
+  "note": "All cases target the disposable PM-Sandbox project (Nexusdev, id 70844de4-391c-4002-ac3c-6f1e21e4ecd3) so runs never touch the real backlog. Fixtures: NEX-129 daemon loop (unready, mid-ICE, ENABLER), NEX-130 assembly (ready), NEX-131 CI PATH fix (ready, small, time-sensitive), NEX-132 dep-ordering (unready), NEX-133 rename cutover (partial; quiet-window CHORE), NEX-134 gh-304 (ready; dedup target), NEX-135 board-intake (ready; blockedBy NEX-129 — the dependency fixture for case 6). Workflow states for the lane cases (6-7): NEX-135 is mis-filed in Todo despite being blockedBy NEX-129 (demote target); NEX-131 is ready + unblocked but sitting in Backlog (promote target); NEX-130 is correctly in Todo; all others in Backlog.",
   "evals": [
     {
       "id": 1,
@@ -61,14 +61,26 @@
     {
       "id": 6,
       "prompt": "I've got open capacity on the PM-Sandbox backlog (Nexusdev). What should I work on, and in what order?",
-      "expected_output": "A build sequence derived from ICE but adjusted for dependencies: the enabler NEX-129 is pulled ahead of the item it blocks (NEX-135) even though its ICE is mid-pack; blocked items follow their blocker rather than sitting at their raw ICE position; the rename cutover (NEX-133) is separated out as a quiet-window chore instead of being ranked in the queue; both the ICE rank and the dependency-adjusted order are shown where they differ; and any missing blocks/blockedBy relations are proposed before any Linear write.",
+      "expected_output": "A SINGLE ranking (ICE with dependency leverage folded into Impact) mapped to Linear priority AND a Backlog/Todo lane — not a priority list plus a separate parallel build order. The blocked high-value item (NEX-135, blockedBy NEX-129) keeps its priority but is shown in the Backlog lane rather than dropped in priority or pulled down a second sequence; the enabler NEX-129 carries lifted Impact for its leverage; the ready lane (Todo = unblocked + story-gate) answers 'what to work on now'; non-sequenceable work (NEX-133 chore, reconciliation ledger) is off the pull queue in Backlog; and any state/relation writes are proposed before applying.",
       "expectations": [
-        "Produces a dependency-adjusted build ORDER (explicit first/second/third sequence), not merely a priority ranking",
-        "Reads blocks/blockedBy relations and places blocked items after their blocker instead of at their raw ICE position",
-        "Pulls the enabler NEX-129 ahead of the item it unblocks (NEX-135) even though NEX-129's ICE is not the highest, and treats unblocking-leverage as an Impact signal rather than an unexplained reorder",
-        "Separates non-sequenceable work (the NEX-133 rename quiet-window chore) into its own bucket instead of forcing it into the ordered queue",
-        "Shows both the ICE rank and the dependency-adjusted order where they differ, rather than silently substituting one for the other",
-        "Proposes any missing blocks/blockedBy relation writes and waits for confirmation before writing to Linear"
+        "Produces ONE ranking (priority, with dependency leverage reflected in Impact) and does NOT emit a separate parallel 'build order' alongside the priority list",
+        "Expresses the blocked high-value item (NEX-135, blockedBy NEX-129) by keeping its priority and placing it in the Backlog lane, rather than dropping its priority or pulling it down a second sequence",
+        "Folds enabler leverage into Impact (NEX-129, which unblocks NEX-135, scored with lifted Impact) rather than creating a parallel sequence position for it",
+        "Identifies the ready lane (Todo = unblocked AND story-gate-passing) as the answer to 'what to work on now', surfacing ready items and excluding blocked/unrefined ones",
+        "Treats non-sequenceable work (NEX-133 chore, reconciliation ledger) as Backlog / off-the-pull-queue, not as a low rank in a build sequence",
+        "Proposes any state (Backlog/Todo) or blocks/blockedBy writes and waits for confirmation before applying"
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "Take a look at the PM-Sandbox board (Nexusdev) — are the issues in the right workflow states, or is anything mis-filed between Backlog and Todo?",
+      "expected_output": "A bidirectional lane audit against the readiness gate (Todo = unblocked AND story-ready): NEX-131 is ready + unblocked but sitting in Backlog, so propose promoting it to Todo; NEX-135 is in Todo but blockedBy NEX-129, so propose demoting it to Backlog; correctly-placed issues (e.g. NEX-130 in Todo, epics/unrefined in Backlog) are left alone; every state change is proposed before it is written.",
+      "expectations": [
+        "Proposes PROMOTING a ready, unblocked item mis-filed in Backlog (NEX-131) up to Todo",
+        "Proposes DEMOTING a blocked or unrefined item mis-filed in Todo (NEX-135, blockedBy NEX-129) back to Backlog",
+        "Applies the readiness gate in BOTH directions, not only promotion or only demotion",
+        "Leaves correctly-placed issues in their current state instead of churning the whole board",
+        "Proposes the state writes (save_issue state) and waits for confirmation before applying"
       ]
     }
   ]

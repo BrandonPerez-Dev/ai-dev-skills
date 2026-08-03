@@ -49,7 +49,7 @@ Different requests need different flows — don't run one procedure for everythi
 
 | Request | Flow | Core move |
 |---|---|---|
-| "Prioritize / order / rank the backlog", "what's next" | **Prioritize** | Score with ICE, map to Linear priority, propose the stack rank |
+| "Prioritize / order / rank the backlog", "what's next" | **Prioritize** | Score with ICE (dependency leverage folded into Impact); set priority + Backlog/Todo lane; propose one ranking |
 | "Triage this issue", "groom the backlog", new intake | **Triage** | Classify (severity vs priority), dedup, accept/defer/delete |
 | "Write / refine / split / size a story" | **Story** | Vertical slice, agent-sized, 3+ AC; compose [[backlog-refinement]] |
 | "Plan / adjust the roadmap" | **Roadmap** | Now/Next/Later over projects/initiatives |
@@ -86,15 +86,28 @@ Formulas, scales, and citations: `references/prioritization-frameworks.md` — r
 
 Time-criticality can override raw ICE — a low-impact item with a hard deadline is Urgent. Say so when it does.
 
-**Order by dependency, not just score.** The ICE rank is the *default* order, not the final one — a pure score list hands back a sequence that can't actually be built in that order. Three adjustments turn the rank into a build sequence:
+**Dependencies feed the score; they are not a second ordering.** There is one ordering principle — priority — and dependencies enter it two ways, never as a parallel "build order":
 
-1. **Topological pull.** Read each candidate's `blockedBy`/`blocks` relations. If an item ranks above a blocker it depends on, pull it down behind that blocker — an enabler always precedes its dependents, even when its own ICE is lower. Do a *stable* sort: keep ICE order everywhere a dependency doesn't force a move. When a low-ICE item unblocks several others, that leverage is real Impact — raise its score to reflect it rather than smuggling the reorder in silently.
-2. **Set the relations you rely on.** If a real dependency isn't modeled in Linear yet, propose the `blocks`/`blockedBy` write so the order is *structural*, not just implied in your head — same propose-then-confirm gate as any write.
-3. **Separate the non-sequenceable.** Not everything belongs in a linear build queue. Pull out **trackers/ledgers** (a standing checklist that never "ships" — its concrete items get extracted as their own stories) and **quiet-window chores** (wide mechanical changes best run when nothing is in flight). Name them as their own bucket instead of forcing them into the rank.
+- **Leverage → Impact.** An item that unblocks others is more impactful *because* it unblocks them — fold that into its Impact score (an enabler gating three stories outscores its standalone value). The single ranking then already reflects it; don't emit a separate sequence beside it.
+- **Hard blockers gate the lane, not the rank.** A blocked item *keeps* its priority — importance doesn't fall because you can't start yet — and instead stays in **Backlog** until unblocked (see Readiness lane). That's how "important but not startable" is expressed without a competing order or a dishonest priority.
+- **Model the dependency if it's real but unmodeled** — propose the `blocks`/`blockedBy` write (same propose-then-confirm gate), so the lane gate is structural, not implied in your head.
 
-Show both the ICE rank **and** the dependency-adjusted order whenever they differ — the gap is where score and structure disagree, which is information, not noise to hide.
+Non-sequenceable work — trackers/ledgers (a standing checklist that never "ships") and quiet-window chores (wide mechanical changes best run when nothing's in flight) — isn't low-priority, it's *off the pull queue*: it lives in Backlog and is named as such, not ranked as if a session could pull it next.
 
-**Output:** a table — `Issue | Impact | Confidence | Ease | ICE | → Priority | note` — ordered by score; then, when it differs, the dependency-adjusted build order (with the non-sequenceable items called out separately); then the proposed Linear writes (`priority` changes and any `blocks`/`blockedBy` relations), then wait for confirmation.
+**Output:** a single ranking — `Issue | Impact | Confidence | Ease | ICE | → Priority | Lane | note` — ordered by score, where Impact already carries any dependency leverage; then the proposed Linear writes (`priority`, `state` promotions/demotions, any `blocks`/`blockedBy` relations); then wait for confirmation.
+
+## Readiness lane
+
+Importance and actionability are different axes on different Linear mechanisms: **priority** answers *how much it matters*; **workflow state** answers *can it be started now*. Keeping them separate is what lets neither one lie — an important blocked item stays High priority *and* out of the ready lane.
+
+- **Backlog** = planned but not startable — unrefined, an epic, or `blockedBy` something open.
+- **Todo** = the ready lane — refined to the story hard-gate (vertical + 3 AC + one-session) **and** no open blocker. "What's ready to pull" is then a live query (`list_issues state:Todo`), not a hand reconstruction — and it's the queue the intake daemon will drain.
+
+<HARD-GATE>
+An issue belongs in **Todo** only if it has no open `blockedBy` **and** it passes the story hard-gate. Enforce this **bidirectionally**: propose promoting Backlog→Todo the moment an item becomes ready, and propose demoting Todo→Backlog the moment one regresses (newly blocked, or found unrefined). A stale Todo misleads the puller — and the daemon — exactly as much as a ready item stranded in Backlog. State changes are writes: propose, then confirm.
+</HARD-GATE>
+
+The pull order *within* Todo is just the priority ranking restricted to the ready lane — there is no separate build order to compute.
 
 ## Triage
 
@@ -104,6 +117,7 @@ Follow the 4-step loop (gather/analyze → categorize → reprioritize around va
 - **Dedup before creating.** `list_issues` with a `query` on the title/keywords and scan open + recent items. If it's a dup, set the relation (`duplicateOf`) rather than opening a new issue. Proposed, then confirmed.
 - **Accept / Defer / Delete.** The backlog is not a wish list. Accept items with a live connection to a current project/initiative; defer valid-but-not-now with a revisit trigger; delete duplicates and strategy-less items. State which and why.
 - Apply the existing team labels (type: Feature/Bug/Improvement; area labels) — read them live, don't invent.
+- **Lane hygiene.** Grooming includes making state match readiness (the Readiness-lane gate): propose promoting ready + unblocked Backlog items to Todo, and demoting blocked or unrefined Todo items back to Backlog. Do it both directions — a misfiled state is a lie about what's pullable.
 
 ## Story
 
@@ -144,7 +158,9 @@ For the capacity/selection mechanics, compose **[[sprint-planning]]** — `pm` s
 | "The order is obvious, just reorder it" | Obvious to you ≠ shown. An unexplained rank is unauditable. | Show ICE (or the reason) per item, even when confident. |
 | "I'll set priorities and mention it after" | A silent write violates the trust boundary. | Propose the writes, wait for confirmation. |
 | "Everything ready is High" | If everything is High, nothing is. Priority requires ordering. | Force-rank; bucket by ICE tier. |
-| "The ICE list *is* the build order" | Score ignores dependencies — a high-ranked item can be blocked, and a low-ranked one can be the enabler that unblocks three others. | Topologically pull blocked items behind their blockers; lift the enabler's Impact; pull ledgers/chores out of the queue entirely. |
+| "Emit a priority rank *and* a build order" | Two orderings that can disagree force the reader to ask which to obey; dependency leverage already lives in Impact. | One ranking; separate blocked/unready work by *state* (Backlog), not a second list. |
+| "It's blocked, so drop its priority" | Importance didn't change, only actionability did — demoting hides that it still matters (and that unblocking it is valuable). | Keep the priority; move it to Backlog. The lane carries "can't start yet." |
+| "It's important, so put it in Todo" | Todo means *startable*, not important. An important blocked/epic item in Todo misleads whoever pulls next. | Gate Todo on unblocked ∧ story-ready; important-but-not-ready stays in Backlog. |
 | "This story is basically ready" | Ready = vertical + 3 AC + one-session-sized. | Run the two-hard-gate check; split if it fails. |
 | "Score it with RICE/WSJF to look rigorous" | Reach/economics rarely change a single-scorer order; the math is theater then. | Default ICE; escalate only on the stated triggers. |
 | "I remember Linear's fields" | The board and MCP surface drift. | Read states/labels/tools live first. |
