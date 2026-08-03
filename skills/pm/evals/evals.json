@@ -82,6 +82,56 @@
         "Leaves correctly-placed issues in their current state instead of churning the whole board",
         "Proposes the state writes (save_issue state) and waits for confirmation before applying"
       ]
+    },
+    {
+      "id": 8,
+      "prompt": "Here's the Cadre backlog (Nexusdev). What needs refinement, and in what order should I groom it?\n\n- NEX-201 Daemon loop (Backlog, no AC, large multi-session, blocks NEX-207)\n- NEX-202 Assembly stage S5 (Backlog, stub, large, no testable AC, open design question)\n- NEX-203 CI attestation false-green on PATH (Backlog, 3 AC, small, unblocked, time-sensitive)\n- NEX-204 Dependency-aware slice ordering (Backlog, no AC, medium)\n- NEX-205 Cadre rename cutover (Backlog, mechanical, quiet-window, no functional gain)\n- NEX-206 gh client 304 handling (Todo, 3 AC, small)\n- NEX-207 Board intake (Todo, 3 AC, medium, blockedBy NEX-201)",
+      "expected_output": "A ranked refinement queue: each unready item classified by why it fails readiness and routed to a specific fix (decompose/AC/reframe/unblock/triage/lane), epics named as epics, ordered by leverage, proposed before any write.",
+      "expectations": [
+        "Produces a ranked refinement queue (ordered list of what to groom next), not merely a priority ranking or a flat list",
+        "Classifies each unready item by why it fails readiness (epic / missing AC / vague / blocked / stale / mis-filed lane)",
+        "Routes each unready item to a specific fix (decompose / write AC / reframe / unblock / triage / promote-or-demote)",
+        "Identifies the epics (NEX-201, NEX-202) as epics needing decomposition, not just 'not ready'",
+        "Orders the queue by leverage (blocking or high-value items groomed first) with a stated rationale",
+        "Proposes changes for confirmation before any write"
+      ]
+    },
+    {
+      "id": 9,
+      "prompt": "This parked epic has been 'not ready' for weeks — get it ready to build. NEX-202 Assembly stage (S5): the final pipeline stage, a stub. When all slices are built it must (1) run as-if-against-main CI, (2) run adversarial critics->judge->one consolidated PR comment with above-threshold findings routed back as fix-slices, (3) generate a walkthrough+quiz, (4) open a clean fresh feat->main PR stripping planning scaffolding. Open question: delete .pipeline/ at assembly vs migrate. No AC yet; clearly more than one build session.",
+      "expected_output": "The epic decomposed into vertical child stories each Story-ready with 3+ AC, linked under the epic via parentId, proposed before creating anything.",
+      "expectations": [
+        "Recognizes NEX-202 as an epic that fails the size bar (too big for one session)",
+        "Splits it into multiple child stories each with a user/operator-facing outcome (vertical), not bare components/layers",
+        "Each child story gets 3+ testable acceptance criteria",
+        "Proposes a parent->children structure with children linked under the epic via parentId",
+        "Each resulting child is independently verifiable/shippable (vertical), not a horizontal layer",
+        "Proposes the writes for confirmation before creating anything"
+      ]
+    },
+    {
+      "id": 10,
+      "prompt": "We have a roadmap initiative with an outcome but no stories written yet. Plan the stories to deliver it. INITIATIVE: 'Operators can trust that a green CI run means the code actually works.' Today CI sometimes passes for the wrong reason (stray PATH binaries, skipped tests never re-run, a 304 treated as an error). No stories exist yet — just the outcome.",
+      "expected_output": "A set of stories with a backbone/spine laid before slicing, a thin first end-to-end walk distinct from deferred variations, each story Story-ready, presented as an ordered tree before writing.",
+      "expectations": [
+        "Produces a set of multiple stories (not a single story, not a vague description)",
+        "Lays out a backbone / sequence of steps (a spine) before slicing into stories",
+        "Distinguishes a thin first end-to-end walk (MVP path) from deferred later variations",
+        "Each story is Story-ready (vertical + 3+ AC + one-session), or flags still-epic-sized ones for later decomposition",
+        "Presents the set as an ordered plan/tree with priorities, proposed for confirmation before writing"
+      ]
+    },
+    {
+      "id": 11,
+      "prompt": "Prioritize this Cadre backlog and set the issue priorities.\n\n- NEX-201 Daemon loop (Backlog, no AC, large, blocks NEX-207)\n- NEX-202 Assembly stage S5 (Backlog, stub, large, no testable AC)\n- NEX-203 CI attestation false-green on PATH (Backlog, 3 AC, small, unblocked, time-sensitive)\n- NEX-204 Dependency-aware slice ordering (Backlog, no AC, medium)\n- NEX-205 Cadre rename cutover (Backlog, mechanical, quiet-window, no functional gain)\n- NEX-206 gh client 304 handling (Todo, 3 AC, small)\n- NEX-207 Board intake (Todo, 3 AC, medium, blockedBy NEX-201)",
+      "expected_output": "A single ICE ranking with per-issue Impact/Confidence/Ease and product, mapped to Linear priority, dependency leverage folded into Impact, blocked items lane-gated not de-prioritized, proposed before writing. Regression guard for the rightsize.",
+      "expectations": [
+        "Shows a per-issue ICE breakdown (Impact, Confidence, Ease AND the product), not a bare ordering",
+        "Maps each issue to a Linear priority bucket (Urgent/High/Medium/Low or 1-4)",
+        "Folds dependency leverage into Impact (enabler NEX-201) and keeps blocked items' priority while lane-gating them, rather than a separate build order",
+        "Proposes the writes and waits for confirmation before executing",
+        "Uses ICE as the default single scorer (not RICE/WSJF for these individual issues)"
+      ]
     }
   ]
 }
