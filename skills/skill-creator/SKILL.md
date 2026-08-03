@@ -72,6 +72,8 @@ Skills fail silently — no error, the agent just proceeds without the skill and
 
 Match freedom to fragility: open-field judgment gets principles; narrow-bridge operations get scripts.
 
+Rightsizing an *existing* skill written for an older model is its own operation — collapse restated rules to one, demote non-critical gates to motivated principles, and keep only genuine safety gates. The recipe and the canonical keep-list are in `references/rightsizing-for-claude-5.md`.
+
 ## Designing the skill
 
 A skill is an agent definition: the body is its system prompt, `allowed-tools` its grants, `references/` its knowledge base, `scripts/` its deterministic tools. Design accordingly:
@@ -167,4 +169,5 @@ Guardrails from the optimization literature: mutate on train cases, select on he
 
 - `references/eval-schemas.md` — exact JSON schemas for evals, grading, benchmark files (read before writing any harness file)
 - `references/scoring-methodology.md` — scoring rubric for auditing existing skills
+- `references/rightsizing-for-claude-5.md` — recipe + keep-list for de-constraining a skill written for an older model (read before rightsizing one)
 - `harness/agents/{grader,comparator,analyzer}.md` — subagent instructions for grading, blind A/B, analysis (read when spawning each)

@@ -136,6 +136,7 @@ Write the specific change to the skill:
 | **Nuance** | Skill is too absolute | Add "unless X, in which case Y" |
 | **Deprecation** | Tool or pattern is outdated | Replace with current alternative, note migration path |
 | **Reorganization** | Section has grown unwieldy | Split or restructure for clarity |
+| **Rightsizing** | Over-constrained for the current model generation | De-constrain per the recipe; keep only safety gates (see below) |
 
 ### 5. Apply and Verify
 
@@ -214,6 +215,20 @@ When updating one skill, check related skills for consistency:
 | eval-driven-dev | ai-agent-building (agent evals) |
 | architecture-diagram | design (diagrams in design docs), architecture (data flow diagrams) |
 | ai-agent-building | build (agent-specific patterns), architecture (orchestration) |
+
+## Rightsizing for the model generation
+
+A skill written for an older model can be over-constrained for a newer one — the same rule
+restated across several tables, and emphatic gates on recoverable steps — which spends context
+and buries the gates that matter. Fixing that is a distinct operation, triggered by a
+model-generation shift rather than a LEARNINGS entry.
+
+Don't restate authoring rules here. Follow `skill-creator`'s "Prescriptiveness: split by layer"
+guidance and the recipe in `skill-creator/references/rightsizing-for-claude-5.md` — the
+mechanical steps plus the keep-list of genuine safety gates that stay firm. One caveat specific
+to maintenance: rightsizing is a hypothesis until measured. Rightsize one skill, confirm with a
+baseline A/B (no behavior regression, equal-or-lower tokens), then roll the recipe across the
+batch — never mass-edit on the theory alone.
 
 ## Anti-Patterns
 
