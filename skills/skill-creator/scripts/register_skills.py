@@ -22,7 +22,7 @@ SKILLS_ROOT = os.path.expanduser("~/dev-config/ai-workflow-config/skills")
 DEV_SET = [
     "engineering", "slicing", "test-planning", "test-writer", "build", "tdd",
     "ship", "code-review", "coding-standards", "investigating",
-    "skill-creator", "refactor" ,
+    "skill-creator", "refactor", "codebase-course", "pr-walkthrough",
 ]
 
 
