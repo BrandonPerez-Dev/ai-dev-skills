@@ -34,7 +34,13 @@ This skill owns the **Linear-native** layer: reading the real board, scoring and
 Never write to Linear (create/update issues, set priority, reorder, move state, add relations, edit projects/initiatives) until you have shown the proposed change and its rationale and the user has confirmed. Reads are free; writes are proposed first. This is the money-and-trust boundary — batch the proposal, then execute on approval.
 </HARD-GATE>
 
-**Story-ready means** a **vertical slice** (a user- or operator-facing outcome, not a component task), **3+ testable acceptance criteria**, and a size **one AI build session can finish**. Missing any of the three → it's an epic or a task, not a ready story: decompose or reframe it. This definition is referenced throughout (Readiness lane, Story, Decompose, Cycle) rather than restated — it is the single bar for "ready."
+**Story-ready means** three things — the single bar for "ready," referenced throughout (Readiness lane, Story, Decompose, Cycle) rather than restated:
+
+- **Vertical** — a user- or operator-facing outcome, not a component task.
+- **Testable done** — enough testable acceptance criteria that "done" is unambiguous, including a failure/edge case *when one applies* (a pure display, a config toggle, or a chore may have none). A small handful is typical; the **count is a signal** — too few = under-specified or trivial, many = probably an epic — **not a hard floor**. (AC-quality rubric → [[backlog-refinement]].)
+- **One coherent outcome the pipeline can plan-and-slice** — *not* "one session." A Cadre story becomes a feature branch the planning phase slices into build units; **multi-slice is the normal shape** (PIPE-1 was six slices). "One session" is the bar for a **slice**. It fails this only when it bundles *several distinct outcomes*, or is too large/vague for planning to slice — then it's an epic (decompose) or needs a spike.
+
+Miss any → epic or task, not ready: decompose, slice-in-planning, or reframe.
 
 ## Always, before any write
 
@@ -49,8 +55,8 @@ Different requests need different flows — don't run one procedure for everythi
 |---|---|---|
 | "Prioritize / order / rank", "what's next" | **Prioritize** | Score with ICE (dependency leverage folded into Impact); set priority + Backlog/Todo lane; one ranking |
 | "What needs refinement", "groom for readiness", "is the board ready to pull" | **Refine (discovery)** | Scan the board, classify each unready item by *why* it fails the bar, emit a ranked refinement queue |
-| "Split / decompose this epic", an item that fails the size bar | **Decompose** | Drive the epic into child stories written under it (`parentId`), composing [[backlog-refinement]] splitting patterns |
-| "Write / refine / size a story" | **Story** | Vertical slice, agent-sized, 3+ AC; compose [[backlog-refinement]] |
+| "Split / decompose this epic", an item bundling several outcomes | **Decompose** | Drive the multi-outcome epic into child stories written under it (`parentId`), composing [[backlog-refinement]] splitting patterns |
+| "Write / refine / size a story" | **Story** | Vertical, testable-done, one coherent outcome; compose [[backlog-refinement]] |
 | "Plan the stories for X", an outcome/initiative with no stories yet | **Story mapping** | Backbone of steps → a sliced story set that delivers the outcome |
 | "Triage this issue", new intake | **Triage** | Classify (severity vs priority), dedup, accept/defer/delete |
 | "Plan / adjust the roadmap" | **Roadmap** | Now/Next/Later over projects/initiatives |
@@ -85,13 +91,21 @@ Formulas, scales, and citations: `references/prioritization-frameworks.md` — r
 | **3 Medium** | Middle ICE tier |
 | **4 Low** | Long tail; revisit later |
 
+**Time-criticality can override raw ICE** — a low-impact item with a hard deadline is Urgent; say so when it does. **Carrying cost** is the sibling signal: cheap-now-expensive-later work (a rename every new story makes costlier) sequences *early* even with no deadline and no user-facing gain. Both lift priority independent of impact, and both *compete* with it rather than overriding the ranking.
+
 **Dependencies feed the score; they are not a second ordering.** There is one ordering principle — priority — and dependencies enter it two ways, never as a parallel "build order":
 
 - **Leverage → Impact.** An item that unblocks others is more impactful *because* it unblocks them — fold that into its Impact (an enabler gating three stories outscores its standalone value). The single ranking then already reflects it.
 - **Hard blockers gate the lane, not the rank.** A blocked item *keeps* its priority — importance doesn't fall because you can't start yet — and stays in **Backlog** until unblocked (see Readiness lane).
 - **Model the dependency if it's real but unmodeled** — propose the `blocks`/`blockedBy` write so the lane gate is structural, not implied in your head.
 
-Non-sequenceable work — trackers/ledgers (a standing checklist that never "ships") and quiet-window chores (wide mechanical changes best run when nothing's in flight) — isn't low-priority, it's *off the pull queue*: it lives in Backlog and is named as such.
+**Nothing is parked — every unit of work is a ranked queue citizen.** What used to be "off the pull queue" is re-expressed, never removed:
+
+- **Blocked** → ranked, lane-gated to Backlog (can't-start-yet); the fix is unblocking the blocker.
+- **Quiet-window / mechanical chores** → ranked with their **carrying cost**; the "quiet window" is a *scheduling note* (a *when*), not a discount on priority.
+- **Trackers/ledgers** (a standing checklist that never "ships") → *not work*: extract their items into ranked stories (see Decompose), and set the ledger itself to **None** — the index isn't pullable, and `None` says "not a work item" where `Low` would falsely rank the work as low-value. Its urgency lives in the extracted stories.
+
+The discipline that stops this becoming a wish list: an item is either **ranked** (real work, even if Low, with a revisit trigger) or **deleted** — never a limbo.
 
 **Output:** a single ranking — `Issue | Impact | Confidence | Ease | ICE | → Priority | Lane | note` — ordered by score; then the proposed writes (`priority`, `state` promotions/demotions, any `blocks`/`blockedBy`); then wait for confirmation.
 
@@ -110,14 +124,15 @@ Prioritize and the Readiness lane *judge* an item you hand them; discovery *find
 
 1. **Read the backlog** (`list_issues` for the project/team, Backlog + Todo).
 2. **Classify each item against Story-ready**, tagging *why* it fails — the reason drives the fix:
-   - **Epic** (fails the size bar) → route to **Decompose**.
-   - **No/weak AC** (fails the testable-criteria bar) → route to **Story** (AC pass).
+   - **Epic** (bundles several outcomes) → route to **Decompose**. *Large-but-coherent* (one outcome, many slices) is **not** an epic — flag it "large — planning will slice it," don't hand-split.
+   - **No/weak AC** (done isn't testable) → route to **Story** (AC pass).
    - **Vague / no user-facing outcome** (fails the vertical bar) → reframe in **Story**.
-   - **Blocked** (`blockedBy` open) → keep in Backlog; the fix is the blocker, not this item.
+   - **Blocked** (`blockedBy` open) → ranked, lane-gated to Backlog; the fix is the blocker, not this item.
+   - **Tracker/ledger** (a standing checklist that never ships) → extract its items into ranked stories; set the index itself to **None**.
    - **Stale** (untouched for months, no deliberate hold) → triage (defer/delete).
    - **Mis-filed lane** (ready item in Backlog, or unready in Todo) → propose the promote/demote.
 3. **Rank the queue** by leverage: an unready item that is high-ICE or blocks others is worth refining before a low-value one. Don't just list — order by which refinement unblocks the most pull-able work.
-4. **Output** a table — `Issue | why not ready | fix (Decompose / AC / reframe / unblock / triage / lane) | priority` — then propose the first batch of fixes (or ask which to take first). An epic is never left as just "not ready": name that it's an epic and that the fix is decomposition.
+4. **Output** a table — `Issue | why not ready | fix (Decompose / AC / reframe / unblock / extract / triage / lane) | priority` — then propose the first batch of fixes (or ask which to take first). A *multi-outcome* epic is never left as just "not ready" — name it and route to decomposition; a *large-but-coherent* story is flagged large (planning slices it), not split.
 
 ## Triage
 
@@ -130,17 +145,17 @@ Follow the 4-step loop (gather → categorize → reprioritize around value → 
 
 ## Story
 
-A Cadre story is a **vertical slice, agent-sized** (the Story-ready bar) — the sweet spot between a component task (too small, no user value) and an epic (too big for one session).
+A Cadre story is a **vertical slice, one coherent outcome** (the Story-ready bar) — the sweet spot between a component task (too small, no user value) and an epic (several outcomes bundled).
 
-- **Refine to the bar.** Write the user-facing outcome, 3+ testable Given/When/Then AC, and confirm one-session sizing. For the full AC-quality rubric and the splitting patterns, **invoke [[backlog-refinement]]** — don't reproduce it here.
+- **Refine to the bar.** Write the user-facing outcome and enough testable Given/When/Then AC that done is unambiguous (incl. an unhappy path when one applies); confirm it's one coherent outcome. For the full AC-quality rubric and the splitting patterns, **invoke [[backlog-refinement]]** — don't reproduce it here.
 - **Write it into Linear** as an issue with the outcome in the title, story + AC in the description, the right project/labels, and a proposed priority from Prioritize. Pipeline-ready means the next step could open `feat/<slug>` against it.
 
 ### Decompose (epic → child stories)
 
-When an item fails only the size bar, it's an epic — don't park it as "not ready," turn it into ready slices:
+When an item bundles **several distinct outcomes** (the size failure from Story-ready — not merely *large*), it's an epic — turn it into ready stories. A *large-but-coherent* story (one outcome, many slices) is **not** an epic: leave it whole, flag it "large — planning will slice it," and don't hand-split what the pipeline slices natively.
 
 1. **Split** with [[backlog-refinement]]'s patterns (find the core complexity, pick one axis of variation, reduce to a single case, defer the rest). Prefer splits that let you *throw one away* and that yield equal-sized small stories.
-2. **Each child must clear Story-ready on its own** — vertical, 3+ AC, one session. A split that yields "build the schema" + "build the API" is horizontal; try again.
+2. **Each child must clear Story-ready on its own** — vertical, testable-done, one coherent outcome. A split that yields "build the schema" + "build the API" is horizontal; try again.
 3. **Propose the writes as a set:** keep the epic as the parent (or convert it), and `save_issue` each child with `parentId` set to it, a proposed priority, and the ready lane if unblocked. Show the parent→children tree and the per-child AC before writing anything.
 
 ## Story mapping
@@ -182,8 +197,11 @@ For the capacity/selection mechanics, compose **[[sprint-planning]]**.
 | "Everything ready is High" | Force-rank; bucket by ICE tier. If everything is High, nothing is. |
 | "Emit a priority rank *and* a build order" | One ranking; separate blocked/unready work by *state* (Backlog), not a second list. Dependency leverage already lives in Impact. |
 | "It's blocked, so drop its priority" | Keep the priority; move it to Backlog. The lane carries "can't start yet," not the rank. |
-| "It's an epic — just mark it not-ready and move on" | Name it an epic and decompose it into ready child stories. "Not ready" without the fix is a dead end. |
-| "Refine the whole backlog to be safe" | Refine deeply for the next 2-3 cycles; leave far-out items at epic level. Over-refinement is waste. |
+| "It's an epic — decompose it" | First check: *several outcomes* (epic → decompose) or *one big outcome, many slices* (large → planning slices it, don't hand-split)? |
+| "It's a chore/rename — park it at Low" | Rank it with its **carrying cost** (cheap-now-expensive-later sequences early); record any quiet-window as a scheduling *note*, not a low priority. |
+| "It's a ledger — leave it in Backlog" | A ledger isn't work — extract its items into ranked stories; set the index to **None** (never Low). |
+| "No third AC, so it's not ready" | Ready = enough testable AC that done is unambiguous; a small slice may need 1–2. Don't pad to hit a number. |
+| "Refine the whole backlog to be safe" | Refine deeply for the next 2-3 cycles; leave far-out items coarse. Over-refinement is waste. |
 | "I remember Linear's fields" | Read states/labels/tools live first; the board and MCP surface drift. |
 
 ## Composition

@@ -21,7 +21,7 @@ Refinement makes stories sprint-ready — the ongoing practice that keeps sprint
 
 Two non-negotiables carry most of the value; the reason is why they hold, so they're stated once here and assumed throughout:
 
-- **3+ testable acceptance criteria per story.** A title-only story gives the team nothing to verify "done" against — the sprint goal turns ambiguous and work derails mid-sprint. No acceptance criteria → not ready.
+- **Testable, unambiguous "done."** Enough testable acceptance criteria that "done" isn't a guess — including a failure/edge case *when one applies*. A title-only story gives the team nothing to verify against and derails the sprint mid-flight. A small handful is typical; the **count is a signal** (too few = under-specified or trivial, many = an epic to split), not a hard floor. No testable criteria → not ready.
 - **Vertical slices, not horizontal.** A story delivers end-to-end value a user can observe. "Build the database schema" is a task; "user can save a draft quote" is a story. A component with no user-facing outcome is a task masquerading as a story — split it a different way.
 
 Everything below is in service of reaching that bar *just in time* — deeply for the next 2-3 sprints, lightly for the pipeline, not at all for work 6+ sprints out. Over-refinement is waste.
@@ -104,7 +104,7 @@ Apply four quality checks to every criterion:
 - **Testable** — can someone write a test case from this? If not, sharpen it.
 - **Observable** — can the user or tester see the result? If not, rewrite it.
 - **Independent** — does it test one thing? If it uses "and," split it.
-- **Covers the unhappy path** — at least one AC should cover an error or edge case.
+- **Covers the unhappy path** — at least one AC covers an error or edge case, when the story has one (a pure display, config toggle, or chore may not).
 
 ### Step 4: Split Oversized Stories
 
@@ -124,7 +124,7 @@ Use the 7 splitting patterns (detail in `references/splitting-patterns.md`):
 
 Present the refined stories with their acceptance criteria before treating them as ready — an AI declaring its own refinement "done" is exactly how unrefined stories slip into a sprint:
 
-"Here are the refined stories. Each has 3+ testable acceptance criteria and delivers end-to-end value. The key decisions:
+"Here are the refined stories. Each has testable acceptance criteria (done is unambiguous) and delivers end-to-end value. The key decisions:
 1. [Stories that were split and why]
 2. [Items triaged out and why]
 3. [Open questions or dependencies surfaced]
@@ -172,7 +172,7 @@ Then offer next steps:
 Guidance for assessing whether a story is sprint-ready:
 
 - [ ] Written in user story format
-- [ ] 3+ acceptance criteria defined (Given/When/Then)
+- [ ] Testable acceptance criteria — done is unambiguous (incl. an unhappy path when one applies)
 - [ ] Dependencies identified and unblocked
 - [ ] Estimated by the team
 - [ ] No blocking open questions
@@ -215,7 +215,7 @@ The rationalizations that derail refinement mid-session, and the counter-move fo
 
 | Thought | Do instead |
 |---|---|
-| "This story is ready enough" | Run the DoR checklist. No 3+ testable AC → not ready; "ready enough" is how sprints derail. |
+| "This story is ready enough" | Run the DoR checklist. Done must be testable and unambiguous (incl. an unhappy path when one applies) → else not ready; "ready enough" is how sprints derail. |
 | "We'll figure it out during the sprint" | Write the acceptance criteria now and surface the unknowns — that *is* the refinement. |
 | "This epic is too complex to split" | Time-box a spike to learn enough to split it. If it truly can't be split, it's a project, not a story. |
 | "Everything is high priority" | Force-rank into one stack. The team pulls N per sprint regardless. |
