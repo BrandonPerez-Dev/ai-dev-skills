@@ -235,6 +235,7 @@ Each slice spec follows: **build → commit → refactor → next slice**. Build
 
 ## Guidelines
 
+- **Artifact voice.** Every written artifact this cycle produces — specs, contracts, interrogation threads, PR bodies — is read by a driver whose reading time caps the day's throughput. Follow [references/artifact-voice.md](references/artifact-voice.md): match length to the change, orient before detail, let structure follow the material. Claude 5 writes long files by default; calibrate deliberately.
 - **Pass context downstream.** Every downstream skill needs the four items from Step 0's exit action. Don't assume they'll be rediscovered.
 - **Spec + context are the source; git is the changelog.** If it matters durably, it lives in one of the two layers — exactly once.
 - **A slice spec without an integration test contract is unfinished.** It cannot be handed to build.

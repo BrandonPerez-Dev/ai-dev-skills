@@ -126,7 +126,9 @@ Durable findings go to `context/research/<topic>.md` (dated cache), cited from t
 | Challenge survived unchanged (no durable delta) | one line in the interrogate commit message |
 | Dated evidence gathered | `context/research/<topic>.md`, cited from the topic file |
 
-Commit the write-backs as a interrogate commit; its message lists each challenge → resolution in one line. That diff + message is the interrogate's visible artifact.
+Write-backs and thread replies follow [`../engineering/references/artifact-voice.md`](../engineering/references/artifact-voice.md): state the resolution and its why once, tersely — a thread is a decision, not an essay.
+
+Commit the write-backs as an interrogate commit; its message lists each challenge → resolution in one line. That diff + message is the interrogate's visible artifact.
 
 ## Scaling
 

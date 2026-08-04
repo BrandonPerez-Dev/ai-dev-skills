@@ -84,6 +84,8 @@ If a constraint involves component boundaries, data flow between services, or AP
 
 ### 4. Land the Scope in spec/
 
+Spec prose follows [`../engineering/references/artifact-voice.md`](../engineering/references/artifact-voice.md): a spec opens by orienting (what this slice is and why) and its length matches the slice — a small one is a few tight sentences, not a filled-in template. Structure follows the slice, not a fixed skeleton.
+
 Walk through the existing `spec/` files and decide for each one whether this change:
 - **Adds** a new spec — create the **stub now**: frontmatter (`status: planned`, `depends_on`), `## Does` (one sentence), a skeletal `## Done when`, `## Notes` (slice-specific decisions, non-goals, open questions), and a `## Changes` entry naming the why. test-planning fills in the contract.
 - **Modifies** an existing spec — mark it `in-progress`, append the intent to its `## Notes` and `## Changes` (what's changing and why; what's being **superseded** gets named explicitly).

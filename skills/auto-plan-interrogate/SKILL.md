@@ -335,7 +335,7 @@ If the scope touches more than 8 specs, the change is too big — split into mul
 | **Marking everything as blocking** | Most decisions can be assumed at medium confidence. Only mark as blocking when the wrong answer would require significant rework. |
 | **Marking everything as high confidence** | Security, data-model, and deletion decisions should bias toward low/medium. When in doubt, flag it. |
 | **Skipping the interrogate** | The interrogate is not optional. Scopes that skip it carry wrong assumptions into locked tests. |
-| **Interrogating surface-level questions** | "Should we use REST or GraphQL?" is a constraint, not a interrogate question. The interrogate interrogates structural assumptions, not technology choices. |
+| **Interrogating surface-level questions** | "Should we use REST or GraphQL?" is a constraint, not an interrogation question. Interrogation targets structural assumptions, not technology choices. |
 | **Planning without reading the codebase** | Hard gate. Planning against an imagined architecture is the #1 failure mode. |
 | **Writing scope or rationale into a standalone planning doc** | Scope → spec stubs; decisions → context/; narrative → the commit message + PR description. |
 | **Decisions without their rejected alternatives** | Record "Rejected: X — because Y" next to the decision in context/. |

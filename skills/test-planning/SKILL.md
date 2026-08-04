@@ -39,6 +39,8 @@ Each `spec/<name>.md` file describes one thing:
 
 Spec files are flat, named descriptively (`create-workflow.md`, `workflow-lifecycle.md`, `payment-intent-flow.md`), and self-contained. No subdirectories. No grouping into capability files.
 
+Contract voice follows [`../engineering/references/artifact-voice.md`](../engineering/references/artifact-voice.md): each case states setup, action, input, expected output, and error cases tightly enough to grasp fast — no restated narrative, no ceremony. Length matches the slice's real surface.
+
 <HARD-GATE>
 Contracts live in `spec/<name>.md` and nowhere else — the spec file is the
 single source of truth for what proves a slice done. Don't restate contract
