@@ -146,7 +146,7 @@ to this project.]
 
 For each process skill in the plan:
 
-1. **Read the corresponding L0 template** (e.g., `auto-plan-grill/SKILL.md`)
+1. **Read the corresponding L0 template** (e.g., `auto-plan-interrogate/SKILL.md`)
 2. **Read the plan entry** — what customizations to make
 3. **Produce the L2 skill** by adapting L0 with repo-specific knowledge
 
@@ -171,7 +171,7 @@ What to INJECT (repo-specific):
 - File naming and organization conventions
 - Error handling patterns with code examples
 - Mock boundary decisions with rationale
-- Project-specific constraint categories for grill lenses
+- Project-specific constraint categories for interrogate lenses
 - Where new code goes (module, crate, directory)
 
 What to KEEP from L0:
@@ -253,7 +253,7 @@ name: [project]-agent
 description: Autonomous dev agent for [project-name]
 
 skills:
-  - skill: plan-grill
+  - skill: plan-interrogate
     triggers: [issue-created, manual]
     outputs: [plan, open-questions, spec-stubs]
 

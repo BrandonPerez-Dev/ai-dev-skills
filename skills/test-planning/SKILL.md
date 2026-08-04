@@ -165,7 +165,7 @@ A slice spec can have **multiple error cases and edge cases** — each is a test
 
 **Editing the spec file:**
 - If the file exists, propose additions or modifications. New cases are new bullets; modified cases show before/after.
-- Superseding an existing contract case (flagged by grill or slicing) is done here explicitly: mark the old case superseded, name the successor, and route the re-lock through test-writer.
+- Superseding an existing contract case (flagged by interrogate or slicing) is done here explicitly: mark the old case superseded, name the successor, and route the re-lock through test-writer.
 - If the file doesn't exist (new slice spec), create it using the slice spec format below.
 
 **Checkpoint 2: validate contract edits with the user — confidence-gated.**

@@ -1,5 +1,5 @@
 ---
-name: grill
+name: interrogate
 description: >-
   Interrogate a sliced scope or design — try to knock it down before it
   becomes locked artifacts. Surfaces tensions, terminology collisions,
@@ -9,7 +9,7 @@ when_to_use: >-
   After slicing lands scope (specs marked planned/in-progress + context
   entries) but before test contracts lock. Use whenever a non-trivial design
   needs adversarial pressure. Can be invoked standalone or as part of the
-  engineering flow. For autonomous agents, use auto-plan-grill instead.
+  engineering flow. For autonomous agents, use auto-plan-interrogate instead.
 allowed-tools:
   - Read
   - Write
@@ -24,22 +24,22 @@ argument-hint: "[spec names, or path/to/design-doc.md]"
 effort: high
 ---
 
-# Grill
+# Interrogate
 
-Interrogate the design instead of admiring it. The slicing conversation builds it up; this step tries to knock it down. Designs that skip the grill carry wrong assumptions into locked tests, where they're expensive to fix.
+Interrogate the design instead of admiring it. The slicing conversation builds it up; this step tries to knock it down. Designs that skip the interrogate carry wrong assumptions into locked tests, where they're expensive to fix.
 
 <HARD-GATE>
-Read the sliced scope AND all of `context/` before grilling. You can't find
+Read the sliced scope AND all of `context/` before interrogating. You can't find
 contradictions with existing decisions if you haven't read them.
 </HARD-GATE>
 
 <HARD-GATE>
-The grill leaves a durable trace. Every challenge resolves into one of:
+The interrogate leaves a durable trace. Every challenge resolves into one of:
 a write-back to `context/` (a sharpened decision, with the rejected
 alternative and why-not), a write-back to the affected spec's `## Notes`
 (slice-scoped resolution), a flagged contract supersession for test-planning
 to execute, or — for challenges the design survived unchanged — a line in the
-grill commit message. A grill that lives only in conversation didn't happen.
+interrogate commit message. A interrogate that lives only in conversation didn't happen.
 </HARD-GATE>
 
 ## Input
@@ -81,16 +81,16 @@ Confirmed language writes back to `context/` (a glossary file earns its place on
 
 Find the existing spec contract or `context/` decision this scope contradicts or quietly re-decides.
 
-Name it explicitly: keep the old decision, or supersede it on purpose — never both implicitly. A superseded **locked contract** (spec test contract, locked test) is flagged for test-planning → test-writer to re-lock; grill names the supersession, it never edits locked artifacts itself.
+Name it explicitly: keep the old decision, or supersede it on purpose — never both implicitly. A superseded **locked contract** (spec test contract, locked test) is flagged for test-planning → test-writer to re-lock; interrogate names the supersession, it never edits locked artifacts itself.
 
 ### 4. Necessity and Scope
 
-Correctness lenses ask "is this right?" — this lens asks "should this exist, at this size, now?" Slicing and specs amplify scope; nothing downstream of the grill pushes back on it. Apply per slice, not once overall:
+Correctness lenses ask "is this right?" — this lens asks "should this exist, at this size, now?" Slicing and specs amplify scope; nothing downstream of the interrogate pushes back on it. Apply per slice, not once overall:
 
 - **Observed demand** — name the real, already-observed need this slice serves. A hypothetical actor ("if we ever have N reviewers…") is not demand. If the demand is speculative, name the evidence that would justify building it — that becomes the revival trigger.
 - **The one-branch version** — state the simplest behavior that covers 100% of *current* reality (often "detect the case → stop and ask"). If the slice builds resolution machinery where a one-branch version suffices, the machinery gets parked, spec `status: parked`, with the revival trigger in its Notes.
 - **Concept budget** — count the new load-bearing terms this scope mints per behavior it adds. Terms that exist only to name internal machinery are glossary debt; prefer reusing existing vocabulary. A scope that adds more nouns than behaviors is over-designed.
-- **Wiring completeness declaration** — everything a spec declares (functions, statuses, vocabulary) must be exercised by the same change that builds it, or explicitly descoped/parked before build. Grill states this expectation so review can enforce it: spec'd-but-unwired at review time is a defect, not a future feature.
+- **Wiring completeness declaration** — everything a spec declares (functions, statuses, vocabulary) must be exercised by the same change that builds it, or explicitly descoped/parked before build. Interrogate states this expectation so review can enforce it: spec'd-but-unwired at review time is a defect, not a future feature.
 
 ### 5. Refutation Attempt
 
@@ -110,9 +110,9 @@ If a tension or refutation requires evidence beyond what's in the codebase:
 
 - Spawn a research agent to investigate the specific question
 - Look for prior art, papers, framework documentation, practitioner experience
-- Ground the grill in evidence, not speculation
+- Ground the interrogate in evidence, not speculation
 
-Durable findings go to `context/research/<topic>.md` (dated cache), cited from the topic file. Research is not mandatory for every grill.
+Durable findings go to `context/research/<topic>.md` (dated cache), cited from the topic file. Research is not mandatory for every interrogate.
 
 ## Where Resolutions Land
 
@@ -123,14 +123,14 @@ Durable findings go to `context/research/<topic>.md` (dated cache), cited from t
 | Slice-scoped resolution (affects one spec's behavior) | that spec's `## Notes` (+ `## Changes` entry) |
 | Contract change / locked-test supersession | flagged, executed by test-planning → test-writer |
 | Parked slice (speculative scope) | spec `status: parked` + revival trigger in its Notes |
-| Challenge survived unchanged (no durable delta) | one line in the grill commit message |
+| Challenge survived unchanged (no durable delta) | one line in the interrogate commit message |
 | Dated evidence gathered | `context/research/<topic>.md`, cited from the topic file |
 
-Commit the write-backs as a grill commit; its message lists each challenge → resolution in one line. That diff + message is the grill's visible artifact.
+Commit the write-backs as a interrogate commit; its message lists each challenge → resolution in one line. That diff + message is the interrogate's visible artifact.
 
 ## Scaling
 
-| Change Size | Grill Depth | Time |
+| Change Size | Interrogate Depth | Time |
 |---|---|---|
 | **Small** (1-2 specs) | One sanity question + quick terminology check | 2-5 min |
 | **Medium** (2-4 specs) | Full lenses (incl. necessity per slice) + refutation | 10-15 min |
@@ -142,12 +142,12 @@ Commit the write-backs as a grill commit; its message lists each challenge → r
 |---|---|
 | **Questionnaire dump** | One question at a time. Wait for resolution before the next. |
 | **Aesthetic criticism** | Focus on structural issues that change contracts, not style preferences. |
-| **Grilling without reading context/** | Hard gate — you can't find contradictions you haven't looked for. |
-| **Resolutions that live only in conversation** | Hard gate — every challenge lands in context/, a spec's Notes, a flagged supersession, or the grill commit message. |
+| **Interrogating without reading context/** | Hard gate — you can't find contradictions you haven't looked for. |
+| **Resolutions that live only in conversation** | Hard gate — every challenge lands in context/, a spec's Notes, a flagged supersession, or the interrogate commit message. |
 | **Recording a decision without its rejected alternative** | The why-not is the part that prevents re-litigating. Write "Rejected: X — because Y." |
-| **Editing a locked contract directly** | Grill names supersessions; test-planning → test-writer executes them. |
+| **Editing a locked contract directly** | Interrogate names supersessions; test-planning → test-writer executes them. |
 | **Skipping the refutation** | The refutation is the most valuable part. Always attempt one. |
 | **Scope without observed demand** | Machinery for hypothetical actors gets parked with a revival trigger, not built. Ask for the one-branch version. |
 | **Minting nouns faster than behaviors** | New glossary terms are debt. Reuse existing vocabulary; a concept that only names internal machinery doesn't earn a term. |
 | **Research without a specific question** | State what you need to learn before spawning research. |
-| **Over-grilling small changes** | One sanity question is enough for a 1-spec change. |
+| **Over-interrogating small changes** | One sanity question is enough for a 1-spec change. |

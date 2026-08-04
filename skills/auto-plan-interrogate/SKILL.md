@@ -1,9 +1,9 @@
 ---
-name: auto-plan-grill
+name: auto-plan-interrogate
 description: >-
-  Autonomous planning + grill for GitHub-driven development. Reads context/spec/codebase,
+  Autonomous planning + interrogate for GitHub-driven development. Reads context/spec/codebase,
   lands scope as spec stubs and decisions in context/ (ADR-style, agent-proposed),
-  self-grills using three lenses, classifies confidence on every decision, pushes
+  self-interrogations using three lenses, classifies confidence on every decision, pushes
   to a branch, opens a draft PR whose description carries the plan narrative, and
   posts open questions as PR comments. Proceeds on medium-confidence assumptions.
 when_to_use: >-
@@ -25,9 +25,9 @@ argument-hint: "[issue URL, task description, or path/to/kickoff.md]"
 effort: high
 ---
 
-# Auto Plan + Grill
+# Auto Plan + Interrogate
 
-Autonomous planning with built-in self-grilling. Read the project, land the scope in the durable layers, poke holes in it, push to GitHub, and let the human review asynchronously. No interactive conversation — GitHub is the communication channel.
+Autonomous planning with built-in self-interrogating. Read the project, land the scope in the durable layers, poke holes in it, push to GitHub, and let the human review asynchronously. No interactive conversation — GitHub is the communication channel.
 
 ## The Model
 
@@ -119,9 +119,9 @@ Derive the scope. This merges what the interactive pipeline does across slicing 
 
 **Suggest build skills:** Language/runtime, domain, infrastructure skills needed — note in the entry-point spec's `## Notes` if non-obvious.
 
-### 3. Grill (bulk, in the same pass)
+### 3. Interrogate (bulk, in the same pass)
 
-Immediately after deriving the scope — before pushing it — grill it. The planning pass builds the scope up; the grill tries to knock it down.
+Immediately after deriving the scope — before pushing it — interrogate it. The planning pass builds the scope up; the interrogate tries to knock it down.
 
 Run **all three lenses** against `context/` and in-scope specs. Unlike the interactive version, raise ALL findings at once, not one at a time.
 
@@ -157,9 +157,9 @@ Close with one attempt to refute the scope:
 
 Resolve the refutation (accept or reject). A rejected refutation is a rejected alternative — record it in the relevant `context/` topic file.
 
-#### Self-Answering Grill Findings
+#### Self-Answering Interrogate Findings
 
-For each grill finding, the agent does one of:
+For each interrogate finding, the agent does one of:
 
 | Confidence | Action | Where it lands |
 |---|---|---|
@@ -167,9 +167,9 @@ For each grill finding, the agent does one of:
 | **Medium** | Self-answers tentatively. | Same as high, marked "Assumption"; 🟡 PR comment so the human can correct. |
 | **Low** | Does NOT assume. | "Open (blocking): …" line in the affected spec's `## Notes`; 🔴 PR comment with the agent's best guess. |
 
-#### ADR Format for Grill Entries
+#### ADR Format for Interrogate Entries
 
-Each durable grill resolution is recorded as a lightweight Architecture Decision Record in the `context/` topic file it belongs to (or the spec's `## Notes` when slice-scoped):
+Each durable interrogate resolution is recorded as a lightweight Architecture Decision Record in the `context/` topic file it belongs to (or the spec's `## Notes` when slice-scoped):
 
 ```markdown
 - **[Decision title]** — [the resolution]. Rationale: [why]. Rejected: [alternative] — [why not].
@@ -219,16 +219,16 @@ No test exists yet — auto-test-planning will produce the contract, auto-test-w
 - [Slice-level decisions and assumptions, with confidence markers]
 - Out of scope: [non-goals]
 - Open (blocking): [question] — see PR comment
-- Created by auto-plan-grill from kickoff: [issue URL / one-line description]
+- Created by auto-plan-interrogate from kickoff: [issue URL / one-line description]
 
 ## Changes
-- YYYY-MM-DD — created (auto-plan-grill): [why this slice]
+- YYYY-MM-DD — created (auto-plan-interrogate): [why this slice]
 ```
 
 For each modified spec: set `status: in-progress`, append intent to `## Notes` and `## Changes`, name any supersession explicitly.
 
 #### Context updates
-System-level decisions, grill ADRs, and terminology land in `context/` topic files, marked "Proposed by agent — not yet human-confirmed." Dated research goes to `context/research/`.
+System-level decisions, interrogate ADRs, and terminology land in `context/` topic files, marked "Proposed by agent — not yet human-confirmed." Dated research goes to `context/research/`.
 
 ### 6. Push to GitHub
 
@@ -288,7 +288,7 @@ The draft PR description is the plan document the human reviews:
 ## Non-Goals
 - [What this change explicitly does NOT do]
 
-## Grill summary
+## Interrogate summary
 - [Challenge] → [resolution or "held — see context/<topic>.md"]
 - Refutation: [strongest argument against] → [why we proceed / what changed]
 
@@ -319,7 +319,7 @@ Post comments on the specific lines in the spec or context files where the quest
 
 ## Scaling
 
-| Change Size | Constraints | Specs touched | Grill depth |
+| Change Size | Constraints | Specs touched | Interrogate depth |
 |---|---|---|---|
 | **Small** | 3–5 bullets | 1–2 | 1–2 sanity checks |
 | **Medium** | 5–10 bullets | 2–4 | Full three-lens pass |
@@ -334,12 +334,12 @@ If the scope touches more than 8 specs, the change is too big — split into mul
 | **Asking the human before trying to answer** | Research first. Check context/ and codebase. Only post as open question if you genuinely can't determine the answer. |
 | **Marking everything as blocking** | Most decisions can be assumed at medium confidence. Only mark as blocking when the wrong answer would require significant rework. |
 | **Marking everything as high confidence** | Security, data-model, and deletion decisions should bias toward low/medium. When in doubt, flag it. |
-| **Skipping the grill** | The grill is not optional. Scopes that skip it carry wrong assumptions into locked tests. |
-| **Grilling surface-level questions** | "Should we use REST or GraphQL?" is a constraint, not a grill question. The grill interrogates structural assumptions, not technology choices. |
+| **Skipping the interrogate** | The interrogate is not optional. Scopes that skip it carry wrong assumptions into locked tests. |
+| **Interrogating surface-level questions** | "Should we use REST or GraphQL?" is a constraint, not a interrogate question. The interrogate interrogates structural assumptions, not technology choices. |
 | **Planning without reading the codebase** | Hard gate. Planning against an imagined architecture is the #1 failure mode. |
 | **Writing scope or rationale into a standalone planning doc** | Scope → spec stubs; decisions → context/; narrative → the commit message + PR description. |
 | **Decisions without their rejected alternatives** | Record "Rejected: X — because Y" next to the decision in context/. |
-| **Not recording grill resolutions** | Every grill challenge lands in context/, a spec's Notes, or the commit message. Unresolved challenges are open questions. |
+| **Not recording interrogate resolutions** | Every interrogate challenge lands in context/, a spec's Notes, or the commit message. Unresolved challenges are open questions. |
 | **Proceeding on low-confidence decisions** | Low confidence = blocked. Work on other slices instead. |
 
 ## Output
@@ -367,5 +367,5 @@ After this skill completes:
 - **Silence = approval.** For high and medium-confidence items, the human doesn't need to respond. The agent proceeds.
 - **Corrections improve the system.** When the human corrects an assumption, record it in the most durable appropriate layer (context/, spec/, CLAUDE.md, skill memory) and drop the agent-proposed marker.
 - **Specs are the source of truth.** Work commitments live in spec/; decisions live in context/; the PR tells the story.
-- **The grill is the quality gate.** It's what separates a plan from a wish. Every scope gets grilled; the depth scales with the change size.
+- **The interrogate is the quality gate.** It's what separates a plan from a wish. Every scope gets interrogated; the depth scales with the change size.
 - **Proceed on unblocked work.** Don't wait for all questions to be answered. Build what you can while questions are outstanding.

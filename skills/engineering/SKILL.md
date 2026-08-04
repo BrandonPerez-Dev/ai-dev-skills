@@ -146,11 +146,11 @@ Invoke **slicing**. Its output lands directly in the durable layers:
 
 During slicing, invoke utility skills as specific questions need deeper thinking — **architecture**, **ui-ux-design**, **ai-agent-building** — not as separate mandatory phases.
 
-### 3. Grill the Scope
+### 3. Interrogate the Scope
 
-Invoke **grill** on the sliced scope (the planned/in-progress specs + the new context entries). The slicing conversation builds the design up; this step tries to knock it down. Designs that skip the grill carry wrong assumptions into locked tests, where they're expensive.
+Invoke **interrogate** on the sliced scope (the planned/in-progress specs + the new context entries). The slicing conversation builds the design up; this step tries to knock it down. Designs that skip the interrogate carry wrong assumptions into locked tests, where they're expensive.
 
-Grill's findings write back into the layers themselves: sharpened terms and decisions (with the rejected alternative named) → `context/`; slice-scoped resolutions → the spec's `## Notes`. Scale it like everything else: small change → one sanity question; large change → a full session.
+Interrogate's findings write back into the layers themselves: sharpened terms and decisions (with the rejected alternative named) → `context/`; slice-scoped resolutions → the spec's `## Notes`. Scale it like everything else: small change → one sanity question; large change → a full session.
 
 ### 4. Test Planning (mandatory)
 
@@ -192,7 +192,7 @@ If teammate review is wanted: invoke **commit-and-pr** to push the spec/context 
 - **Lead with decisions.** "We should use X because Y" — not "Here's everything about X."
 - **One question at a time.**
 - **Flag uncertainty.** Present 2–3 options with tradeoffs. Don't silently pick when alternatives exist.
-- **Check in at transitions.** After research, before slicing. During the grill (one question at a time). After test-planning, before building.
+- **Check in at transitions.** After research, before slicing. During the interrogate (one question at a time). After test-planning, before building.
 
 ## Anti-Patterns
 
@@ -217,7 +217,7 @@ User: "Add Stripe payment processing to the checkout flow"
 
 3. **Slice** — Constraints confirmed and landed: `context/payments.md` gains the provider decision (with "Rejected: Braintree — no Payment-Intents-equivalent for SCA"); stubs created: `spec/payments-create-intent.md` (planned, first slice), `spec/payments-webhook.md` (planned); `spec/checkout.md` and `spec/orders.md` marked in-progress with intent noted. One planning commit.
 
-4. **Grill** — Invoke **grill** on the scope. Surfaces: "Orders spec says an order is immutable after submission; the sliced scope adds a 'paid' state mutation. Supersede that invariant or model payment as a separate record?" → user picks separate `payment` record; `spec/orders.md` change shrinks; the rejected mutation approach is recorded in `context/payments.md`. Terminology sharpened ("checkout session" vs "cart") in `context/`.
+4. **Interrogate** — Invoke **interrogate** on the scope. Surfaces: "Orders spec says an order is immutable after submission; the sliced scope adds a 'paid' state mutation. Supersede that invariant or model payment as a separate record?" → user picks separate `payment` record; `spec/orders.md` change shrinks; the rejected mutation approach is recorded in `context/payments.md`. Terminology sharpened ("checkout session" vs "cart") in `context/`.
 
 5. **Test Planning** — Writes the integration test contract into `spec/payments-create-intent.md` (setup: cart with items; action: POST /api/payment-intents; expected: 200 + intent ID; side effects: Stripe API call with correct amount; error cases: empty cart, declined card, network error). Validates with user. Repeats for other in-scope specs.
 

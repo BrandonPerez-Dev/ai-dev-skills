@@ -7,7 +7,7 @@ description: >-
   comments on the slice PR. Proceeds on medium-confidence assumptions without
   waiting for human review.
 when_to_use: >-
-  Use after auto-plan-grill has produced a plan with spec stubs. Picks up
+  Use after auto-plan-interrogate has produced a plan with spec stubs. Picks up
   unblocked slices and writes integration test contracts into their spec files.
   Do NOT use for interactive test planning — use test-planning for that.
 allowed-tools:
@@ -26,11 +26,11 @@ effort: high
 
 # Auto Test Planning
 
-Write integration test contracts autonomously. Read the spec stubs from auto-plan-grill, fill in contracts, classify confidence, post questions to GitHub, and hand off to auto-test-writer.
+Write integration test contracts autonomously. Read the spec stubs from auto-plan-interrogate, fill in contracts, classify confidence, post questions to GitHub, and hand off to auto-test-writer.
 
 ## The Model
 
-Each `spec/<name>.md` file describes one testable slice. auto-plan-grill created stubs with `status: planned` and placeholder contracts. This skill fills in the real contracts: setup, action, input, expected output, side effects, and error cases.
+Each `spec/<name>.md` file describes one testable slice. auto-plan-interrogate created stubs with `status: planned` and placeholder contracts. This skill fills in the real contracts: setup, action, input, expected output, side effects, and error cases.
 
 <HARD-GATE>
 Contracts live in `spec/<name>.md`, never in the plan. The plan holds rationale only. Don't duplicate — the spec file is the single source of truth.
@@ -59,7 +59,7 @@ One of:
 
 ### 1. Pick the Next Unblocked Slice
 
-Work slices in dependency order from the plan. Skip slices blocked by unanswered low-confidence questions from auto-plan-grill.
+Work slices in dependency order from the plan. Skip slices blocked by unanswered low-confidence questions from auto-plan-interrogate.
 
 ### 2. Define Mock Boundaries
 

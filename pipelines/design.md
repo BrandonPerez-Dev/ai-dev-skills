@@ -28,7 +28,7 @@ The lifecycle is a chain of **stage PRs into the feature branch**:
 
 ```
 intake ──▶ [Planning PR] ──merge──▶ [Contract PR × slice] ──merge──▶ [Tests PR (slice)]
-             ▲ grill here                ▲ contract review              ▲ test-code review
+             ▲ interrogate here                ▲ contract review              ▲ test-code review
                                                                         ──merge──▶ [Build PR (slice)]
 all slices built ──▶ assembly ──▶ [fresh Final PR: feature → main] ──▶ team review ──▶ merge ──▶ post
 ```
@@ -44,9 +44,9 @@ all slices built ──▶ assembly ──▶ [fresh Final PR: feature → main]
 {
   "story":     {"source": "linear|jira|manual", "id": "ENG-123", "title": "...", "issue": 17},
   "variant":   "spec-as-source | change-spec",
-  "stage":     "grill | contracts | slices | assembly | final-review",
+  "stage":     "interrogate | contracts | slices | assembly | final-review",
   "processed": {"comments": [123456789], "reviews": [987654]},
-  "iterations": {"grill": 2, "slices": {"payments-create-intent": 1}},
+  "iterations": {"interrogate": 2, "slices": {"payments-create-intent": 1}},
   "slices":    [{"name": "payments-create-intent",
                  "stage": "pending|contracted|tests-locked|built",
                  "prs": {"contract": 42, "tests": 43, "build": 45}}],
@@ -74,7 +74,7 @@ Approval = merging the stage PR. The agent never reacts to plain comments withou
 ```
 main
  └─ feat/<story>                          ← clean: only merged stage PRs + state commits
-     ├─ pipe/<story>/planning             → Planning PR   (grill conversation lives here)
+     ├─ pipe/<story>/planning             → Planning PR   (interrogate conversation lives here)
      ├─ pipe/<story>/contract-<slice>     → Contract PR   (one per slice, opened together)
      ├─ pipe/<story>/tests-<slice>        → Tests PR      (red tests, locked on merge)
      ├─ pipe/<story>/build-<slice>        → Build PR      (TDD implementation)
@@ -84,7 +84,7 @@ main
 > Stage branches carry their own `pipe/` prefix rather than nesting under the feature branch: git forbids `feat/<story>/planning` while branch `feat/<story>` exists (a ref can't be both a file and a directory). Found the hard way on the first sandbox intake, 2026-07-14.
 
 - Stage PRs merge with **merge commits, never squash** (squash breaks head-deletion auto-retargeting and loses stage history). Squash allowed only at feature→main.
-- The Final PR is **opened fresh at assembly** — the planning-era PRs stay archived and cross-linked, so the team never wades through grill threads. (GitHub forbids two open PRs on the same head/base anyway.)
+- The Final PR is **opened fresh at assembly** — the planning-era PRs stay archived and cross-linked, so the team never wades through interrogate threads. (GitHub forbids two open PRs on the same head/base anyway.)
 - Red tests merged into feature before their slice is built are **skip-marked by slice status** (test filter reads `state.json`), so feature CI stays green; the slice's Build PR unskips them. Mechanism per stack — resolve in S3 design.
 - **Test lock is mechanical:** a CI check on each Build PR verifies test files are byte-identical to the Tests PR's locked commit. Build cannot quietly modify tests.
 
@@ -118,7 +118,7 @@ The local daemon overlaps heavily with the remote-terminal-orchestrator/OpenClaw
 | Stage | Existing | New to build |
 |---|---|---|
 | Intake | `engineering` (steps 0–2), `investigating`, `slicing` | `intake` (story → branch/issue/Planning PR wiring) |
-| Grill | `grill` | PR-threaded mode note in grill SKILL.md (batched review threads) |
+| Interrogate | `interrogate` | PR-threaded mode note in interrogate SKILL.md (batched review threads) |
 | Contracts | `test-planning` / `auto-test-planning` | per-slice PR packaging |
 | Tests | `test-writer` / `auto-test-writer` | — |
 | Build | `auto-build`, `refactor`, `code-review` (scope lenses), `tdd` | — |
@@ -134,16 +134,16 @@ Each stage below is a discrete unit — its own dispatcher entry + skill(s) + su
 
 ### S0 — Intake
 - **Trigger:** manual dispatch / local CLI command (story ID or pasted text); board webhook later.
-- **Work:** create `feat/<story>` + tracking issue + `state.json`; run engineering steps 0–2 autonomously (context load → investigate → slice); push planning artifacts to `pipe/<story>/planning`; open **Planning PR**; post a **self-grill review** — the agent's own grill findings (all lenses) as line-comment threads.
+- **Work:** create `feat/<story>` + tracking issue + `state.json`; run engineering steps 0–2 autonomously (context load → investigate → slice); push planning artifacts to `pipe/<story>/planning`; open **Planning PR**; post a **self-interrogation review** — the agent's own interrogate findings (all lenses) as line-comment threads.
 - **Gate:** none (output is the Planning PR, which S1 gates).
 - **Skills/subagents:** `intake` (new) orchestrating `engineering`, `investigating`, `slicing`; research subagents.
 - **Design points:** board MCP transport; how much investigation budget intake gets; variant detection/config; what a "scope too big — split the story" outcome looks like.
 
-### S1 — Grill (on the Planning PR)
+### S1 — Interrogate (on the Planning PR)
 - **Trigger:** review/comment events on the Planning PR, phase-locked; summon required.
 - **Work:** process **all** open threads per run — reply per-thread, spawn research where evidence is needed (findings land on the branch, cited in replies), push artifact revisions. Lenses applied against every driver thread.
 - **Gate:** driver **merges the Planning PR** → sliced scope + decisions land in feature.
-- **Skills/subagents:** `grill` (PR-threaded mode), `investigating`; research subagents.
+- **Skills/subagents:** `interrogate` (PR-threaded mode), `investigating`; research subagents.
 - **Design points:** thread-resolution semantics (who resolves — agent on reply, or driver only); suggested-changes vs commits for artifact edits; ADR placement per variant.
 
 ### S2 — Contracts (per slice, authored together)
@@ -188,7 +188,7 @@ Each stage below is a discrete unit — its own dispatcher entry + skill(s) + su
 ## 4. Variant deltas
 
 ### A — spec-as-source
-- Planning artifacts: edits to durable `spec/*.md` + `context/*.md` (grill ADRs → context/). Contracts live in the slice specs (current model — already per-slice files, so S2's per-slice PRs are natural).
+- Planning artifacts: edits to durable `spec/*.md` + `context/*.md` (interrogate ADRs → context/). Contracts live in the slice specs (current model — already per-slice files, so S2's per-slice PRs are natural).
 - **`spec-audit`** at S7 (post-merge only in v0; scheduled drift pass deferred until demand is observed).
 - Team visibility optional; the spec is the owner's instrument.
 
@@ -218,7 +218,7 @@ Everything else — advancement rule, state file, commands, topology, guardrails
 
 ### Resolved
 
-- ~~Grill cadence under Actions latency~~ (2026-07-14): fully batched — PR review threads replace serial questioning entirely; each run handles all open threads, research included.
+- ~~Interrogate cadence under Actions latency~~ (2026-07-14): fully batched — PR review threads replace serial questioning entirely; each run handles all open threads, research included.
 - ~~`/bootstrap` intake type~~ (2026-07-14): killed. Install script + foundation-as-story-#1. See §5.
 - ~~`/approve <phase>` commands~~ (2026-07-14): replaced by merge-as-approval — every stage delivers via PR into feature; merging advances the machine.
 - ~~All-tests-upfront~~ (2026-07-14): per-slice Tests PRs; contracts authored together but merged per slice; agent discretion starts any slice whose contract has merged.
@@ -236,6 +236,6 @@ Everything else — advancement rule, state file, commands, topology, guardrails
 7. Variant A deltas (spec/context wiring + spec-audit) → pilot on ostia or arboreus-api.
 8. Assembly aids (walkthrough + quiz, adversarial pass) — additive, last.
 
-## Grill log
+## Interrogate log
 
-- **2026-07-14** — session on design v0: `/bootstrap` killed (install script + foundation-as-story-#1; spine + greenfield modes already cover it). Grill PR mode = batched review threads (deliberate supersession of one-question-at-a-time; threads resolve independently). Slicing gap closed (intake runs engineering 0–2 + self-grill). Per-slice test/build confirmed as original intent; contracts authored together, merged per slice → agent discretion. Assembly back-edge added (fix-slices through S3→S4). Refutation partially held: fresh Final PR replaces engineering-PR-flip. Merge-as-approval replaced `/approve` commands (user: every stage PRs into feature; merge triggers next step). Runner abstraction added for work-laptop constraint (no claude-code-action): dispatcher contract + Actions/local-daemon implementations.
+- **2026-07-14** — session on design v0: `/bootstrap` killed (install script + foundation-as-story-#1; spine + greenfield modes already cover it). Interrogate PR mode = batched review threads (deliberate supersession of one-question-at-a-time; threads resolve independently). Slicing gap closed (intake runs engineering 0–2 + self-interrogation). Per-slice test/build confirmed as original intent; contracts authored together, merged per slice → agent discretion. Assembly back-edge added (fix-slices through S3→S4). Refutation partially held: fresh Final PR replaces engineering-PR-flip. Merge-as-approval replaced `/approve` commands (user: every stage PRs into feature; merge triggers next step). Runner abstraction added for work-laptop constraint (no claude-code-action): dispatcher contract + Actions/local-daemon implementations.

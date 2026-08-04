@@ -2,7 +2,7 @@
 name: forge-plan
 description: >-
   L1 forge — Phase 2. Reads forge-survey output, compares against
-  what a gyre requires, grills the survey for
+  what a gyre requires, interrogates the survey for
   gaps and wrong conclusions, and produces a generation plan specifying
   which L2 skills to create and what repo-specific knowledge to inject.
   Posts open questions to GitHub when blocked.
@@ -25,7 +25,7 @@ effort: high
 
 # Forge Plan
 
-Read the survey. Compare against requirements. Grill the findings. Plan what to generate. This skill bridges raw survey data and actual L2 skill generation.
+Read the survey. Compare against requirements. Interrogate the findings. Plan what to generate. This skill bridges raw survey data and actual L2 skill generation.
 
 <HARD-GATE>
 Do not write L2 skills, CLAUDE.md, or gyre.yaml. This skill
@@ -55,7 +55,7 @@ For each L2 skill the gyre can include, check what the survey provides vs what t
 
 | L2 Skill | Requires from survey | Found? |
 |---|---|---|
-| **plan-grill** | Project-specific constraint categories, commit/branch conventions, context/spec format, grill lenses relevant to this project's domain | |
+| **plan-interrogate** | Project-specific constraint categories, commit/branch conventions, context/spec format, interrogate lenses relevant to this project's domain | |
 | **test-planning** | Test framework, runner, naming convention, shared helpers, fixture patterns, mock boundaries, integration approach, platform requirements | |
 | **test-writer** | Test file patterns (where tests go, how named), import boilerplate, assertion style, setup/teardown, how to run single test vs all | |
 | **build** | Where new code goes, error handling pattern, API style, dependency management, lint rules, verification commands | |
@@ -86,9 +86,9 @@ Classify each gap:
 - **Skip** — the gap means a specific domain skill isn't warranted. (e.g., "no security-critical patterns" → no security domain skill)
 - **Foundation trigger** — the gap is infrastructure that needs to be created. (e.g., "no CI" → foundation skill creates it)
 
-### 3. Grill the Survey
+### 3. Interrogate the Survey
 
-Before planning the generation, grill the survey findings. The survey extracted data; the grill challenges whether that data is correct and complete.
+Before planning the generation, interrogate the survey findings. The survey extracted data; the interrogate challenges whether that data is correct and complete.
 
 #### Lens 1: Extraction Accuracy
 
@@ -110,7 +110,7 @@ Before planning the generation, grill the survey findings. The survey extracted 
 - Which survey conclusions would be EXPENSIVE to get wrong in a generated skill? (mock boundaries, error handling patterns)
 - Does the project have unusual patterns that a generic L0 template would get wrong?
 
-#### Grill Output
+#### Interrogate Output
 
 Each finding becomes an ADR in the plan:
 
@@ -213,7 +213,7 @@ Collect all medium and low-confidence items:
 ## Gaps
 [Table from step 2]
 
-## Grill
+## Interrogate
 
 ### Extraction Accuracy
 [ADRs]
@@ -247,7 +247,7 @@ The recommended order for forge-generate:
 1. Foundation (if needed) — infrastructure first
 2. CLAUDE.md — project-level knowledge
 3. Domain skills — codebase knowledge that process skills reference
-4. Process skills — plan-grill → test-planning → test-writer → build
+4. Process skills — plan-interrogate → test-planning → test-writer → build
 5. gyre.yaml — ties it all together
 ```
 
@@ -257,7 +257,7 @@ The recommended order for forge-generate:
 |---|---|
 | **Planning without a survey** | Hard gate. Run forge-survey first. |
 | **Marking all gaps as blocking** | Most gaps are fillable from code. Block only when wrong answers are expensive. |
-| **Skipping the grill** | The grill catches survey errors before they become skill errors. |
+| **Skipping the interrogate** | The interrogate catches survey errors before they become skill errors. |
 | **Planning skills for things the project doesn't need** | No security skill for a static site. No data interaction skill for a CLI tool with no persistence. |
 | **Ignoring the survey's failed commands** | A failing test suite shapes the plan — maybe foundation needs to fix it first. |
 | **Writing L2 skills in this step** | Plan only. forge-generate writes. |
