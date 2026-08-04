@@ -106,7 +106,7 @@ The discipline that stops this becoming a wish list: an item is either **ranked*
 
 Importance and actionability are different axes on different Linear mechanisms: **priority** answers *how much it matters*; **workflow state** answers *can it be started now*. Keeping them separate is what lets neither lie.
 
-- **Backlog** = planned but not startable — unrefined, an epic, or `blockedBy` something open.
+- **Backlog** = not startable — `blockedBy` something open, or **waiting on prerequisite work that isn't done yet** (a real dependency — even if that prerequisite is itself just sitting unpulled; model it as `blockedBy` so the gate is structural), or **not yet a coherent story** (no clear outcome, or several outcomes bundled). *Unsettled implementation/design details do not belong here* — resolving the *how* is the planning member's job. Clear outcome + no blocker + prerequisites met ⇒ **Todo**, even with open design questions; pulling it is how those get answered.
 - **Todo** = the ready lane — passes **Story-ready** *and* has no open blocker. "What's ready to pull" is then a live query (`list_issues state:Todo`), the queue the intake daemon drains.
 
 Enforce the lane **bidirectionally**: propose promoting Backlog→Todo the moment an item becomes ready, and demoting Todo→Backlog the moment one regresses (newly blocked, or found unrefined). A stale Todo misleads the puller and the daemon exactly as much as a ready item stranded in Backlog. State changes are writes: propose, then confirm. The pull order *within* Todo is just the priority ranking restricted to the ready lane — there is no separate build order.
@@ -200,12 +200,15 @@ For the capacity/selection mechanics, compose **[[sprint-planning]]**.
 | "Just rank by value / impact" | Sequence by **cost of delay ÷ duration** — a high-value but long story can sit below a cheap, time-critical one. Show the CoD components. |
 | "It's aging — bump it up" | Age is a *diagnostic*, not a priority term. Ask *why* it's aging (blocked? review backed up? mis-ranked?) and fix that; don't auto-rerank on age. |
 | "Fill the ready lane to agent throughput" | The binding constraint is **human review**, not generation. Gauge cycle fill against review capacity — but never hold a *ready* item out of the lane on it. |
+| "It has an open design question — keep it in Backlog" | Ask *what* vs *how*: a scope/outcome gap is yours (clarify it, or it isn't a coherent story yet); an **implementation** question is the planning member's — a *how* never holds a ready story. The board's job is readiness and order, not resolving implementation semantics. |
 
 ## Composition
 
 - **[[backlog-refinement]]** — deep story methodology (AC rubric, splitting patterns, backlog-health metrics, DoR). `pm` handles Linear-native prioritization, triage, discovery, sizing, roadmap, and all writes; it delegates heavy refinement here.
 - **[[sprint-planning]]** — cycle capacity/selection method. `pm` owns the Linear cycle read/write and the cadence-bucket stance.
 - **engineering / slicing** — once a story is ready and prioritized, these carry it into the PR pipeline. `pm` stops at a ready, prioritized, written story.
+
+**Know your lane.** `pm` is one member in a crew; its concern is the **board** — readiness, order, hygiene. When an item's only gap is another member's job (planning resolves implementation ambiguity, test-planning writes tests, the engineer builds), hand it off by making it **ready**, not by holding it in Backlog. Over-holding is the recurring failure mode — default to *ready* whenever the outcome is clear and nothing genuinely blocks it.
 
 ## Output format
 
