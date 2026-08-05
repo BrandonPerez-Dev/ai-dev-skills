@@ -148,7 +148,7 @@ During slicing, invoke utility skills as specific questions need deeper thinking
 
 ### 3. Interrogate the Scope
 
-Invoke **interrogate** on the sliced scope (the planned/in-progress specs + the new context entries). The slicing conversation builds the design up; this step tries to knock it down. Designs that skip the interrogate carry wrong assumptions into locked tests, where they're expensive.
+Invoke **interrogate** on the sliced scope (the planned/in-progress specs + the new context entries). The slicing conversation builds the design up; this step tries to knock it down. Designs that skip the interrogation carry wrong assumptions into locked tests, where they're expensive.
 
 Interrogate's findings write back into the layers themselves: sharpened terms and decisions (with the rejected alternative named) → `context/`; slice-scoped resolutions → the spec's `## Notes`. Scale it like everything else: small change → one sanity question; large change → a full session.
 
@@ -192,7 +192,7 @@ If teammate review is wanted: invoke **commit-and-pr** to push the spec/context 
 - **Lead with decisions.** "We should use X because Y" — not "Here's everything about X."
 - **One question at a time.**
 - **Flag uncertainty.** Present 2–3 options with tradeoffs. Don't silently pick when alternatives exist.
-- **Check in at transitions.** After research, before slicing. During the interrogate (one question at a time). After test-planning, before building.
+- **Check in at transitions.** After research, before slicing. During the interrogation (one question at a time). After test-planning, before building.
 
 ## Anti-Patterns
 

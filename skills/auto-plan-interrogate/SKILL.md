@@ -3,7 +3,7 @@ name: auto-plan-interrogate
 description: >-
   Autonomous planning + interrogate for GitHub-driven development. Reads context/spec/codebase,
   lands scope as spec stubs and decisions in context/ (ADR-style, agent-proposed),
-  self-interrogations using three lenses, classifies confidence on every decision, pushes
+  self-interrogates using three lenses, classifies confidence on every decision, pushes
   to a branch, opens a draft PR whose description carries the plan narrative, and
   posts open questions as PR comments. Proceeds on medium-confidence assumptions.
 when_to_use: >-
@@ -121,7 +121,7 @@ Derive the scope. This merges what the interactive pipeline does across slicing 
 
 ### 3. Interrogate (bulk, in the same pass)
 
-Immediately after deriving the scope — before pushing it — interrogate it. The planning pass builds the scope up; the interrogate tries to knock it down.
+Immediately after deriving the scope — before pushing it — interrogate it. The planning pass builds the scope up; the interrogation tries to knock it down.
 
 Run **all three lenses** against `context/` and in-scope specs. Unlike the interactive version, raise ALL findings at once, not one at a time.
 
@@ -334,7 +334,7 @@ If the scope touches more than 8 specs, the change is too big — split into mul
 | **Asking the human before trying to answer** | Research first. Check context/ and codebase. Only post as open question if you genuinely can't determine the answer. |
 | **Marking everything as blocking** | Most decisions can be assumed at medium confidence. Only mark as blocking when the wrong answer would require significant rework. |
 | **Marking everything as high confidence** | Security, data-model, and deletion decisions should bias toward low/medium. When in doubt, flag it. |
-| **Skipping the interrogate** | The interrogate is not optional. Scopes that skip it carry wrong assumptions into locked tests. |
+| **Skipping the interrogation** | The interrogate is not optional. Scopes that skip it carry wrong assumptions into locked tests. |
 | **Interrogating surface-level questions** | "Should we use REST or GraphQL?" is a constraint, not an interrogation question. Interrogation targets structural assumptions, not technology choices. |
 | **Planning without reading the codebase** | Hard gate. Planning against an imagined architecture is the #1 failure mode. |
 | **Writing scope or rationale into a standalone planning doc** | Scope → spec stubs; decisions → context/; narrative → the commit message + PR description. |

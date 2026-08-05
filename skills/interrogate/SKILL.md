@@ -26,7 +26,7 @@ effort: high
 
 # Interrogate
 
-Interrogate the design instead of admiring it. The slicing conversation builds it up; this step tries to knock it down. Designs that skip the interrogate carry wrong assumptions into locked tests, where they're expensive to fix.
+Interrogate the design instead of admiring it. The slicing conversation builds it up; this step tries to knock it down. Designs that skip the interrogation carry wrong assumptions into locked tests, where they're expensive to fix.
 
 <HARD-GATE>
 Read the sliced scope AND all of `context/` before interrogating. You can't find
@@ -34,12 +34,12 @@ contradictions with existing decisions if you haven't read them.
 </HARD-GATE>
 
 <HARD-GATE>
-The interrogate leaves a durable trace. Every challenge resolves into one of:
+The interrogation leaves a durable trace. Every challenge resolves into one of:
 a write-back to `context/` (a sharpened decision, with the rejected
 alternative and why-not), a write-back to the affected spec's `## Notes`
 (slice-scoped resolution), a flagged contract supersession for test-planning
 to execute, or — for challenges the design survived unchanged — a line in the
-interrogate commit message. A interrogate that lives only in conversation didn't happen.
+interrogation commit message. An interrogation that lives only in conversation didn't happen.
 </HARD-GATE>
 
 ## Input
@@ -85,7 +85,7 @@ Name it explicitly: keep the old decision, or supersede it on purpose — never 
 
 ### 4. Necessity and Scope
 
-Correctness lenses ask "is this right?" — this lens asks "should this exist, at this size, now?" Slicing and specs amplify scope; nothing downstream of the interrogate pushes back on it. Apply per slice, not once overall:
+Correctness lenses ask "is this right?" — this lens asks "should this exist, at this size, now?" Slicing and specs amplify scope; nothing downstream of the interrogation pushes back on it. Apply per slice, not once overall:
 
 - **Observed demand** — name the real, already-observed need this slice serves. A hypothetical actor ("if we ever have N reviewers…") is not demand. If the demand is speculative, name the evidence that would justify building it — that becomes the revival trigger.
 - **The one-branch version** — state the simplest behavior that covers 100% of *current* reality (often "detect the case → stop and ask"). If the slice builds resolution machinery where a one-branch version suffices, the machinery gets parked, spec `status: parked`, with the revival trigger in its Notes.
@@ -110,9 +110,9 @@ If a tension or refutation requires evidence beyond what's in the codebase:
 
 - Spawn a research agent to investigate the specific question
 - Look for prior art, papers, framework documentation, practitioner experience
-- Ground the interrogate in evidence, not speculation
+- Ground the interrogation in evidence, not speculation
 
-Durable findings go to `context/research/<topic>.md` (dated cache), cited from the topic file. Research is not mandatory for every interrogate.
+Durable findings go to `context/research/<topic>.md` (dated cache), cited from the topic file. Research is not mandatory for every interrogation.
 
 ## Where Resolutions Land
 
@@ -123,12 +123,12 @@ Durable findings go to `context/research/<topic>.md` (dated cache), cited from t
 | Slice-scoped resolution (affects one spec's behavior) | that spec's `## Notes` (+ `## Changes` entry) |
 | Contract change / locked-test supersession | flagged, executed by test-planning → test-writer |
 | Parked slice (speculative scope) | spec `status: parked` + revival trigger in its Notes |
-| Challenge survived unchanged (no durable delta) | one line in the interrogate commit message |
+| Challenge survived unchanged (no durable delta) | one line in the interrogation commit message |
 | Dated evidence gathered | `context/research/<topic>.md`, cited from the topic file |
 
 Write-backs and thread replies follow [`../engineering/references/artifact-voice.md`](../engineering/references/artifact-voice.md): state the resolution and its why once, tersely — a thread is a decision, not an essay.
 
-Commit the write-backs as an interrogate commit; its message lists each challenge → resolution in one line. That diff + message is the interrogate's visible artifact.
+Commit the write-backs as an interrogation commit; its message lists each challenge → resolution in one line. That diff + message is the interrogation's visible artifact.
 
 ## Scaling
 
@@ -145,7 +145,7 @@ Commit the write-backs as an interrogate commit; its message lists each challeng
 | **Questionnaire dump** | One question at a time. Wait for resolution before the next. |
 | **Aesthetic criticism** | Focus on structural issues that change contracts, not style preferences. |
 | **Interrogating without reading context/** | Hard gate — you can't find contradictions you haven't looked for. |
-| **Resolutions that live only in conversation** | Hard gate — every challenge lands in context/, a spec's Notes, a flagged supersession, or the interrogate commit message. |
+| **Resolutions that live only in conversation** | Hard gate — every challenge lands in context/, a spec's Notes, a flagged supersession, or the interrogation commit message. |
 | **Recording a decision without its rejected alternative** | The why-not is the part that prevents re-litigating. Write "Rejected: X — because Y." |
 | **Editing a locked contract directly** | Interrogate names supersessions; test-planning → test-writer executes them. |
 | **Skipping the refutation** | The refutation is the most valuable part. Always attempt one. |

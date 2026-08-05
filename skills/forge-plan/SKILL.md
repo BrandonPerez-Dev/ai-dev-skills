@@ -88,7 +88,7 @@ Classify each gap:
 
 ### 3. Interrogate the Survey
 
-Before planning the generation, interrogate the survey findings. The survey extracted data; the interrogate challenges whether that data is correct and complete.
+Before planning the generation, interrogate the survey findings. The survey extracted data; the interrogation challenges whether that data is correct and complete.
 
 #### Lens 1: Extraction Accuracy
 
@@ -257,7 +257,7 @@ The recommended order for forge-generate:
 |---|---|
 | **Planning without a survey** | Hard gate. Run forge-survey first. |
 | **Marking all gaps as blocking** | Most gaps are fillable from code. Block only when wrong answers are expensive. |
-| **Skipping the interrogate** | The interrogate catches survey errors before they become skill errors. |
+| **Skipping the interrogation** | The interrogation catches survey errors before they become skill errors. |
 | **Planning skills for things the project doesn't need** | No security skill for a static site. No data interaction skill for a CLI tool with no persistence. |
 | **Ignoring the survey's failed commands** | A failing test suite shapes the plan — maybe foundation needs to fix it first. |
 | **Writing L2 skills in this step** | Plan only. forge-generate writes. |
