@@ -77,11 +77,11 @@ The diff shows what changed — the message explains why.
 
 - Bullet points for multiple related changes
 - Reference issues: Fixes #123
-
-Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
 EOF
 )"
 ```
+
+No AI-attribution trailers or badges: no `Co-Authored-By: Claude`, no "Generated with Claude Code" — in commits, PR bodies, or comments. The git author is attribution enough.
 
 **Types:**
 
@@ -181,9 +181,6 @@ gh pr create --title "type(scope): description" --body "$(cat <<'EOF'
 
 ## Notes for Reviewer
 - [Anything the reviewer should know — areas of uncertainty, decisions to validate, files to focus on]
-
----
-Generated with Claude Code
 EOF
 )"
 ```
