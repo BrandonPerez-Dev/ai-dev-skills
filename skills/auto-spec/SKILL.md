@@ -35,7 +35,7 @@ Merging the planning PR is the driver's approval gate for scope. That makes the 
 
 ## Inputs
 
-From the runner's stage prompt: story text/id/title, `$feature_branch`, `$planning_branch`, `$default_branch`, variant (`change-spec` | `spec-as-source`), tracking-issue conventions, agent marker. If a previous intake attempt left partial work (branch/issue/PR exists), resume and repair — never duplicate.
+From the runner's stage prompt: story text/id/title, `$feature_branch`, `$planning_branch`, `$default_branch`, variant (`change-spec` | `spec-as-source`), the story link, agent marker. The story link is the story's home on the driver's board, and the board card is the story's tracking surface — the runner mirrors pipeline status to it, and your artifacts link back to it. (The target repo may contain older stories that tracked differently; the board card is the current surface.) If a previous intake attempt left partial work (branch/PR exists), resume and repair — never duplicate.
 
 ## Process
 
