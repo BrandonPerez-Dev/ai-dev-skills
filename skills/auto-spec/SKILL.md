@@ -64,6 +64,16 @@ Classify the change and let the tier set the budget for everything downstream:
 
 The ceiling bounds the **read layer** (below), not the record layer. A scope that could be settled in a few prompts must not become a 300-line spec.
 
+### 3b. Workflow-backed drafting (when the runner provides it)
+
+If the stage prompt's bindings include a non-empty spec-writer workflow path, author the artifact by invoking the **Workflow** tool instead of running sections 4–5 yourself:
+
+- `Workflow({scriptPath: "<workflows_dir>/spec-writer.js", args: {story: <full story text>, repo: <this checkout's absolute path>, variant: <variant>, nodesDir: "<workflows_dir>"}})`
+- The run returns `artifact_md` (the planning artifact — panel-drafted, judged, interrogated, revised), `slices` (with per-slice flow suggestions), `open_questions`, and `interrogation` (confirmed/rejected/unverified + stats).
+- Use `artifact_md` as the artifact's decision layer; `slices` as the slice list/roster input; `interrogation.rejected` entries land in the record layer as rejected alternatives with their why-nots; `open_questions` become the driver-facing questions.
+- Skip sections 4 and 5 entirely — the workflow's judged panel and lens adjudication already did that work with fresh-context critics. Do not re-critique its output; your job after the call is mechanics (files, commits, PR) and honest reporting of its stats (drafts, judge scores, verdict counts) in the PR body's self-interrogation counts.
+- If the Workflow call fails, fall back to sections 4–5 and say so in the PR body.
+
 ### 4. Positive pass — draft the spec
 
 Derive scope with the slicing skill's methodology in autonomous mode: no user checkpoints; reasoning, alternatives, and non-goals go in the artifact instead. Propose the slice list (and, when the target repo's pipeline supports flow-as-data rosters, the roster block: story-level flow + per-slice flows, with every omitted default node justified by name).
