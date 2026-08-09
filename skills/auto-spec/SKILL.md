@@ -6,7 +6,7 @@ description: >-
   structure, then runs a fresh-context adversarial critic (interrogate lenses +
   legibility) and revises before the driver ever reads it. Only questions that
   genuinely need the driver survive as PR review comments. Owns all intake
-  mechanics: feature branch, tracking issue, planning branch/PR, state.json.
+  mechanics: feature branch, tracking issue, planning branch/PR, slice manifest.
 when_to_use: >-
   Fired by the pipeline runner's intake stage prompt with a story and branch
   bindings. Do NOT use for interactive planning — use engineering + slicing for
@@ -108,7 +108,7 @@ Fix what you accept; where you reject a finding, record it as a rejected alterna
 1. Commit and push the artifact(s).
 2. Open the planning PR (base `$feature_branch`, head `$planning_branch`, title `[planning] <story_id>: <title>`). Body, in order: the **story hook** (see below), a link to the board story, the slice list, the self-interrogation counts, and a **"How to drive this PR"** section (line comments / review to discuss; summon token in backticks; merge = approve scope and start contract authoring).
 3. Post surviving driver questions as **one PR review** of line comments on the relevant artifact lines, each with your recommendation and what it blocks. Review body: `Self-interrogation: N findings resolved internally, M need you — see threads.` The internal-resolution count is signal, not ceremony: it tells the driver the spec was already pressured.
-4. Update `.pipeline/state.json` on `$feature_branch` (planning PR number, slices `"stage": "pending"`); commit, push.
+4. End the planning PR body with the fenced `cadre-manifest` block (per the stage prompt): one entry per slice with `name`, `nodes` (the resolved flow as stage names), `depends_on`, `wave`, `files`. The pipeline commits no runtime state — never create or edit `.pipeline/state.json`; the manifest on the PR surface IS the machine-readable plan.
 
 **The story hook.** The PR body and the spec's What & why each open by getting a cold reader up to speed — someone who wrote the story weeks ago or has never seen it. State what you understand the story's *intent* to be, in the story's own terms (the problem it names, why it matters), before any mechanism or design detail. A reader should know what is about to be discussed and why they should care before the first technical noun. Opening with your solution's internals ("the dispatcher fires builds off tests-merge…") fails a reader who doesn't have the story paged in.
 
@@ -144,4 +144,4 @@ Rationale in full, rejected alternatives with the why-not, research citations, a
 
 ## Output
 
-A pushed feature branch + planning branch, tracking issue, `.pipeline/state.json`, and a planning PR whose artifact meets the structure standard — self-interrogated, with only genuinely-human questions posted as review threads. Downstream: the driver comments (auto-interrogate handles the threads) and merges to start contract authoring.
+A pushed feature branch + planning branch, tracking issue, and a planning PR (body ending in the slice manifest) whose artifact meets the structure standard — self-interrogated, with only genuinely-human questions posted as review threads. Downstream: the driver comments (auto-interrogate handles the threads) and merges to start contract authoring.
