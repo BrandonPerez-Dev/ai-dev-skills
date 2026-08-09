@@ -41,7 +41,7 @@ From the runner's stage prompt: story text/id/title, `$feature_branch`, `$planni
 
 ### 1. Mechanics
 
-1. `git fetch origin`; create `$feature_branch` off `origin/$default_branch`; create `.pipeline/state.json` (runner schema, `"stage": "interrogate"`, slices empty); commit, push with `-u`.
+1. `git fetch origin`; create `$feature_branch` off `origin/$default_branch`; push with `-u`. No state file — the pipeline commits no runtime state.
 2. Create `$planning_branch` off `$feature_branch` — exactly that name; the daemon routes by it.
 
 ### 2. Load context
