@@ -45,6 +45,15 @@ test authoring and implementation prevents the #1 AI testing failure mode:
 modifying tests to match buggy code.
 </HARD-GATE>
 
+## Workflow-backed building (when the runner provides it)
+
+If the stage prompt's bindings include a non-empty workflows path, build the slice by invoking the **Workflow** tool instead of the implement/simplify sections below (Reading State still applies; commit/push/PR mechanics remain yours):
+
+- `Workflow({scriptPath: "<workflows_dir>/build.js", args: {slice: {name, does, flow, files, depends_on}, contract: <the locked contract markdown>, repo: <this checkout's absolute path>, locked_files: [<the locked test file paths>], test_cmd: <the suite command if you know it>, artifact: <the planning artifact text>, context: <context//PRD constraints if present>}})`
+- The node classifies the slice, runs a design phase when the slice shapes new structure (emitting named constraints), TDD-builds with ONE solver agent, then a **check panel of fresh agents** (contract fidelity, spirit-of-spec, design conformance, wiring, quality, necessity — width set by the classifier) reviews the result. **Confidence is the panel's, never the builder's**: `high` = clean first pass (auto-merges under the gate policy); `medium`/`low` carry `uncertainty` naming what the driver must look at — put that verbatim in the Build PR body's `Confidence:` line.
+- Your job after the call: the lock-check re-verification, commit/push, the Build PR with the builder summary, design constraints, panel stats (lenses run, raised/confirmed/rejected, driver calls), and the suite + lock results.
+- If the Workflow call fails, fall back to the sections below and say so in the PR body.
+
 ## Input
 
 One of:

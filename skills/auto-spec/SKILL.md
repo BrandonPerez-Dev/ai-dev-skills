@@ -71,6 +71,7 @@ If the stage prompt's bindings include a non-empty spec-writer workflow path, au
 - `Workflow({scriptPath: "<workflows_dir>/spec-writer.js", args: {story: <full story text>, repo: <this checkout's absolute path>, variant: <variant>, nodesDir: "<workflows_dir>"}})`
 - The run returns `artifact_md` (the planning artifact — panel-drafted, judged, interrogated, revised), `slices` (with per-slice flow suggestions), `open_questions`, and `interrogation` (confirmed/rejected/unverified + stats).
 - Use `artifact_md` as the artifact's decision layer; `slices` as the slice list/roster input; `interrogation.rejected` entries land in the record layer as rejected alternatives with their why-nots; `open_questions` become the driver-facing questions.
+- Each slice carries `depends_on`, `files` (loose footprint), `wave` (slices sharing a wave can build/review in parallel), and `review_order` (1..N, computed from the dependency graph). Reproduce all four in the artifact's slice list verbatim — downstream stages put `review_order` in PR titles and use `wave`/`files` for parallelization and collision checks.
 - Skip sections 4 and 5 entirely — the workflow's judged panel and lens adjudication already did that work with fresh-context critics. Do not re-critique its output; your job after the call is mechanics (files, commits, PR) and honest reporting of its stats (drafts, judge scores, verdict counts) in the PR body's self-interrogation counts.
 - If the Workflow call fails, fall back to sections 4–5 and say so in the PR body.
 
