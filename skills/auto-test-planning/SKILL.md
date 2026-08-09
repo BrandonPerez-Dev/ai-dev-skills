@@ -49,6 +49,16 @@ One of:
 
 ## Process
 
+### -1. Workflow-backed authoring (when the runner provides it)
+
+If the stage prompt's bindings include a non-empty spec-writer/contract-writer workflows path, author the contracts by invoking the **Workflow** tool instead of sections 1–3:
+
+- `Workflow({scriptPath: "<workflows_dir>/contract-writer.js", args: {slices: [<name/does/flow/depends_on from the plan>], artifact: <the planning artifact text>, repo: <this checkout's absolute path>}})`
+- Each returned contract carries a **breaker-earned confidence**: `high` = the adversarial breaker found nothing that survived adjudication (auto-merges under the gate policy); `medium`/`low` come with `uncertainty` naming exactly what the driver must look at — put that verbatim in the Contract PR body's `Confidence:` line.
+- Slices whose flow has no contract stage come back in `skipped` — honor that; don't author contracts the flow doesn't call for.
+- Your job after the call: file mechanics (contract into its per-slice home), the per-slice Contract PRs, and honest reporting of the breaker stats (raised/confirmed/rejected, driver calls) in each PR body.
+- If the Workflow call fails, fall back to sections 1–3 and say so in the PR bodies.
+
 ### 0. Load Context and Spec
 
 **`context/` — always loaded.** Read all files. Architectural decisions inform mock boundaries.
