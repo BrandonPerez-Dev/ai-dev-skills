@@ -19,11 +19,9 @@ argument-hint: "[topic, product name, or path to existing roadmap]"
 
 # Roadmap Planning
 
-A roadmap communicates strategic intent — it anchors every initiative to an outcome and uses confidence levels that decrease with time horizon. It is NOT a feature list, a delivery schedule, or a commitment contract.
+A roadmap communicates strategic intent — it anchors every initiative to an outcome and uses confidence levels that decrease with time horizon. It is not a feature list, a delivery schedule, or a commitment contract.
 
-<HARD-GATE>
-Every roadmap item MUST be anchored to a measurable outcome. "Build X" is not a roadmap item — "Reduce Y by Z% through X" is. Feature-only items without outcomes produce feature factory roadmaps, the most common PM failure mode.
-</HARD-GATE>
+The load-bearing rule, stated once because it drives everything below: **every roadmap item is anchored to a measurable outcome.** "Build X" is not a roadmap item; "Reduce Y by Z% through X" is. Feature-only items without outcomes produce feature-factory roadmaps — the most common PM failure mode — because they assume you already know what to build.
 
 ## Method Selection
 
@@ -77,11 +75,9 @@ THEME 2: [Name] — [One sentence]
   ...
 ```
 
-**Guideline:** 3 themes is focused. 5 is the max. More than 5 means you haven't prioritized.
+3 themes is focused; 5 is the max. More than 5 means you haven't prioritized.
 
-**CHECKPOINT: Do NOT skip this step.**
-
-"Here are the themes I'm seeing. These determine what makes it onto the roadmap and what doesn't. Right?"
+Themes gate what makes it onto the roadmap, so confirm them before going further: "Here are the themes I'm seeing. These determine what makes it on and what doesn't. Right?"
 
 ### Step 3: Inventory Candidate Initiatives
 
@@ -107,7 +103,7 @@ INITIATIVE: [Name]
 
 Scan all sources above before asking the user. Present what you found, then ask: "These are the candidates I found in your artifacts. What's missing?"
 
-Flag any candidates that don't map to a theme — they're either misaligned or reveal a missing theme.
+Flag any candidate that doesn't map to a theme — it's either misaligned or reveals a missing theme.
 
 ### Step 4: Prioritize
 
@@ -129,9 +125,7 @@ If an initiative has a score from **opportunity-score**, use as additional signa
 - Score 1.5-2.4: Candidate for Next/Later
 - Score <1.5: Needs more evidence — invoke **opportunity-score** or **experiment-design** before roadmapping
 
-**CHECKPOINT: Do NOT skip this step.**
-
-"Here's how the initiatives rank. The top [N] by RICE are [list]. Does the ranking feel right before I place them?"
+Confirm the ranking before placing: "Here's how the initiatives rank. The top [N] by RICE are [list]. Does the ranking feel right before I place them?"
 
 ### Step 5: Place on the Roadmap
 
@@ -176,7 +170,7 @@ PARKING LOT — Evaluated and deferred
 ```
 
 **Placement rules:**
-- **Now: 2-4 items max.** If you have 8, you haven't prioritized.
+- **Now: 2-4 items max.** If you have 8, you haven't prioritized — 8 simultaneous items means nothing gets done well.
 - **Next: 3-6 items.** Enough pipeline, not so many that everything looks planned.
 - **Later:** Longer is OK — it's strategic intent, not commitment.
 - **Parking Lot:** Prevents zombie initiatives from resurfacing every cycle.
@@ -210,9 +204,7 @@ RISKS TO THE PLAN:
 
 ### Step 9: Produce and Save
 
-**CHECKPOINT: Do NOT skip this step.**
-
-Present the roadmap and surface the key decisions:
+Present the roadmap and surface the key decisions before saving — an unreviewed roadmap is a wish list:
 
 "Here's the roadmap. The key decisions embedded in it:
 1. [Most significant prioritization choice]
@@ -239,9 +231,7 @@ After saving, offer next steps:
 
 ## Roadmap Review Protocol
 
-<HARD-GATE>
-Before updating an existing roadmap, check outcomes first. Did shipped Now items achieve their target metrics? A roadmap review that skips outcome checking just rotates items through horizons without learning. If metrics aren't available, flag it — "we shipped X but have no data on whether it worked" is a finding, not a failure.
-</HARD-GATE>
+Before updating an existing roadmap, **check outcomes first**: did shipped Now items achieve their target metrics? A review that skips this just rotates items through horizons without learning. If metrics aren't available, that's a finding — "we shipped X but have no data on whether it worked" — not a failure.
 
 For quarterly reviews:
 
@@ -258,34 +248,13 @@ If outcomes are consistently missed, question the themes — not just the initia
 
 ## Bias Guards
 
-| Thought | Reality | Do Instead |
-|---|---|---|
-| "We should add this — it's easy" | Ease is not a prioritization criterion. Easy + low-impact = waste. | Score with RICE. Low impact = doesn't belong. |
-| "We committed to this at the offsite" | Sunk cost. The offsite didn't have today's evidence. | Re-evaluate with current data. Park it if it doesn't score. |
-| "The CEO mentioned this" | HiPPO is not evidence. | Note the request, score it, present honestly. |
-| "Everything is a Must Have" | If everything is Now, nothing is prioritized. | Force-rank. If you can't cut, you haven't decided. |
-| "Let's keep it on Later just in case" | Later is strategic intent, not a junk drawer. | No strategic rationale → remove. Parking Lot exists for a reason. |
-| "We need dates for the roadmap" | Dates create commitment contracts, not plans. | Now/Next/Later. Date ranges only when asked, with confidence bands. |
+The rationalizations that push a roadmap back toward a feature list, and the counter-move for each:
 
-## Anti-Patterns
-
-| Anti-Pattern | Problem | Fix |
-|---|---|---|
-| **Feature factory roadmap** | Features without outcomes. Assumes we know what to build. | Every item needs an outcome hypothesis. |
-| **Date-driven commitments** | Strategic intent becomes delivery contract. | Now/Next/Later. Dates are estimates, not promises. |
-| **Roadmap as backlog** | 47 items, no hierarchy. Everything equally important. | 2-4 Now, 3-6 Next. Can't cut = haven't decided. |
-| **Single static view** | One view for all audiences. Execs see too much, engineers too little. | Audience-specific views from the same source. |
-| **Never-updated roadmap** | Written once, drifts from reality in weeks. | Quarterly minimum. Monthly for fast-moving products. |
-| **HiPPO-driven roadmap** | Reflects what leadership wants, not what evidence supports. | Score everything. Let evidence speak. |
-| **No parking lot** | Deferred ideas resurface every planning cycle. | Explicit Parking Lot with revisit triggers. |
-| **No outcome checking** | Items rotate through horizons without measuring impact. | Review Protocol requires outcome check before any update. |
-
-## Guidelines
-
-- **Outcomes over outputs.** "Reduce churn by 15%" is a roadmap item. "Build notification system" is a solution hypothesis that belongs inside the initiative.
-- **Confidence decreases with distance.** Now items are specific. Later items are directional. This is correct, not lazy.
-- **The Parking Lot is a feature, not a bug.** Explicitly deferring items prevents zombie initiatives.
-- **3-5 themes max.** More means you're listing, not choosing. Every theme connects to the north star.
-- **Now is sacred.** Only 2-4 items. 8 simultaneous items = nothing gets done well.
-- **Review is not optional.** Unreviewed roadmap = wish list.
-- **Kill criteria belong on the roadmap.** For Later items, define what would trigger removal.
+| Thought | Do instead |
+|---|---|
+| "We should add this — it's easy" | Ease isn't a prioritization criterion. Score with RICE; low impact doesn't belong regardless of ease. |
+| "We committed to this at the offsite" / "The CEO mentioned it" | Sunk cost and HiPPO aren't evidence. Note it, score it with current data, present honestly; park it if it doesn't score. |
+| "Everything is a Must-Have / a Now" | If everything is Now, nothing is prioritized. Force-rank to 2-4 Now items; if you can't cut, you haven't decided. |
+| "Let's keep it on Later just in case" | Later is strategic intent, not a junk drawer. No strategic rationale → Parking Lot with a revisit trigger, or remove. |
+| "We need dates on the roadmap" | Dates create commitment contracts, not plans. Use Now/Next/Later; date ranges only when asked, with confidence bands. |
+| "This item is fine without an outcome" | A feature without an outcome hypothesis is a feature-factory item. Anchor it to a measurable result or cut it. |

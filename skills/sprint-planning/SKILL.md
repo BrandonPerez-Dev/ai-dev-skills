@@ -17,15 +17,10 @@ argument-hint: "[sprint number or date range]"
 
 # Sprint Planning
 
-Sprint planning starts with a goal, not a backlog. The sprint goal defines the "why" — story selection follows from it, not the reverse. A sprint without a goal is a task queue, not a purposeful iteration.
+Sprint planning starts with a goal, not a backlog. Two rules carry the method, stated once with the reason each holds:
 
-<HARD-GATE>
-Every sprint MUST have a sprint goal — a single sentence describing the outcome, not a list of tickets. "Complete stories 34, 35, and 41" is not a goal. If you can't articulate a goal, the sprint lacks purpose and planning should not proceed until one exists.
-</HARD-GATE>
-
-<HARD-GATE>
-Never plan to 100% capacity. Teams with 15-20% buffer have 40% higher sprint success rates. Plan at 80-85% of adjusted capacity. If planned work exceeds 85%, move stories to the stretch list or cut scope.
-</HARD-GATE>
+- **Every sprint has a single-sentence outcome goal, and story selection follows from it.** "Complete stories 34, 35, and 41" is a task queue, not a goal — without a goal every story looks equally important and the team optimizes for throughput over outcome. If you can't articulate a goal, planning shouldn't proceed until one exists.
+- **Never plan to 100% capacity.** Plan to 80-85% of adjusted capacity; the 15-20% buffer is structural, not slack — teams that keep it have ~40% higher sprint success rates. Work over 85% goes to the stretch list or gets cut.
 
 ## Method Selection
 
@@ -61,7 +56,7 @@ PREVIOUS SPRINT: [Sprint N-1]
 
 #### Step 1b: Carryover Triage
 
-Do NOT auto-carry incomplete stories. For each carryover:
+Don't auto-carry incomplete stories — context has changed, and an almost-done story may no longer be top priority. For each carryover:
 
 ```
 CARRYOVER: [Story]
@@ -70,7 +65,7 @@ CARRYOVER: [Story]
   Estimate still valid? [Yes / No → re-estimate]
 ```
 
-**CHECKPOINT:** "These are the carryover candidates. Should any go back to the backlog instead of forward into this sprint?"
+Then confirm: "These are the carryover candidates. Should any go back to the backlog instead of forward into this sprint?"
 
 ### Step 2: Calculate Capacity
 
@@ -87,7 +82,7 @@ PLANNED CAPACITY: min(velocity baseline, team capacity) × 0.85 = [Y]
 BUFFER: [15-20%] reserved for unplanned work
 ```
 
-Productive hours per day = 4-6h after overhead (standups, ceremonies, reviews, context-switching). Use 5h as default unless the team specifies otherwise.
+Productive hours per day = 4-6h after overhead (standups, ceremonies, reviews, context-switching). Use 5h as default unless the team specifies otherwise — teams that plan on 8h/day carry over every sprint.
 
 ### Step 3: Propose Sprint Goal
 
@@ -107,11 +102,9 @@ ROADMAP CONNECTION: [Which theme or initiative this serves]
 
 ### Step 4: Confirm Sprint Goal
 
-**CHECKPOINT: Do NOT skip this step.**
+The goal shapes selection, so confirm it before selecting stories — changing it afterward inverts the process:
 
 "This is the proposed sprint goal. Does it capture what we're trying to achieve this sprint?"
-
-Wait for confirmation before selecting stories. The goal shapes selection — changing it after selection inverts the process.
 
 ### Step 5: Select Stories
 
@@ -123,6 +116,8 @@ From the refined backlog, select stories that support the sprint goal. Balance w
 | Tech debt / refactoring | 15-20% |
 | Bugs | 10-15% |
 | Operational / support | 5-10% |
+
+The 15-20% tech-debt allocation is intentional every sprint — "we'll do it next sprint" said every sprint is how the debt spiral starts.
 
 For each selected story:
 
@@ -139,7 +134,7 @@ Planned: [Y points/stories] of [Z] capacity (85%)
 Remaining buffer: [15-20%]
 ```
 
-Name stretch stories explicitly — they are the first to drop if unplanned work arrives.
+Name stretch stories explicitly — they are the first to drop when unplanned work arrives, and naming them now avoids mid-sprint negotiation.
 
 ### Step 6: Identify Dependencies
 
@@ -165,9 +160,7 @@ Common sprint risks: pending dependencies, team member PTO mid-sprint, stories n
 
 ### Step 8: Produce Sprint Plan
 
-**CHECKPOINT: Do NOT skip this step.**
-
-Present the full sprint plan:
+Present the full sprint plan for the team to commit to:
 
 ```
 SPRINT PLAN — Sprint [N] — [Date range]
@@ -214,32 +207,12 @@ After saving, offer next steps:
 
 ## Bias Guards
 
-| Thought | Reality | Do Instead |
-|---|---|---|
-| "We can fit one more story" | Are you at 85% capacity or 100%? Buffer is not optional. | Check the math. If over 85%, move it to stretch. |
-| "Let's carry this over, we almost finished it" | Re-evaluate: is it still the top priority? Does the estimate still hold? | Triage every carryover. Almost-done is not automatically next. |
-| "We don't need a sprint goal, we know what to build" | The goal isn't for you, it's for focus. Without it, everything is equally important. | Write the goal. If you can't, the sprint lacks coherence. |
-| "We'll handle tech debt next sprint" | If you say this every sprint, you'll never do it. | Allocate a fixed 15-20% now. Make it structural, not aspirational. |
-| "Let's just auto-carry everything forward" | Incomplete stories may no longer be the top priority. Context has changed. | Triage each one. Return to backlog if priority shifted. |
+The rationalizations that derail sprint planning mid-session, and the counter-move for each:
 
-## Anti-Patterns
-
-| Anti-Pattern | Problem | Fix |
-|---|---|---|
-| **No sprint goal** | Task queue, not purposeful iteration. Team optimizes for throughput, not outcomes. | Goal first, stories second. Always. |
-| **Over-commitment** | >25% carryover rate = systemic over-planning. Destroys team morale and predictability. | Plan at 85%. Track carryover rate across sprints. |
-| **Cherry-picking easy stories** | No sprint goal → optimize for personal comfort, not team outcomes. | Sprint goal forces coherent selection. |
-| **Auto-carryover** | Incomplete stories moved forward without triage. Backlog silently grows. | Re-evaluate each carryover: still top priority? Estimate still valid? |
-| **Planning at 100% capacity** | No room for surprises. First interrupt derails the sprint. | 15-20% buffer is structural, not negotiable. |
-| **Sprint planning as refinement** | Stories arrive unrefined → 3-hour meeting that mixes planning with discovery. | Refinement is a separate activity. Only sprint-ready stories enter planning. |
-| **Retro actions never entering sprint backlog** | Process improvements discussed but never executed. | Review retro actions in Step 1. Add relevant ones to the sprint. |
-
-## Guidelines
-
-- **Goal first, stories second.** The sprint goal shapes story selection. Inverting this produces task queues, not purposeful sprints.
-- **Buffer is structural, not aspirational.** 15-20% unplanned capacity is not slack — it's what separates predictable teams from perpetually behind ones.
-- **Carryovers are not automatic.** Every incomplete story gets triaged. Priorities shift, estimates change, context evolves.
-- **Stretch stories are named, not hoped for.** If capacity opens up, the team knows exactly what to pull. No mid-sprint negotiation.
-- **Capacity math is honest.** 4-6 productive hours per day after overhead. Teams that plan on 8h/day carry over every sprint.
-- **Work type balance is intentional.** 15-20% tech debt allocation every sprint prevents the "we'll do it next sprint" death spiral.
-- **Dependencies are sprint risks.** Any story with a pending dependency is a risk. Flag it, mitigate it, or don't commit to it.
+| Thought | Do instead |
+|---|---|
+| "We can fit one more story" | Check the math — at 85% or 100%? Over 85% goes to stretch; the buffer isn't optional. |
+| "We almost finished it, just carry it over" | Triage every carryover: still top priority? estimate still valid? Almost-done isn't automatically next. |
+| "We don't need a goal, we know what to build" | The goal is for focus, not for you. Write it; if you can't, the sprint lacks coherence. |
+| "We'll handle tech debt next sprint" | Said every sprint, it never happens. Allocate a fixed 15-20% now — structural, not aspirational. |
+| "Let's just auto-carry everything forward" | Priorities shift between sprints. Triage each; return to backlog if priority moved. |

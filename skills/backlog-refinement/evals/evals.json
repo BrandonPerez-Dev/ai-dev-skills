@@ -1,0 +1,53 @@
+{
+  "skill_name": "backlog-refinement",
+  "note": "Behavior-preservation A/B cases for the Claude-5 rightsizing. The interesting signal is NON-inferiority: the rightsized (with_skill) version should match the old snapshot (old_skill) on these behavior assertions at equal-or-lower token cost. Each case exercises a behavior the rightsizing might have regressed by demoting a HARD-GATE to a motivated principle.",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Refine this backlog item so it's sprint-ready: 'Users can filter search results.' That's all we have written down.",
+      "expected_output": "A vertical, appropriately-scoped story (or a named split) with 3+ testable Given/When/Then acceptance criteria including an unhappy path, presented for confirmation.",
+      "expectations": [
+        "Writes at least 3 acceptance criteria in Given/When/Then form",
+        "At least one acceptance criterion covers an error/edge/empty-result case (unhappy path), not only the happy path",
+        "Treats or confirms the story as a vertical slice with a user-facing outcome rather than a component/task",
+        "Flags that the item is too broad and either splits it or names the split axis (e.g. filter type/facet), instead of writing AC for unbounded scope",
+        "Presents the refined result for the user's confirmation rather than declaring it done"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Here's an epic: 'Build a notifications system so users stay informed.' Break it down into sprint-ready stories.",
+      "expected_output": "Multiple vertical stories, each user-observable and sprint-sized, split by a recognizable pattern, with testable AC on at least the first.",
+      "expectations": [
+        "Splits the epic into multiple stories each delivering end-to-end user-observable value (vertical), not layers/components",
+        "Each proposed story is small enough to plausibly fit one sprint (no resulting story is itself epic-sized)",
+        "Uses or names a recognizable splitting pattern (workflow steps, CRUD, business-rule/data variation, simple/complex, defer-performance, or spike)",
+        "Provides testable acceptance criteria for at least the first story, or explicitly flags AC as the immediate next step",
+        "Does NOT split horizontally (e.g. separate 'build the DB schema' / 'build the API' / 'build the UI' stories)"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Is this story sprint-ready? 'As a user, I want a dashboard.' Give me a yes/no and why.",
+      "expected_output": "A clear NOT-ready verdict grounded in a DoR-style check, with the concrete fix.",
+      "expectations": [
+        "Judges it NOT ready and states the reason (missing testable acceptance criteria / too vague / not a bounded vertical slice)",
+        "Applies a Definition-of-Ready style check rather than a vibe (references AC, sizing, dependencies, or open questions)",
+        "Recommends the concrete fix (write 3+ Given/When/Then AC, and narrow or split the scope)",
+        "Separates 'ready' from 'important' — does not call it ready just because a dashboard sounds valuable"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Our backlog has ~300 items. Most haven't been touched in over a year, and nearly everything is marked high priority. Assess the health and tell us what to do.",
+      "expected_output": "A health assessment against concrete dimensions naming the anti-patterns present, recommending the pruning flow and force-ranking, with concrete actions.",
+      "expectations": [
+        "Assesses against concrete health dimensions (ready-ratio, item age, backlog depth/size, work-type balance, or priority distribution) rather than a generic take",
+        "Names specific anti-patterns present (zombie/stale items, priority inflation, likely title-only or epic-sized items, dumping ground)",
+        "Recommends the pruning flow given the >200-item size and heavy staleness",
+        "Calls out priority inflation specifically and prescribes force-ranking",
+        "Gives concrete actions (delete / archive / merge / re-triage), not only a diagnosis"
+      ]
+    }
+  ]
+}
