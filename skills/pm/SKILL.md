@@ -80,7 +80,8 @@ CD3 = Cost of Delay ÷ Duration        (higher = do sooner)
 ```
 
 - **Cost of Delay (CoD)** = **value** (what the outcome is worth) + **time-criticality** (does its value decay, or its cost *grow*, with delay — a deadline lives here, and so does **carrying cost**: a rename every new story makes costlier has rising time-criticality) + **risk-reduction / opportunity-enablement** (does it retire risk or unblock other work — **dependency leverage** lives here: an enabler gating three stories scores high). Score the three relatively (1–10 each) and sum, or reason them qualitatively — always *show the components* so the number is auditable.
-- **Duration** = rough size (slice/story effort; person-days, not points). Cheap to estimate for agent-built work.
+- **Duration = review-load**, not effort-to-write. Cadre's binding constraint is human *review*, not agent code-gen — so size a story by the scarce human review it will consume: a **coarse tier judged** (not computed) from **blast-radius/reversibility (the anchor), rough scope, and rough slice/PR count**, shown with its reasoning and the driver that drove it. A *pre-planning* estimate (planning's slice count refines it); not velocity/Fibonacci points. Method, anchors, and calibration: `references/sizing.md`.
+  - **Keep risk distinct across the two terms:** CoD's risk term is the *value of de-risking* (numerator); Duration's blast-radius is the *review the change consumes* (denominator). Don't count the same risk twice.
 
 Why CD3 over a value-only or ease-based score: sequencing a single-resource queue by weight-over-duration *provably* minimises total weighted delay (Smith's 1956 WSPT theorem), and the ready lane **is** that queue. It also keeps **value and urgency separate**, where ICE's "Impact" mushes them and its "Ease" is a weak proxy for real duration. **Caveat, honestly:** WSPT is strictly optimal only for one resource, independent jobs, all available now — we have dependencies (lane-gated below) and parallel features — so CD3 is a well-grounded *heuristic* here, not a literal optimum.
 
@@ -215,6 +216,8 @@ For the capacity/selection mechanics, compose **[[sprint-planning]]**.
 | "Refine the whole backlog to be safe" | Refine deeply for the next 2-3 cycles; leave far-out items coarse. Over-refinement is waste. |
 | "I remember Linear's fields" | Read states/labels/tools live first; the board and MCP surface drift. |
 | "Just rank by value / impact" | Sequence by **cost of delay ÷ duration** — a high-value but long story can sit below a cheap, time-critical one. Show the CoD components. |
+| "Size it by how long the agent takes / person-days" | Agent code-gen is cheap and fast; size by human **review-load** — blast-radius (anchor), rough scope, rough slice count — that's what rate-limits the queue. Not velocity/Fibonacci points. See `references/sizing.md`. |
+| "It's risky, so bump the size" | Which risk? The *value of de-risking* is CoD (numerator); the *review a risky change consumes* is Duration (denominator). Don't count the same risk in both. |
 | "It's aging — bump it up" | Age is a *diagnostic*, not a priority term. Ask *why* it's aging (blocked? review backed up? mis-ranked?) and fix that; don't auto-rerank on age. |
 | "Fill the ready lane to agent throughput" | The binding constraint is **human review**, not generation. Gauge cycle fill against review capacity — but never hold a *ready* item out of the lane on it. |
 | "It has an open design question — keep it in Backlog" | Ask *what* vs *how*: a scope/outcome gap is yours (clarify it, or it isn't a coherent story yet); an **implementation** question is the planning member's — a *how* never holds a ready story. The board's job is readiness and order, not resolving implementation semantics. |

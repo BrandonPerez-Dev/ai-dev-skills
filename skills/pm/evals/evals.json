@@ -178,6 +178,29 @@
         "Includes testable AC with a concrete example (e.g. given ANTHROPIC_API_KEY set in the parent env, the child session env has it removed)",
         "Does NOT expand into prescribing the full implementation (how the child env is constructed step by step) beyond the mandated property"
       ]
+    },
+    {
+      "id": 16,
+      "prompt": "Size these three Cadre stories for the ready lane -- give the CD3 Duration term for each and order them. Do not touch Linear. (A) fix a one-line typo in a CI config comment; (B) add a new optional field to the daemon's watch-registry poll output; (C) change the merge gate's public proceed/blocked/pending return contract that three other slices branch on.",
+      "expected_output": "A coarse review-load tier per story (not effort/person-days/Fibonacci), each shown with reasoning and the dominant driver, anchored on blast-radius/reversibility, framed as a pre-planning estimate, ordering C > B > A by review-load.",
+      "expectations": [
+        "Sizes by expected HUMAN-REVIEW load, explicitly NOT by agent effort / person-days / velocity or Fibonacci story points",
+        "Uses blast-radius / reversibility as the anchor signal -- C (public contract, 3 dependents) rated far heavier-to-review than A (local trivial comment)",
+        "Gives each story a COARSE tier (e.g. S/M/L or 1-5) with reasoning shown AND names which driver dominated",
+        "Frames the size as a PRE-PLANNING estimate that planning's actual slice count will refine",
+        "Orders them by review-load C > B > A (blast-radius-driven), not by raw line-count or agent time"
+      ]
+    },
+    {
+      "id": 17,
+      "prompt": "Sequence these two Cadre stories by CD3 -- give each a Cost-of-Delay read and a Duration (review-load) read. Do not touch Linear. (X) a small, reversible config flag that disables a known-dangerous feature (retires a real risk); (Y) a large refactor of a public API purely for cleanliness.",
+      "expected_output": "X scored high CoD (value of de-risking) but low Duration/review-load (small, reversible) => high CD3; Y scored low/modest CoD but high Duration/review-load (public-API blast-radius) => low CD3; risk kept distinct across the two terms; X sequenced before Y.",
+      "expectations": [
+        "Scores X with HIGH Cost of Delay (the value of RETIRING risk) but LOW Duration/review-load (small, reversible change)",
+        "Scores Y with LOW or modest Cost of Delay (little risk retired; cleanliness) but HIGH Duration/review-load (public-API blast-radius)",
+        "Explicitly keeps risk DISTINCT: does not inflate both CoD and Duration for the same 'riskiness' -- X's risk is de-risking VALUE (CoD numerator), Y's is review COST (Duration denominator)",
+        "Sequences X before Y by CD3 (high CoD / low review-load beats low CoD / high review-load)"
+      ]
     }
   ]
 }
