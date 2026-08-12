@@ -47,6 +47,15 @@ Miss any → epic or task, not ready: decompose, slice-in-planning, or reframe.
 1. **Read the live board first.** `list_issue_statuses`, `list_issue_labels`, `list_projects`, `list_cycles` for the team in play — states, labels, project/initiative structure, and whether cycles exist drift over time. The board is the source of truth.
 2. **Introspect the Linear tool surface.** The MCP write set evolves; confirm the tool and its params (e.g. `save_issue` exposes `priority`, `stateId`, `projectId`, `labelIds`, `parentId`, `milestone`, and relations `relatedTo`/`blocks`/`blockedBy`/`duplicateOf`) before relying on a capability. Don't hard-code what you remember.
 
+## Keep the board honest (standing habit, every invocation)
+
+The board drifts from reality — a co-developer merges a fix, a comment records a decision, a story quietly duplicates another — and the drift is rarely announced to you. So on **every invocation**, before acting, take a read: *does the board still reflect the project's actual state?* Probe and question rather than trust it at face value, and surface any drift as explicit flags — a stale story, a duplicate, work the code already resolved, a status that no longer matches, a decision buried in a comment.
+
+- **Always-on (cheap):** scan Linear's own signals — recent comments, status updates, attachments, relations, recent activity — where most drift is already visible without leaving the board.
+- **Escalate when it smells off:** read the PRs / commits / code / `.pipeline` state to *confirm* before flagging (e.g. "is this actually fixed, or just band-aided?").
+
+**Flag, don't silently correct** — surfaced drift becomes a proposed write like any other (the trust boundary still holds). Fuller board↔code synchronization is its own capability; this is the standing reflex that keeps the board from lying between audits.
+
 ## Method selection
 
 Different requests need different flows — don't run one procedure for everything. Each flow ends in proposed writes that wait for confirmation.
@@ -56,7 +65,7 @@ Different requests need different flows — don't run one procedure for everythi
 | "Prioritize / order / rank", "what's next" | **Prioritize** | Sequence by CD3/WSJF (cost of delay ÷ duration; leverage & carrying-cost fold into CoD); set priority + Backlog/Todo lane; one ranking |
 | "What needs refinement", "groom for readiness", "is the board ready to pull" | **Refine (discovery)** | Scan the board, classify each unready item by *why* it fails the bar, emit a ranked refinement queue |
 | "Split / decompose this epic", an item bundling several outcomes | **Decompose** | Drive the multi-outcome epic into child stories written under it (`parentId`), composing [[backlog-refinement]] splitting patterns |
-| "Write / refine / size a story" | **Story** | Vertical, testable-done, one coherent outcome; compose [[backlog-refinement]] |
+| "Write / refine / size a story" | **Story** | Write to the **Cadre Story Standard** (`references/story-standard.md`); vertical, testable-done, one coherent outcome; compose [[backlog-refinement]] |
 | "Plan the stories for X", an outcome/initiative with no stories yet | **Story mapping** | Backbone of steps → a sliced story set that delivers the outcome |
 | "Triage this issue", new intake | **Triage** | Classify (severity vs priority), dedup, accept/defer/delete |
 | "Plan / adjust the roadmap" | **Roadmap** | Now/Next/Later over projects/initiatives |
@@ -139,10 +148,18 @@ Follow the 4-step loop (gather → categorize → reprioritize around value → 
 
 ## Story
 
-A Cadre story is a **vertical slice, one coherent outcome** (the Story-ready bar) — the sweet spot between a component task (too small, no user value) and an epic (several outcomes bundled).
+A Cadre story is a **vertical slice, one coherent outcome** (the Story-ready bar) — the sweet spot between a component task (too small, no user value) and an epic (several outcomes bundled). It is written to the **Cadre Story Standard**: a fixed, scannable shape that serves both the human who prioritizes it and the agent that implements it.
 
-- **Refine to the bar.** Write the user-facing outcome and enough testable Given/When/Then AC that done is unambiguous (incl. an unhappy path when one applies); confirm it's one coherent outcome. For the full AC-quality rubric and the splitting patterns, **invoke [[backlog-refinement]]** — don't reproduce it here.
-- **Write it into Linear** as an issue with the outcome in the title, story + AC in the description, the right project/labels, and a proposed priority from Prioritize. Pipeline-ready means the next step could open `feat/<slug>` against it.
+**The shape** — full template, length budgets, lifecycle rules, and a worked example in `references/story-standard.md`:
+
+> **Summary → Why/Outcome → Acceptance Criteria → Constraints → Non-Goals → Context & Links**
+
+Scannable on the surface, complete underneath; **intent, not implementation** — the *how* (tech, design, slicing) is the planning member's change-spec, not the story. Two rules carry most of the value: **AC needs ≥1 concrete example** (an omitted example is the ambiguity that most often misleads an agent, and it won't stop to ask), and **Context links must be load-bearing** — named artifact + what it's for, never a bare "see NEX-X".
+
+- **Apply it at any lifecycle point.** Writing new: shape all six sections. Refining: fill what's missing and strip bloat / vague refs — *not* rewrite prose that already works. **If the story's tests are already locked, never rewrite the AC they enforce** — add context or sharpen non-goals *around* the locked contract instead (lifecycle-safety table in the reference).
+- **Compose [[backlog-refinement]]** for the deep AC-quality rubric and the splitting patterns — don't reproduce them here.
+- **Constraints are a lean, not a law:** state properties, not the how — but a specific mechanism is fine when the *driver called for it* or the *context requires it* (v1 parity, a technical necessity), and say why.
+- **Write it into Linear** with the outcome in the title, the template in the description, the right project/labels, and a proposed priority from Prioritize. Pipeline-ready means the next step could open `feat/<slug>` against it.
 
 ### Decompose (epic → child stories)
 
@@ -201,6 +218,11 @@ For the capacity/selection mechanics, compose **[[sprint-planning]]**.
 | "It's aging — bump it up" | Age is a *diagnostic*, not a priority term. Ask *why* it's aging (blocked? review backed up? mis-ranked?) and fix that; don't auto-rerank on age. |
 | "Fill the ready lane to agent throughput" | The binding constraint is **human review**, not generation. Gauge cycle fill against review capacity — but never hold a *ready* item out of the lane on it. |
 | "It has an open design question — keep it in Backlog" | Ask *what* vs *how*: a scope/outcome gap is yours (clarify it, or it isn't a coherent story yet); an **implementation** question is the planning member's — a *how* never holds a ready story. The board's job is readiness and order, not resolving implementation semantics. |
+| "Just write the story, it's clear enough" | Write it to the Cadre Story Standard — Summary / Why / AC / Constraints / (Non-Goals) / Context. A missing example — or a missing Non-Goal *when the agent could over-reach* — is cheap ambiguity to kill, and the agent won't stop to ask. |
+| "Spell out the implementation so the agent gets it right" | State the *what* (properties, testable AC); the *how* is the planning member's change-spec. Dictate a mechanism only when the driver called for it or context requires it (parity) — and say why. |
+| "Reference the related issue — 'see NEX-X'" | Never a bare cross-ref; name the artifact **and what it's for**. A bare link is as useless to the agent as none. |
+| "This story's mid-flight — rewrite its AC while I'm here" | If its tests are locked, the AC is an immutable contract — add context / non-goals *around* it, don't rewrite it. Wrong AC = fix-slice / driver call, not a story edit. |
+| "The board looks fine, just act on the request" | Every invocation, first check the board still matches reality — recent comments, merged PRs, status drift. A story the code already resolved, or a silent duplicate, is drift to flag before you prioritize around it. |
 
 ## Composition
 
