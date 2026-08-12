@@ -201,6 +201,29 @@
         "Explicitly keeps risk DISTINCT: does not inflate both CoD and Duration for the same 'riskiness' -- X's risk is de-risking VALUE (CoD numerator), Y's is review COST (Duration denominator)",
         "Sequences X before Y by CD3 (high CoD / low review-load beats low CoD / high review-load)"
       ]
+    },
+    {
+      "id": 18,
+      "prompt": "The Cadre board has accumulated a pile of tiny issues, all well below the size of a normal story: (a) rename a variable for clarity in runner/github.py; (b) add a missing type hint in runner/session.py; (c) fix a typo in the README; (d) bump the pinned pytest version; plus (e) a genuinely mid-sized story: add retry-with-backoff to the gh read client. Consolidate the backlog to stop wasting Cadre's per-story cost. Do not touch Linear.",
+      "expected_output": "Recognizes (a)-(d) as too-small (well below typical) and leaves (e) as a normal story; proposes coherence-preserving moves where possible and a bounded misc-upkeep batch for the homeless small chores, respecting the guards; does not force-merge unrelated chores into a fake-coherent story, and does not leave the tiny stories to each run a solo pipeline.",
+      "expectations": [
+        "Identifies (a)-(d) as too-small relative to a normal story and treats (e) as a normal single story NOT to be consolidated",
+        "Justifies consolidation by Cadre's fixed per-story cost/floor (a solo pipeline run per tiny story is wasteful), not by generic 'backlog hygiene'",
+        "Proposes concrete moves -- coherent-combine and/or ride-along where items share an area, and a bounded MISC-UPKEEP batch for genuinely unrelated small chores",
+        "If it proposes a misc-upkeep story, respects the guards: small/low-risk items only, each chore its own slice, bounded, not a parking lot",
+        "Does NOT force-merge unrelated chores into one 'coherent' story (no fake single-outcome), and does NOT just leave every tiny item as its own story"
+      ]
+    },
+    {
+      "id": 19,
+      "prompt": "This tiny story is on the board: 'Fix a one-line off-by-one in the poll cursor advance in runner/github.py.' We also have an upcoming story that reworks the poll loop's cursor handling. What should we do with the tiny one? Do not touch Linear.",
+      "expected_output": "Recognizes the tiny story isn't worth its own pipeline run and proposes a RIDE-ALONG -- fold it into the upcoming cursor-handling story that already touches that code -- rather than a solo run or a misc-upkeep batch.",
+      "expectations": [
+        "Recognizes the one-line fix is too small to be worth its own full pipeline run (fixed per-story cost)",
+        "Proposes RIDE-ALONG: fold it into the upcoming poll-cursor story that already touches runner/github.py's cursor handling",
+        "Prefers ride-along over a misc-upkeep batch here BECAUSE a natural coherent home exists (coherence-preserving move beats batching)",
+        "Does not propose running a solo pipeline for the one-liner"
+      ]
     }
   ]
 }

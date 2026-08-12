@@ -38,7 +38,7 @@ Never write to Linear (create/update issues, set priority, reorder, move state, 
 
 - **Vertical** — a user- or operator-facing outcome, not a component task.
 - **Testable done** — enough testable acceptance criteria that "done" is unambiguous, including a failure/edge case *when one applies* (a pure display, a config toggle, or a chore may have none). A small handful is typical; the **count is a signal** — too few = under-specified or trivial, many = probably an epic — **not a hard floor**. Because an AI executor has none of a human's tacit context, the outcome should also be clear enough it can't be *grossly* misread — but residual ambiguity is resolved downstream (planning/grill, and soon labels), not gated to death here. (AC-quality rubric → [[backlog-refinement]].)
-- **One coherent outcome the pipeline can plan-and-slice** — *not* "one session." A Cadre story becomes a feature branch the planning phase slices into build units; **multi-slice is the normal shape** (PIPE-1 was six slices). "One session" is the bar for a **slice**. It fails this only when it bundles *several distinct outcomes*, or is too large/vague for planning to slice — then it's an epic (decompose) or needs a spike.
+- **One coherent outcome the pipeline can plan-and-slice** — *not* "one session." A Cadre story becomes a feature branch the planning phase slices into build units; **multi-slice is the normal shape** (PIPE-1 was six slices). "One session" is the bar for a **slice**. It fails this only when it bundles *several distinct outcomes*, or is too large/vague for planning to slice — then it's an epic (decompose) or needs a spike. (One deliberate exception: a **misc-upkeep** story batches small unrelated chores to amortize the fixed per-story cost — see Consolidate.)
 
 Miss any → epic or task, not ready: decompose, slice-in-planning, or reframe.
 
@@ -65,6 +65,7 @@ Different requests need different flows — don't run one procedure for everythi
 | "Prioritize / order / rank", "what's next" | **Prioritize** | Sequence by CD3/WSJF (cost of delay ÷ duration; leverage & carrying-cost fold into CoD); set priority + Backlog/Todo lane; one ranking |
 | "What needs refinement", "groom for readiness", "is the board ready to pull" | **Refine (discovery)** | Scan the board, classify each unready item by *why* it fails the bar, emit a ranked refinement queue |
 | "Split / decompose this epic", an item bundling several outcomes | **Decompose** | Drive the multi-outcome epic into child stories written under it (`parentId`), composing [[backlog-refinement]] splitting patterns |
+| "This is too small", a pile of tiny chores, or a story well below typical size | **Consolidate** | Combine coherent smalls, ride a tiny change along the next story touching that area, or batch homeless chores into a bounded **misc-upkeep** story — amortize Cadre's fixed per-story floor |
 | "Write / refine / size a story" | **Story** | Write to the **Cadre Story Standard** (`references/story-standard.md`); vertical, testable-done, one coherent outcome; compose [[backlog-refinement]] |
 | "Plan the stories for X", an outcome/initiative with no stories yet | **Story mapping** | Backbone of steps → a sliced story set that delivers the outcome |
 | "Triage this issue", new intake | **Triage** | Classify (severity vs priority), dedup, accept/defer/delete |
@@ -132,6 +133,7 @@ Prioritize and the Readiness lane *judge* an item you hand them; discovery *find
    - **Vague / no user-facing outcome** (fails the vertical bar) → reframe in **Story**.
    - **Blocked** (`blockedBy` open) → ranked, lane-gated to Backlog; the fix is the blocker, not this item.
    - **Tracker/ledger** (a standing checklist that never ships) → extract its items into ranked stories; set the index itself to **None**.
+   - **Too small** (review-load well below the project's typical; value barely clears the fixed per-story floor) → route to **Consolidate** (coherent combine / ride-along / misc-upkeep batch).
    - **Stale** (untouched for months, no deliberate hold) → triage (defer/delete).
    - **Mis-filed lane** (ready item in Backlog, or unready in Todo) → propose the promote/demote.
    - **Aging** — surface **Work Item Age** (from Linear timestamps): an item aging in **Todo** (ready but unpulled — why? review backed up, mis-ranked, too big?) or **In Progress** (a stuck WIP item) is a prompt to *ask why*, a factor among others — not an auto-rerank, and never a term in the score.
@@ -169,6 +171,29 @@ When an item bundles **several distinct outcomes** (the size failure from Story-
 1. **Split** with [[backlog-refinement]]'s patterns (find the core complexity, pick one axis of variation, reduce to a single case, defer the rest). Prefer splits that let you *throw one away* and that yield equal-sized small stories.
 2. **Each child must clear Story-ready on its own** — vertical, testable-done, one coherent outcome. A split that yields "build the schema" + "build the API" is horizontal; try again.
 3. **Propose the writes as a set:** keep the epic as the parent (or convert it), and `save_issue` each child with `parentId` set to it, a proposed priority, and the ready lane if unblocked. Show the parent→children tree and the per-child AC before writing anything.
+
+### Consolidate (too-small → combine)
+
+Cadre pays a **substantial fixed floor per story** — a planning pass, an assembly pass, and the once-per-story review overhead — *plus* variable per-slice review on top. A story whose value barely clears that floor wastes it. Consolidate is the mirror of Decompose: Decompose splits *distinct outcomes apart*; Consolidate groups *small work together* so the floor is paid fewer times — and because the total slices to review are unchanged however you group them, it saves the floor **without** adding to the review-load constraint.
+
+**Detect "too small" — relative, not absolute.** pm can't see a run's real cost, so judge a story's review-load (`references/sizing.md`) against the **project's typical story size**: *well below typical* + low CoD + no natural coherent home ⇒ a consolidation candidate. Before there's enough realized data for a "typical," fall back to judgment — *"is this worth a whole pipeline run and your review on its own?"* **Stance:** size coherent work toward the **top** of the ready range ("right under too-large") — grouping amortizes the floor for free; the ceiling is coherence and reasonable slices, not maximum size.
+
+**The moves** (prefer the coherence-preserving ones):
+
+1. **Coherent combine** — shares an outcome with another small → merge into one coherent story.
+2. **Ride-along** — fits naturally into an upcoming story that already touches that area → attach it there rather than run a solo pipeline.
+3. **Misc-upkeep batch** — small, unrelated, low-risk chores with no natural home → one bounded **misc-upkeep** story (below).
+4. **Defer / delete** — trivial and not worth doing at all.
+
+**The misc-upkeep story — a *named exception* to "one coherent outcome."** It deliberately batches unrelated small chores to pay the floor once; its coherence is "a bounded batch of upkeep," not a shared outcome. Guards keep it a tool, not a dumping ground:
+
+- **Small + low-risk only** — each item is a review-load **S**, local and reversible; a large or high-blast-radius change is not batchable — it earns its own story.
+- **Each chore is its own slice** — the batch shares the floor; each item still reviews independently.
+- **Bounded** — capped near "right under too-large" so it lands promptly and no reviewer drowns.
+- **Not a parking lot** — items enter because they're ready small chores, not "someday-maybe" (that's a ledger → **None** + extract, not upkeep).
+- A natural fit for a recurring **quiet-window** batch, refilled and run periodically.
+
+Propose the consolidation as a set (which smalls, which move, the resulting story/batch) and confirm before writing.
 
 ## Story mapping
 
@@ -210,6 +235,8 @@ For the capacity/selection mechanics, compose **[[sprint-planning]]**.
 | "Emit a priority rank *and* a build order" | One ranking; separate blocked/unready work by *state* (Backlog), not a second list. Dependency leverage already lives in CoD. |
 | "It's blocked, so drop its priority" | Keep the priority; move it to Backlog. The lane carries "can't start yet," not the rank. |
 | "It's an epic — decompose it" | First check: *several outcomes* (epic → decompose) or *one big outcome, many slices* (large → planning slices it, don't hand-split)? |
+| "It's tiny — just give it its own story" | Cadre pays a substantial fixed floor per story (planning + assembly + your review) regardless of size. Well-below-typical work wastes it — **Consolidate**: coherent-combine, ride-along the next story touching that area, or batch into a bounded misc-upkeep story. Delete if not worth doing. |
+| "Bundle these unrelated chores to save cost" | Fine — that's a *misc-upkeep* story, but bounded: small + low-risk items only, each its own slice, capped near too-large, not a parking lot. A big or high-blast-radius change is never upkeep-batchable. |
 | "It's a chore/rename — park it at Low" | Rank it with its **carrying cost** (cheap-now-expensive-later sequences early); record any quiet-window as a scheduling *note*, not a low priority. |
 | "It's a ledger — leave it in Backlog" | A ledger isn't work — extract its items into ranked stories; set the index to **None** (never Low). |
 | "No third AC, so it's not ready" | Ready = enough testable AC that done is unambiguous; a small slice may need 1–2. Don't pad to hit a number. |
