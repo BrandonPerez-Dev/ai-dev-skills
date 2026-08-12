@@ -1,10 +1,11 @@
 ---
 name: pm
-description: Product-management operations on a Linear backlog for the Cadre pipeline — prioritize and order the backlog, triage intake, find what needs refinement, decompose epics into ready stories, write and refine stories, map an outcome into a story set, and plan the roadmap, all via the Linear MCP. ALWAYS invoke when asked to prioritize / order / rank the backlog, decide what to work on next, triage or groom issues, find refinement candidates or check what's sprint-ready, split / decompose an epic, write / refine / size a Linear story, plan the stories to deliver an outcome or initiative, set issue priority, plan a cycle, or plan a roadmap in Linear. Every ordering and every write shows its scoring rationale and is confirmed before it touches Linear. Do not hand-order a backlog, set priorities, or write stories ad hoc without this skill.
+description: Product-management operations on a Linear backlog for the Cadre pipeline — prioritize and order the backlog, triage intake, find what needs refinement, decompose epics into ready stories, write and refine stories, map an outcome into a story set, and plan the roadmap, all via the Linear MCP. ALWAYS invoke when asked to prioritize / order / rank the backlog, decide what to work on next, triage or groom issues, find refinement candidates or check what's sprint-ready, split / decompose an epic, write / refine / size a Linear story, plan the stories to deliver an outcome or initiative, set issue priority, plan a cycle, plan a roadmap, or reconcile / audit the board against the codebase (find stale, done-in-code, duplicate, or desynced issues) in Linear. Every ordering and every write shows its scoring rationale and is confirmed before it touches Linear. Do not hand-order a backlog, set priorities, or write stories ad hoc without this skill.
 allowed-tools:
   - Read
   - Grep
   - Glob
+  - Bash
   - Skill
   - AskUserQuestion
   - mcp__linear-server__list_issues
@@ -54,7 +55,7 @@ The board drifts from reality — a co-developer merges a fix, a comment records
 - **Always-on (cheap):** scan Linear's own signals — recent comments, status updates, attachments, relations, recent activity — where most drift is already visible without leaving the board.
 - **Escalate when it smells off:** read the PRs / commits / code / `.pipeline` state to *confirm* before flagging (e.g. "is this actually fixed, or just band-aided?").
 
-**Flag, don't silently correct** — surfaced drift becomes a proposed write like any other (the trust boundary still holds). Fuller board↔code synchronization is its own capability; this is the standing reflex that keeps the board from lying between audits.
+**Flag, don't silently correct** — surfaced drift becomes a proposed write like any other (the trust boundary still holds). And **recommend a full audit when warranted:** when the probe smells drift it can't cheaply resolve, or notable recent activity suggests the board has outpaced its last check, tell the user to run **Reconcile (board↔code)** rather than quietly proceeding. This standing reflex is the cheap, always-on version; `Reconcile` is the deep, on-request one.
 
 ## Method selection
 
@@ -64,6 +65,7 @@ Different requests need different flows — don't run one procedure for everythi
 |---|---|---|
 | "Prioritize / order / rank", "what's next" | **Prioritize** | Sequence by CD3/WSJF (cost of delay ÷ duration; leverage & carrying-cost fold into CoD); set priority + Backlog/Todo lane; one ranking |
 | "What needs refinement", "groom for readiness", "is the board ready to pull" | **Refine (discovery)** | Scan the board, classify each unready item by *why* it fails the bar, emit a ranked refinement queue |
+| "Audit the board", "is it in sync with the code", suspected drift, or a lot merged since last check | **Reconcile (board↔code)** | Read-only code reach: classify each issue's sync with reality (done-in-code / band-aided / duplicate / mis-filed / stale / desynced) with evidence + attribution; flag dev-collisions; propose Linear fixes |
 | "Split / decompose this epic", an item bundling several outcomes | **Decompose** | Drive the multi-outcome epic into child stories written under it (`parentId`), composing [[backlog-refinement]] splitting patterns |
 | "This is too small", a pile of tiny chores, or a story well below typical size | **Consolidate** | Combine coherent smalls, ride a tiny change along the next story touching that area, or batch homeless chores into a bounded **misc-upkeep** story — amortize Cadre's fixed per-story floor |
 | "Write / refine / size a story" | **Story** | Write to the **Cadre Story Standard** (`references/story-standard.md`); vertical, testable-done, one coherent outcome; compose [[backlog-refinement]] |
@@ -139,6 +141,18 @@ Prioritize and the Readiness lane *judge* an item you hand them; discovery *find
    - **Aging** — surface **Work Item Age** (from Linear timestamps): an item aging in **Todo** (ready but unpulled — why? review backed up, mis-ranked, too big?) or **In Progress** (a stuck WIP item) is a prompt to *ask why*, a factor among others — not an auto-rerank, and never a term in the score.
 3. **Rank the queue** by leverage: an unready item that is high-CoD or blocks others is worth refining before a low-value one. Don't just list — order by which refinement unblocks the most pull-able work.
 4. **Output** a table — `Issue | why not ready | fix (Decompose / AC / reframe / unblock / extract / triage / lane) | priority` — then propose the first batch of fixes (or ask which to take first). A *multi-outcome* epic is never left as just "not ready" — name it and route to decomposition; a *large-but-coherent* story is flagged large (planning slices it), not split.
+
+## Reconcile (board↔code)
+
+Refine judges the board against the *readiness* bar; Reconcile judges it against *reality*. It's the deep, on-request version of the standing "keep the board honest" habit — the board drifts from the code (a co-dev merges, band-aids, closes, or direct-pushes, often unannounced), and Reconcile detects that drift and proposes the Linear writes to close it. **This is pm as the intermediary between codebase and board, and the synchronizer across the two devs.**
+
+- **Reach is read-only.** pm reads code to *detect* drift — Linear signals first (comments, status, attachments, relations, recent activity), then read-only `gh` (merged/open PRs, authors), then `git` / `Read` / `Grep` on the actual code + `.pipeline` state to verify "is this really done?". It **never commits, pushes, merges, or mutates** — the only writes are to Linear, confirmed. Code fixes and merge-conflict *resolution* are other members' lanes; pm **flags, it does not fix**.
+- **Classify each issue** by drift type — done-in-code / band-aided / duplicate-or-superseded / mis-filed / stale / desynced / in-sync — each with **evidence** (PR# / commit / comment / file) and **attribution** (which dev's action caused it).
+- **Flag dev-collisions (forward-looking):** two active stories touching the same area → sequence/merge before they conflict; a recent merge that affects an in-flight story → flag for re-check. Flag, don't resolve.
+- **Output** a reconciliation queue, then the batched Linear writes (close / `duplicateOf` / refile / update / keep-flagged), confirmed before writing.
+- **Scope it** — reading code across a board is heavy: start from recent activity or a targeted set, not a blind full-repo scan.
+
+Full drift catalogue, detection procedure, and output shape: `references/board-sync.md`.
 
 ## Triage
 
@@ -253,6 +267,7 @@ For the capacity/selection mechanics, compose **[[sprint-planning]]**.
 | "Reference the related issue — 'see NEX-X'" | Never a bare cross-ref; name the artifact **and what it's for**. A bare link is as useless to the agent as none. |
 | "This story's mid-flight — rewrite its AC while I'm here" | If its tests are locked, the AC is an immutable contract — add context / non-goals *around* it, don't rewrite it. Wrong AC = fix-slice / driver call, not a story edit. |
 | "The board looks fine, just act on the request" | Every invocation, first check the board still matches reality — recent comments, merged PRs, status drift. A story the code already resolved, or a silent duplicate, is drift to flag before you prioritize around it. |
+| "The board says it's open, so it's open" | The board drifts from the code — verify against reality (a merged PR, a comment, the actual code) before trusting a status, especially on a Reconcile audit. Done-in-code, band-aided, and duplicates hide behind stale statuses. Read-only: pm flags and proposes Linear writes; it never fixes the code. |
 
 ## Composition
 
@@ -260,7 +275,7 @@ For the capacity/selection mechanics, compose **[[sprint-planning]]**.
 - **[[sprint-planning]]** — cycle capacity/selection method. `pm` owns the Linear cycle read/write and the cadence-bucket stance.
 - **engineering / slicing** — once a story is ready and prioritized, these carry it into the PR pipeline. `pm` stops at a ready, prioritized, written story.
 
-**Know your lane.** `pm` is one member in a crew; its concern is the **board** — readiness, order, hygiene. When an item's only gap is another member's job (planning resolves implementation ambiguity, test-planning writes tests, the engineer builds), hand it off by making it **ready**, not by holding it in Backlog. Over-holding is the recurring failure mode — default to *ready* whenever the outcome is clear and nothing genuinely blocks it.
+**Know your lane.** `pm` is one member in a crew; its concern is the **board** — readiness, order, hygiene. When an item's only gap is another member's job (planning resolves implementation ambiguity, test-planning writes tests, the engineer builds), hand it off by making it **ready**, not by holding it in Backlog. Over-holding is the recurring failure mode — default to *ready* whenever the outcome is clear and nothing genuinely blocks it. pm now *reads* code (read-only) to keep the board honest (see **Reconcile**), but it still stops at **board writes** — it flags drift and collisions and proposes Linear fixes; it never writes code or resolves conflicts (the engineer and the pipeline's reconcile stage own those).
 
 ## Output format
 

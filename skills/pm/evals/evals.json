@@ -224,6 +224,28 @@
         "Prefers ride-along over a misc-upkeep batch here BECAUSE a natural coherent home exists (coherence-preserving move beats batching)",
         "Does not propose running a solo pipeline for the one-liner"
       ]
+    },
+    {
+      "id": 20,
+      "prompt": "Reconcile these board issues against reality (do not touch Linear). Board: NEX-301 'Add retry to the gh client' (Todo); NEX-302 'gh client should retry on 5xx' (Backlog); NEX-303 'Fix daemon crash on auth expiry' (In Progress). Reality: PR #88 (merged yesterday by co-dev @brandon) added retry-with-backoff to the gh read client; a comment on NEX-303 says 'hotfixed on fedora-1 with a cron restart for now'; the code in runner/ still shows the auth-expiry handler as a TODO.",
+      "expected_output": "A reconciliation queue classifying each issue by drift type with evidence + attribution: NEX-301 done-in-code (PR #88, @brandon) -> close; NEX-302 duplicate of NEX-301 -> duplicateOf; NEX-303 band-aided (hotfix comment; code still TODO) -> keep open + flag, NOT close. Proposes the Linear writes and waits for confirmation; flags, does not fix code.",
+      "expectations": [
+        "Classifies NEX-301 as done-in-code (PR #88 merged implements it) and proposes CLOSE, citing the PR as evidence and attributing it to @brandon",
+        "Classifies NEX-302 as a DUPLICATE/superseded by NEX-301 (both = gh client retry) and proposes duplicateOf, not a second close",
+        "Classifies NEX-303 as BAND-AIDED (the hotfix comment) and NOT done -- keeps it open and flags the real state, noting the code still shows the handler as TODO",
+        "Does NOT close NEX-303 (a band-aid is not a fix)",
+        "Proposes the Linear writes (close / duplicateOf / keep-flagged) and waits for confirmation; does not propose fixing the code itself"
+      ]
+    },
+    {
+      "id": 21,
+      "prompt": "The co-developer merged 6 PRs overnight and closed 3 issues. Now prioritize the Cadre backlog for me. (Do not touch Linear.)",
+      "expected_output": "Before prioritizing, recognizes the board has likely drifted after a burst of recent activity and recommends running a Reconcile (board<->code) audit first (or at least a drift check), rather than ranking a possibly-stale board at face value.",
+      "expectations": [
+        "Flags that a burst of recent activity (6 merges, 3 closes overnight) likely means the board has drifted from reality",
+        "RECOMMENDS a Reconcile (board<->code) audit -- or at minimum a drift check -- before or alongside prioritizing, rather than trusting current statuses blindly",
+        "Does not blindly produce a priority ranking as if the board were known-current"
+      ]
     }
   ]
 }
