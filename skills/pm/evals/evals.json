@@ -1,6 +1,6 @@
 {
   "skill_name": "pm",
-  "note": "All cases target the disposable PM-Sandbox project (Nexusdev, id 70844de4-391c-4002-ac3c-6f1e21e4ecd3) so runs never touch the real backlog. Fixtures: NEX-129 daemon loop (unready, mid-ICE, ENABLER), NEX-130 assembly (ready), NEX-131 CI PATH fix (ready, small, time-sensitive), NEX-132 dep-ordering (unready), NEX-133 rename cutover (partial; quiet-window CHORE), NEX-134 gh-304 (ready; dedup target), NEX-135 board-intake (ready; blockedBy NEX-129 \u2014 the dependency fixture for case 6). Workflow states for the lane cases (6-7): NEX-135 is mis-filed in Todo despite being blockedBy NEX-129 (demote target); NEX-131 is ready + unblocked but sitting in Backlog (promote target); NEX-130 is correctly in Todo; all others in Backlog.",
+  "note": "All cases target the disposable PM-Sandbox project (Nexusdev, id 70844de4-391c-4002-ac3c-6f1e21e4ecd3) so runs never touch the real backlog. Fixtures: NEX-129 daemon loop (unready, mid-ICE, ENABLER), NEX-130 assembly (ready), NEX-131 CI PATH fix (ready, small, time-sensitive), NEX-132 dep-ordering (unready), NEX-133 rename cutover (partial; quiet-window CHORE), NEX-134 gh-304 (ready; dedup target), NEX-135 board-intake (ready; blockedBy NEX-129 — the dependency fixture for case 6). Workflow states for the lane cases (6-7): NEX-135 is mis-filed in Todo despite being blockedBy NEX-129 (demote target); NEX-131 is ready + unblocked but sitting in Backlog (promote target); NEX-130 is correctly in Todo; all others in Backlog.",
   "evals": [
     {
       "id": 1,
@@ -17,7 +17,7 @@
     {
       "id": 2,
       "prompt": "A new bug is proposed for the PM-Sandbox project (Nexusdev): 'github client throws on a 304 from gh api instead of treating it as unchanged'. Triage it.",
-      "expected_output": "A triage decision that separates severity from priority, searches existing PM-Sandbox issues for a duplicate (finds NEX-134) before creating anything, and gives an accept/defer/delete call with a reason \u2014 all proposed before any Linear write.",
+      "expected_output": "A triage decision that separates severity from priority, searches existing PM-Sandbox issues for a duplicate (finds NEX-134) before creating anything, and gives an accept/defer/delete call with a reason — all proposed before any Linear write.",
       "expectations": [
         "Distinguishes severity from priority explicitly rather than conflating them into one number",
         "Searches existing issues for a possible duplicate before proposing to create anything, and surfaces the near-duplicate (NEX-134)",
@@ -61,7 +61,7 @@
     {
       "id": 6,
       "prompt": "I've got open capacity on the PM-Sandbox backlog (Nexusdev). What should I work on, and in what order?",
-      "expected_output": "A SINGLE ranking (ICE with dependency leverage folded into Impact) mapped to Linear priority AND a Backlog/Todo lane \u2014 not a priority list plus a separate parallel build order. The blocked high-value item (NEX-135, blockedBy NEX-129) keeps its priority but is shown in the Backlog lane rather than dropped in priority or pulled down a second sequence; the enabler NEX-129 carries lifted Impact for its leverage; the ready lane (Todo = unblocked + story-gate) answers 'what to work on now'; non-sequenceable work (NEX-133 chore, reconciliation ledger) is off the pull queue in Backlog; and any state/relation writes are proposed before applying.",
+      "expected_output": "A SINGLE ranking (ICE with dependency leverage folded into Impact) mapped to Linear priority AND a Backlog/Todo lane — not a priority list plus a separate parallel build order. The blocked high-value item (NEX-135, blockedBy NEX-129) keeps its priority but is shown in the Backlog lane rather than dropped in priority or pulled down a second sequence; the enabler NEX-129 carries lifted Impact for its leverage; the ready lane (Todo = unblocked + story-gate) answers 'what to work on now'; non-sequenceable work (NEX-133 chore, reconciliation ledger) is off the pull queue in Backlog; and any state/relation writes are proposed before applying.",
       "expectations": [
         "Produces ONE ranking (priority, with dependency leverage reflected in Impact) and does NOT emit a separate parallel 'build order' alongside the priority list",
         "Expresses the blocked high-value item (NEX-135, blockedBy NEX-129) by keeping its priority and placing it in the Backlog lane, rather than dropping its priority or pulling it down a second sequence",
@@ -73,7 +73,7 @@
     },
     {
       "id": 7,
-      "prompt": "Take a look at the PM-Sandbox board (Nexusdev) \u2014 are the issues in the right workflow states, or is anything mis-filed between Backlog and Todo?",
+      "prompt": "Take a look at the PM-Sandbox board (Nexusdev) — are the issues in the right workflow states, or is anything mis-filed between Backlog and Todo?",
       "expected_output": "A bidirectional lane audit against the readiness gate (Todo = unblocked AND story-ready): NEX-131 is ready + unblocked but sitting in Backlog, so propose promoting it to Todo; NEX-135 is in Todo but blockedBy NEX-129, so propose demoting it to Backlog; correctly-placed issues (e.g. NEX-130 in Todo, epics/unrefined in Backlog) are left alone; every state change is proposed before it is written.",
       "expectations": [
         "Proposes PROMOTING a ready, unblocked item mis-filed in Backlog (NEX-131) up to Todo",
@@ -98,7 +98,7 @@
     },
     {
       "id": 9,
-      "prompt": "This parked epic has been 'not ready' for weeks \u2014 get it ready to build. NEX-202 Assembly stage (S5): the final pipeline stage, a stub. When all slices are built it must (1) run as-if-against-main CI, (2) run adversarial critics->judge->one consolidated PR comment with above-threshold findings routed back as fix-slices, (3) generate a walkthrough+quiz, (4) open a clean fresh feat->main PR stripping planning scaffolding. Open question: delete .pipeline/ at assembly vs migrate. No AC yet; clearly more than one build session.",
+      "prompt": "This parked epic has been 'not ready' for weeks — get it ready to build. NEX-202 Assembly stage (S5): the final pipeline stage, a stub. When all slices are built it must (1) run as-if-against-main CI, (2) run adversarial critics->judge->one consolidated PR comment with above-threshold findings routed back as fix-slices, (3) generate a walkthrough+quiz, (4) open a clean fresh feat->main PR stripping planning scaffolding. Open question: delete .pipeline/ at assembly vs migrate. No AC yet; clearly more than one build session.",
       "expected_output": "The epic decomposed into vertical child stories each Story-ready with 3+ AC, linked under the epic via parentId, proposed before creating anything.",
       "expectations": [
         "Recognizes NEX-202 as an epic that fails the size bar (too big for one session)",
@@ -111,7 +111,7 @@
     },
     {
       "id": 10,
-      "prompt": "We have a roadmap initiative with an outcome but no stories written yet. Plan the stories to deliver it. INITIATIVE: 'Operators can trust that a green CI run means the code actually works.' Today CI sometimes passes for the wrong reason (stray PATH binaries, skipped tests never re-run, a 304 treated as an error). No stories exist yet \u2014 just the outcome.",
+      "prompt": "We have a roadmap initiative with an outcome but no stories written yet. Plan the stories to deliver it. INITIATIVE: 'Operators can trust that a green CI run means the code actually works.' Today CI sometimes passes for the wrong reason (stray PATH binaries, skipped tests never re-run, a 304 treated as an error). No stories exist yet — just the outcome.",
       "expected_output": "A set of stories with a backbone/spine laid before slicing, a thin first end-to-end walk distinct from deferred variations, each story Story-ready, presented as an ordered tree before writing.",
       "expectations": [
         "Produces a set of multiple stories (not a single story, not a vague description)",
@@ -135,7 +135,7 @@
     },
     {
       "id": 12,
-      "prompt": "Write a Cadre story for making the daemon reload its watch registry each poll pass, so a `start` issued mid-run isn't clobbered by an in-memory snapshot. Targets the v1 runner. (Story-writing only \u2014 do not touch Linear.)",
+      "prompt": "Write a Cadre story for making the daemon reload its watch registry each poll pass, so a `start` issued mid-run isn't clobbered by an in-memory snapshot. Targets the v1 runner. (Story-writing only — do not touch Linear.)",
       "expected_output": "A story in the Cadre Story Standard shape (Summary -> Why/Outcome -> Acceptance Criteria -> Constraints -> Non-Goals -> Context & Links), front-loaded and scannable, stating intent not implementation, with at least one concrete example in the AC and an explicit Non-Goals section.",
       "expectations": [
         "Produces the six Cadre Story Standard sections (Summary, Why/Outcome, Acceptance Criteria, Constraints, Non-Goals, Context & Links) or clearly-labeled equivalents",
