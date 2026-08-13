@@ -132,6 +132,120 @@
         "Proposes the writes and waits for confirmation before executing",
         "Uses ICE as the default single scorer (not RICE/WSJF for these individual issues)"
       ]
+    },
+    {
+      "id": 12,
+      "prompt": "Write a Cadre story for making the daemon reload its watch registry each poll pass, so a `start` issued mid-run isn't clobbered by an in-memory snapshot. Targets the v1 runner. (Story-writing only — do not touch Linear.)",
+      "expected_output": "A story in the Cadre Story Standard shape (Summary -> Why/Outcome -> Acceptance Criteria -> Constraints -> Non-Goals -> Context & Links), front-loaded and scannable, stating intent not implementation, with at least one concrete example in the AC and an explicit Non-Goals section.",
+      "expectations": [
+        "Produces the six Cadre Story Standard sections (Summary, Why/Outcome, Acceptance Criteria, Constraints, Non-Goals, Context & Links) or clearly-labeled equivalents",
+        "Acceptance Criteria include at least one CONCRETE example (an input->output or before->after), not only abstract criteria",
+        "Includes an explicit Non-Goals / Out-of-Scope section",
+        "States intent (what/why) and does NOT prescribe the implementation mechanism (no chosen data structure / algorithm) unless it marks the how as driver- or context-mandated",
+        "Summary is a single front-loaded scannable sentence, not a paragraph of prose"
+      ]
+    },
+    {
+      "id": 13,
+      "prompt": "Refine this thin story to be pipeline-ready (do not touch Linear). Current issue -- Title: 'Fix the thing where skills stop loading'. Description: 'Sometimes the member skills don't load after a branch switch. Need to make install more robust. Probably pin them or something.'",
+      "expected_output": "The vague story reframed to the Cadre Story Standard: a crisp Summary/Why, testable AC with a concrete example, explicit Non-Goals, and constraints stated as properties (fail-loud install, skills resolve to a pinned commit) rather than a dictated implementation mechanism.",
+      "expectations": [
+        "Reframes into the Cadre Story Standard sections rather than lightly editing the paragraph",
+        "Adds testable/observable Acceptance Criteria with at least one concrete example",
+        "Adds an explicit Non-Goals / Out-of-Scope section",
+        "Converts the vague 'probably pin them or something' into a stated PROPERTY (e.g. install fails loud on a partial/dangling result; skills resolve to a fixed pinned commit) rather than dictating the implementation mechanism -- or marks any mechanism it keeps as driver/context-mandated",
+        "Does NOT invent change-spec-level implementation design (know-your-lane): no fixture code, no chosen file layout beyond a stated property"
+      ]
+    },
+    {
+      "id": 14,
+      "prompt": "Story NEX-500 is mid-flight -- its `tests` PR already merged, so the tests are LOCKED. Its acceptance criteria currently say: 'the gate returns proceed / blocked / pending'. I want the story to also capture that on a merge conflict the gate should return blocked with reason 'unmergeable-conflict'. Update the story. (Do not touch Linear.)",
+      "expected_output": "An update that respects locked-test immutability: it does NOT rewrite or contradict the existing locked AC, but adds the new behavior as additional context / a clarifying note around the locked contract, and/or flags that changing the locked AC itself is a fix-slice or driver call rather than a free story edit.",
+      "expectations": [
+        "Explicitly recognizes that the tests are LOCKED and the existing AC is an immutable contract",
+        "Does NOT silently rewrite or overwrite the existing 'proceed/blocked/pending' AC as if freely editable",
+        "Adds the new merge-conflict behavior as additional context / a new clarifying criterion AROUND the locked contract, OR flags that altering the locked AC requires a fix-slice / driver call",
+        "Preserves the original locked criteria verbatim in intent (does not contradict them)"
+      ]
+    },
+    {
+      "id": 15,
+      "prompt": "Write a Cadre story (do not touch Linear): the v1 session runner must scrub ANTHROPIC_API_KEY and its sibling auth env vars before launching a headless `claude` session, matching what v0 already does for billing safety (so billing resolves to the Max subscription, not pay-per-token API credit).",
+      "expected_output": "A story that keeps the scrub as a Constraint WITH its mandate/reason (v0 parity, billing safety), states the outcome (billing resolves to Max), gives testable AC with a concrete example, and does not balloon into full implementation detail.",
+      "expectations": [
+        "Captures the env-scrub as a Constraint that carries its reason (v0 parity / billing safety) -- a legitimately-kept mandated 'how'",
+        "States the outcome/why: billing must resolve to the Max subscription rather than pay-per-token",
+        "Includes testable AC with a concrete example (e.g. given ANTHROPIC_API_KEY set in the parent env, the child session env has it removed)",
+        "Does NOT expand into prescribing the full implementation (how the child env is constructed step by step) beyond the mandated property"
+      ]
+    },
+    {
+      "id": 16,
+      "prompt": "Size these three Cadre stories for the ready lane -- give the CD3 Duration term for each and order them. Do not touch Linear. (A) fix a one-line typo in a CI config comment; (B) add a new optional field to the daemon's watch-registry poll output; (C) change the merge gate's public proceed/blocked/pending return contract that three other slices branch on.",
+      "expected_output": "A coarse review-load tier per story (not effort/person-days/Fibonacci), each shown with reasoning and the dominant driver, anchored on blast-radius/reversibility, framed as a pre-planning estimate, ordering C > B > A by review-load.",
+      "expectations": [
+        "Sizes by expected HUMAN-REVIEW load, explicitly NOT by agent effort / person-days / velocity or Fibonacci story points",
+        "Uses blast-radius / reversibility as the anchor signal -- C (public contract, 3 dependents) rated far heavier-to-review than A (local trivial comment)",
+        "Gives each story a COARSE tier (e.g. S/M/L or 1-5) with reasoning shown AND names which driver dominated",
+        "Frames the size as a PRE-PLANNING estimate that planning's actual slice count will refine",
+        "Orders them by review-load C > B > A (blast-radius-driven), not by raw line-count or agent time"
+      ]
+    },
+    {
+      "id": 17,
+      "prompt": "Sequence these two Cadre stories by CD3 -- give each a Cost-of-Delay read and a Duration (review-load) read. Do not touch Linear. (X) a small, reversible config flag that disables a known-dangerous feature (retires a real risk); (Y) a large refactor of a public API purely for cleanliness.",
+      "expected_output": "X scored high CoD (value of de-risking) but low Duration/review-load (small, reversible) => high CD3; Y scored low/modest CoD but high Duration/review-load (public-API blast-radius) => low CD3; risk kept distinct across the two terms; X sequenced before Y.",
+      "expectations": [
+        "Scores X with HIGH Cost of Delay (the value of RETIRING risk) but LOW Duration/review-load (small, reversible change)",
+        "Scores Y with LOW or modest Cost of Delay (little risk retired; cleanliness) but HIGH Duration/review-load (public-API blast-radius)",
+        "Explicitly keeps risk DISTINCT: does not inflate both CoD and Duration for the same 'riskiness' -- X's risk is de-risking VALUE (CoD numerator), Y's is review COST (Duration denominator)",
+        "Sequences X before Y by CD3 (high CoD / low review-load beats low CoD / high review-load)"
+      ]
+    },
+    {
+      "id": 18,
+      "prompt": "The Cadre board has accumulated a pile of tiny issues, all well below the size of a normal story: (a) rename a variable for clarity in runner/github.py; (b) add a missing type hint in runner/session.py; (c) fix a typo in the README; (d) bump the pinned pytest version; plus (e) a genuinely mid-sized story: add retry-with-backoff to the gh read client. Consolidate the backlog to stop wasting Cadre's per-story cost. Do not touch Linear.",
+      "expected_output": "Recognizes (a)-(d) as too-small (well below typical) and leaves (e) as a normal story; proposes coherence-preserving moves where possible and a bounded misc-upkeep batch for the homeless small chores, respecting the guards; does not force-merge unrelated chores into a fake-coherent story, and does not leave the tiny stories to each run a solo pipeline.",
+      "expectations": [
+        "Identifies (a)-(d) as too-small relative to a normal story and treats (e) as a normal single story NOT to be consolidated",
+        "Justifies consolidation by Cadre's fixed per-story cost/floor (a solo pipeline run per tiny story is wasteful), not by generic 'backlog hygiene'",
+        "Proposes concrete moves -- coherent-combine and/or ride-along where items share an area, and a bounded MISC-UPKEEP batch for genuinely unrelated small chores",
+        "If it proposes a misc-upkeep story, respects the guards: small/low-risk items only, each chore its own slice, bounded, not a parking lot",
+        "Does NOT force-merge unrelated chores into one 'coherent' story (no fake single-outcome), and does NOT just leave every tiny item as its own story"
+      ]
+    },
+    {
+      "id": 19,
+      "prompt": "This tiny story is on the board: 'Fix a one-line off-by-one in the poll cursor advance in runner/github.py.' We also have an upcoming story that reworks the poll loop's cursor handling. What should we do with the tiny one? Do not touch Linear.",
+      "expected_output": "Recognizes the tiny story isn't worth its own pipeline run and proposes a RIDE-ALONG -- fold it into the upcoming cursor-handling story that already touches that code -- rather than a solo run or a misc-upkeep batch.",
+      "expectations": [
+        "Recognizes the one-line fix is too small to be worth its own full pipeline run (fixed per-story cost)",
+        "Proposes RIDE-ALONG: fold it into the upcoming poll-cursor story that already touches runner/github.py's cursor handling",
+        "Prefers ride-along over a misc-upkeep batch here BECAUSE a natural coherent home exists (coherence-preserving move beats batching)",
+        "Does not propose running a solo pipeline for the one-liner"
+      ]
+    },
+    {
+      "id": 20,
+      "prompt": "Reconcile these board issues against reality (do not touch Linear). Board: NEX-301 'Add retry to the gh client' (Todo); NEX-302 'gh client should retry on 5xx' (Backlog); NEX-303 'Fix daemon crash on auth expiry' (In Progress). Reality: PR #88 (merged yesterday by co-dev @brandon) added retry-with-backoff to the gh read client; a comment on NEX-303 says 'hotfixed on fedora-1 with a cron restart for now'; the code in runner/ still shows the auth-expiry handler as a TODO.",
+      "expected_output": "A reconciliation queue classifying each issue by drift type with evidence + attribution: NEX-301 done-in-code (PR #88, @brandon) -> close; NEX-302 duplicate of NEX-301 -> duplicateOf; NEX-303 band-aided (hotfix comment; code still TODO) -> keep open + flag, NOT close. Proposes the Linear writes and waits for confirmation; flags, does not fix code.",
+      "expectations": [
+        "Classifies NEX-301 as done-in-code (PR #88 merged implements it) and proposes CLOSE, citing the PR as evidence and attributing it to @brandon",
+        "Classifies NEX-302 as a DUPLICATE/superseded by NEX-301 (both = gh client retry) and proposes duplicateOf, not a second close",
+        "Classifies NEX-303 as BAND-AIDED (the hotfix comment) and NOT done -- keeps it open and flags the real state, noting the code still shows the handler as TODO",
+        "Does NOT close NEX-303 (a band-aid is not a fix)",
+        "Proposes the Linear writes (close / duplicateOf / keep-flagged) and waits for confirmation; does not propose fixing the code itself"
+      ]
+    },
+    {
+      "id": 21,
+      "prompt": "The co-developer merged 6 PRs overnight and closed 3 issues. Now prioritize the Cadre backlog for me. (Do not touch Linear.)",
+      "expected_output": "Before prioritizing, recognizes the board has likely drifted after a burst of recent activity and recommends running a Reconcile (board<->code) audit first (or at least a drift check), rather than ranking a possibly-stale board at face value.",
+      "expectations": [
+        "Flags that a burst of recent activity (6 merges, 3 closes overnight) likely means the board has drifted from reality",
+        "RECOMMENDS a Reconcile (board<->code) audit -- or at minimum a drift check -- before or alongside prioritizing, rather than trusting current statuses blindly",
+        "Does not blindly produce a priority ranking as if the board were known-current"
+      ]
     }
   ]
 }

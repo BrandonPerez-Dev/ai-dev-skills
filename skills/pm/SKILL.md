@@ -1,10 +1,11 @@
 ---
 name: pm
-description: Product-management operations on a Linear backlog for the Cadre pipeline — prioritize and order the backlog, triage intake, find what needs refinement, decompose epics into ready stories, write and refine stories, map an outcome into a story set, and plan the roadmap, all via the Linear MCP. ALWAYS invoke when asked to prioritize / order / rank the backlog, decide what to work on next, triage or groom issues, find refinement candidates or check what's sprint-ready, split / decompose an epic, write / refine / size a Linear story, plan the stories to deliver an outcome or initiative, set issue priority, plan a cycle, or plan a roadmap in Linear. Every ordering and every write shows its scoring rationale and is confirmed before it touches Linear. Do not hand-order a backlog, set priorities, or write stories ad hoc without this skill.
+description: Product-management operations on a Linear backlog for the Cadre pipeline — prioritize and order the backlog, triage intake, find what needs refinement, decompose epics into ready stories, write and refine stories, map an outcome into a story set, and plan the roadmap, all via the Linear MCP. ALWAYS invoke when asked to prioritize / order / rank the backlog, decide what to work on next, triage or groom issues, find refinement candidates or check what's sprint-ready, split / decompose an epic, write / refine / size a Linear story, plan the stories to deliver an outcome or initiative, set issue priority, plan a cycle, plan a roadmap, or reconcile / audit the board against the codebase (find stale, done-in-code, duplicate, or desynced issues) in Linear. Every ordering and every write shows its scoring rationale and is confirmed before it touches Linear. Do not hand-order a backlog, set priorities, or write stories ad hoc without this skill.
 allowed-tools:
   - Read
   - Grep
   - Glob
+  - Bash
   - Skill
   - AskUserQuestion
   - mcp__linear-server__list_issues
@@ -38,7 +39,7 @@ Never write to Linear (create/update issues, set priority, reorder, move state, 
 
 - **Vertical** — a user- or operator-facing outcome, not a component task.
 - **Testable done** — enough testable acceptance criteria that "done" is unambiguous, including a failure/edge case *when one applies* (a pure display, a config toggle, or a chore may have none). A small handful is typical; the **count is a signal** — too few = under-specified or trivial, many = probably an epic — **not a hard floor**. Because an AI executor has none of a human's tacit context, the outcome should also be clear enough it can't be *grossly* misread — but residual ambiguity is resolved downstream (planning/grill, and soon labels), not gated to death here. (AC-quality rubric → [[backlog-refinement]].)
-- **One coherent outcome the pipeline can plan-and-slice** — *not* "one session." A Cadre story becomes a feature branch the planning phase slices into build units; **multi-slice is the normal shape** (PIPE-1 was six slices). "One session" is the bar for a **slice**. It fails this only when it bundles *several distinct outcomes*, or is too large/vague for planning to slice — then it's an epic (decompose) or needs a spike.
+- **One coherent outcome the pipeline can plan-and-slice** — *not* "one session." A Cadre story becomes a feature branch the planning phase slices into build units; **multi-slice is the normal shape** (PIPE-1 was six slices). "One session" is the bar for a **slice**. It fails this only when it bundles *several distinct outcomes*, or is too large/vague for planning to slice — then it's an epic (decompose) or needs a spike. (One deliberate exception: a **misc-upkeep** story batches small unrelated chores to amortize the fixed per-story cost — see Consolidate.)
 
 Miss any → epic or task, not ready: decompose, slice-in-planning, or reframe.
 
@@ -46,6 +47,15 @@ Miss any → epic or task, not ready: decompose, slice-in-planning, or reframe.
 
 1. **Read the live board first.** `list_issue_statuses`, `list_issue_labels`, `list_projects`, `list_cycles` for the team in play — states, labels, project/initiative structure, and whether cycles exist drift over time. The board is the source of truth.
 2. **Introspect the Linear tool surface.** The MCP write set evolves; confirm the tool and its params (e.g. `save_issue` exposes `priority`, `stateId`, `projectId`, `labelIds`, `parentId`, `milestone`, and relations `relatedTo`/`blocks`/`blockedBy`/`duplicateOf`) before relying on a capability. Don't hard-code what you remember.
+
+## Keep the board honest (standing habit, every invocation)
+
+The board drifts from reality — a co-developer merges a fix, a comment records a decision, a story quietly duplicates another — and the drift is rarely announced to you. So on **every invocation**, before acting, take a read: *does the board still reflect the project's actual state?* Probe and question rather than trust it at face value, and surface any drift as explicit flags — a stale story, a duplicate, work the code already resolved, a status that no longer matches, a decision buried in a comment.
+
+- **Always-on (cheap):** scan Linear's own signals — recent comments, status updates, attachments, relations, recent activity — where most drift is already visible without leaving the board.
+- **Escalate when it smells off:** read the PRs / commits / code / `.pipeline` state to *confirm* before flagging (e.g. "is this actually fixed, or just band-aided?").
+
+**Flag, don't silently correct** — surfaced drift becomes a proposed write like any other (the trust boundary still holds). And **recommend a full audit when warranted:** when the probe smells drift it can't cheaply resolve, or notable recent activity suggests the board has outpaced its last check, tell the user to run **Reconcile (board↔code)** rather than quietly proceeding. This standing reflex is the cheap, always-on version; `Reconcile` is the deep, on-request one.
 
 ## Method selection
 
@@ -55,8 +65,10 @@ Different requests need different flows — don't run one procedure for everythi
 |---|---|---|
 | "Prioritize / order / rank", "what's next" | **Prioritize** | Sequence by CD3/WSJF (cost of delay ÷ duration; leverage & carrying-cost fold into CoD); set priority + Backlog/Todo lane; one ranking |
 | "What needs refinement", "groom for readiness", "is the board ready to pull" | **Refine (discovery)** | Scan the board, classify each unready item by *why* it fails the bar, emit a ranked refinement queue |
+| "Audit the board", "is it in sync with the code", suspected drift, or a lot merged since last check | **Reconcile (board↔code)** | Read-only code reach: classify each issue's sync with reality (done-in-code / band-aided / duplicate / mis-filed / stale / desynced) with evidence + attribution; flag dev-collisions; propose Linear fixes |
 | "Split / decompose this epic", an item bundling several outcomes | **Decompose** | Drive the multi-outcome epic into child stories written under it (`parentId`), composing [[backlog-refinement]] splitting patterns |
-| "Write / refine / size a story" | **Story** | Vertical, testable-done, one coherent outcome; compose [[backlog-refinement]] |
+| "This is too small", a pile of tiny chores, or a story well below typical size | **Consolidate** | Combine coherent smalls, ride a tiny change along the next story touching that area, or batch homeless chores into a bounded **misc-upkeep** story — amortize Cadre's fixed per-story floor |
+| "Write / refine / size a story" | **Story** | Write to the **Cadre Story Standard** (`references/story-standard.md`); vertical, testable-done, one coherent outcome; compose [[backlog-refinement]] |
 | "Plan the stories for X", an outcome/initiative with no stories yet | **Story mapping** | Backbone of steps → a sliced story set that delivers the outcome |
 | "Triage this issue", new intake | **Triage** | Classify (severity vs priority), dedup, accept/defer/delete |
 | "Plan / adjust the roadmap" | **Roadmap** | Now/Next/Later over projects/initiatives |
@@ -71,7 +83,8 @@ CD3 = Cost of Delay ÷ Duration        (higher = do sooner)
 ```
 
 - **Cost of Delay (CoD)** = **value** (what the outcome is worth) + **time-criticality** (does its value decay, or its cost *grow*, with delay — a deadline lives here, and so does **carrying cost**: a rename every new story makes costlier has rising time-criticality) + **risk-reduction / opportunity-enablement** (does it retire risk or unblock other work — **dependency leverage** lives here: an enabler gating three stories scores high). Score the three relatively (1–10 each) and sum, or reason them qualitatively — always *show the components* so the number is auditable.
-- **Duration** = rough size (slice/story effort; person-days, not points). Cheap to estimate for agent-built work.
+- **Duration = review-load**, not effort-to-write. Cadre's binding constraint is human *review*, not agent code-gen — so size a story by the scarce human review it will consume: a **coarse tier judged** (not computed) from **blast-radius/reversibility (the anchor), rough scope, and rough slice/PR count**, shown with its reasoning and the driver that drove it. A *pre-planning* estimate (planning's slice count refines it); not velocity/Fibonacci points. Method, anchors, and calibration: `references/sizing.md`.
+  - **Keep risk distinct across the two terms:** CoD's risk term is the *value of de-risking* (numerator); Duration's blast-radius is the *review the change consumes* (denominator). Don't count the same risk twice.
 
 Why CD3 over a value-only or ease-based score: sequencing a single-resource queue by weight-over-duration *provably* minimises total weighted delay (Smith's 1956 WSPT theorem), and the ready lane **is** that queue. It also keeps **value and urgency separate**, where ICE's "Impact" mushes them and its "Ease" is a weak proxy for real duration. **Caveat, honestly:** WSPT is strictly optimal only for one resource, independent jobs, all available now — we have dependencies (lane-gated below) and parallel features — so CD3 is a well-grounded *heuristic* here, not a literal optimum.
 
@@ -122,11 +135,24 @@ Prioritize and the Readiness lane *judge* an item you hand them; discovery *find
    - **Vague / no user-facing outcome** (fails the vertical bar) → reframe in **Story**.
    - **Blocked** (`blockedBy` open) → ranked, lane-gated to Backlog; the fix is the blocker, not this item.
    - **Tracker/ledger** (a standing checklist that never ships) → extract its items into ranked stories; set the index itself to **None**.
+   - **Too small** (review-load well below the project's typical; value barely clears the fixed per-story floor) → route to **Consolidate** (coherent combine / ride-along / misc-upkeep batch).
    - **Stale** (untouched for months, no deliberate hold) → triage (defer/delete).
    - **Mis-filed lane** (ready item in Backlog, or unready in Todo) → propose the promote/demote.
    - **Aging** — surface **Work Item Age** (from Linear timestamps): an item aging in **Todo** (ready but unpulled — why? review backed up, mis-ranked, too big?) or **In Progress** (a stuck WIP item) is a prompt to *ask why*, a factor among others — not an auto-rerank, and never a term in the score.
 3. **Rank the queue** by leverage: an unready item that is high-CoD or blocks others is worth refining before a low-value one. Don't just list — order by which refinement unblocks the most pull-able work.
 4. **Output** a table — `Issue | why not ready | fix (Decompose / AC / reframe / unblock / extract / triage / lane) | priority` — then propose the first batch of fixes (or ask which to take first). A *multi-outcome* epic is never left as just "not ready" — name it and route to decomposition; a *large-but-coherent* story is flagged large (planning slices it), not split.
+
+## Reconcile (board↔code)
+
+Refine judges the board against the *readiness* bar; Reconcile judges it against *reality*. It's the deep, on-request version of the standing "keep the board honest" habit — the board drifts from the code (a co-dev merges, band-aids, closes, or direct-pushes, often unannounced), and Reconcile detects that drift and proposes the Linear writes to close it. **This is pm as the intermediary between codebase and board, and the synchronizer across the two devs.**
+
+- **Reach is read-only.** pm reads code to *detect* drift — Linear signals first (comments, status, attachments, relations, recent activity), then read-only `gh` (merged/open PRs, authors), then `git` / `Read` / `Grep` on the actual code + `.pipeline` state to verify "is this really done?". It **never commits, pushes, merges, or mutates** — the only writes are to Linear, confirmed. Code fixes and merge-conflict *resolution* are other members' lanes; pm **flags, it does not fix**.
+- **Classify each issue** by drift type — done-in-code / band-aided / duplicate-or-superseded / mis-filed / stale / desynced / in-sync — each with **evidence** (PR# / commit / comment / file) and **attribution** (which dev's action caused it).
+- **Flag dev-collisions (forward-looking):** two active stories touching the same area → sequence/merge before they conflict; a recent merge that affects an in-flight story → flag for re-check. Flag, don't resolve.
+- **Output** a reconciliation queue, then the batched Linear writes (close / `duplicateOf` / refile / update / keep-flagged), confirmed before writing.
+- **Scope it** — reading code across a board is heavy: start from recent activity or a targeted set, not a blind full-repo scan.
+
+Full drift catalogue, detection procedure, and output shape: `references/board-sync.md`.
 
 ## Triage
 
@@ -139,10 +165,18 @@ Follow the 4-step loop (gather → categorize → reprioritize around value → 
 
 ## Story
 
-A Cadre story is a **vertical slice, one coherent outcome** (the Story-ready bar) — the sweet spot between a component task (too small, no user value) and an epic (several outcomes bundled).
+A Cadre story is a **vertical slice, one coherent outcome** (the Story-ready bar) — the sweet spot between a component task (too small, no user value) and an epic (several outcomes bundled). It is written to the **Cadre Story Standard**: a fixed, scannable shape that serves both the human who prioritizes it and the agent that implements it.
 
-- **Refine to the bar.** Write the user-facing outcome and enough testable Given/When/Then AC that done is unambiguous (incl. an unhappy path when one applies); confirm it's one coherent outcome. For the full AC-quality rubric and the splitting patterns, **invoke [[backlog-refinement]]** — don't reproduce it here.
-- **Write it into Linear** as an issue with the outcome in the title, story + AC in the description, the right project/labels, and a proposed priority from Prioritize. Pipeline-ready means the next step could open `feat/<slug>` against it.
+**The shape** — full template, length budgets, lifecycle rules, and a worked example in `references/story-standard.md`:
+
+> **Summary → Why/Outcome → Acceptance Criteria → Constraints → Non-Goals → Context & Links**
+
+Scannable on the surface, complete underneath; **intent, not implementation** — the *how* (tech, design, slicing) is the planning member's change-spec, not the story. Two rules carry most of the value: **AC needs ≥1 concrete example** (an omitted example is the ambiguity that most often misleads an agent, and it won't stop to ask), and **Context links must be load-bearing** — named artifact + what it's for, never a bare "see NEX-X".
+
+- **Apply it at any lifecycle point.** Writing new: shape all six sections. Refining: fill what's missing and strip bloat / vague refs — *not* rewrite prose that already works. **If the story's tests are already locked, never rewrite the AC they enforce** — add context or sharpen non-goals *around* the locked contract instead (lifecycle-safety table in the reference).
+- **Compose [[backlog-refinement]]** for the deep AC-quality rubric and the splitting patterns — don't reproduce them here.
+- **Constraints are a lean, not a law:** state properties, not the how — but a specific mechanism is fine when the *driver called for it* or the *context requires it* (v1 parity, a technical necessity), and say why.
+- **Write it into Linear** with the outcome in the title, the template in the description, the right project/labels, and a proposed priority from Prioritize. Pipeline-ready means the next step could open `feat/<slug>` against it.
 
 ### Decompose (epic → child stories)
 
@@ -151,6 +185,29 @@ When an item bundles **several distinct outcomes** (the size failure from Story-
 1. **Split** with [[backlog-refinement]]'s patterns (find the core complexity, pick one axis of variation, reduce to a single case, defer the rest). Prefer splits that let you *throw one away* and that yield equal-sized small stories.
 2. **Each child must clear Story-ready on its own** — vertical, testable-done, one coherent outcome. A split that yields "build the schema" + "build the API" is horizontal; try again.
 3. **Propose the writes as a set:** keep the epic as the parent (or convert it), and `save_issue` each child with `parentId` set to it, a proposed priority, and the ready lane if unblocked. Show the parent→children tree and the per-child AC before writing anything.
+
+### Consolidate (too-small → combine)
+
+Cadre pays a **substantial fixed floor per story** — a planning pass, an assembly pass, and the once-per-story review overhead — *plus* variable per-slice review on top. A story whose value barely clears that floor wastes it. Consolidate is the mirror of Decompose: Decompose splits *distinct outcomes apart*; Consolidate groups *small work together* so the floor is paid fewer times — and because the total slices to review are unchanged however you group them, it saves the floor **without** adding to the review-load constraint.
+
+**Detect "too small" — relative, not absolute.** pm can't see a run's real cost, so judge a story's review-load (`references/sizing.md`) against the **project's typical story size**: *well below typical* + low CoD + no natural coherent home ⇒ a consolidation candidate. Before there's enough realized data for a "typical," fall back to judgment — *"is this worth a whole pipeline run and your review on its own?"* **Stance:** size coherent work toward the **top** of the ready range ("right under too-large") — grouping amortizes the floor for free; the ceiling is coherence and reasonable slices, not maximum size.
+
+**The moves** (prefer the coherence-preserving ones):
+
+1. **Coherent combine** — shares an outcome with another small → merge into one coherent story.
+2. **Ride-along** — fits naturally into an upcoming story that already touches that area → attach it there rather than run a solo pipeline.
+3. **Misc-upkeep batch** — small, unrelated, low-risk chores with no natural home → one bounded **misc-upkeep** story (below).
+4. **Defer / delete** — trivial and not worth doing at all.
+
+**The misc-upkeep story — a *named exception* to "one coherent outcome."** It deliberately batches unrelated small chores to pay the floor once; its coherence is "a bounded batch of upkeep," not a shared outcome. Guards keep it a tool, not a dumping ground:
+
+- **Small + low-risk only** — each item is a review-load **S**, local and reversible; a large or high-blast-radius change is not batchable — it earns its own story.
+- **Each chore is its own slice** — the batch shares the floor; each item still reviews independently.
+- **Bounded** — capped near "right under too-large" so it lands promptly and no reviewer drowns.
+- **Not a parking lot** — items enter because they're ready small chores, not "someday-maybe" (that's a ledger → **None** + extract, not upkeep).
+- A natural fit for a recurring **quiet-window** batch, refilled and run periodically.
+
+Propose the consolidation as a set (which smalls, which move, the resulting story/batch) and confirm before writing.
 
 ## Story mapping
 
@@ -192,15 +249,25 @@ For the capacity/selection mechanics, compose **[[sprint-planning]]**.
 | "Emit a priority rank *and* a build order" | One ranking; separate blocked/unready work by *state* (Backlog), not a second list. Dependency leverage already lives in CoD. |
 | "It's blocked, so drop its priority" | Keep the priority; move it to Backlog. The lane carries "can't start yet," not the rank. |
 | "It's an epic — decompose it" | First check: *several outcomes* (epic → decompose) or *one big outcome, many slices* (large → planning slices it, don't hand-split)? |
+| "It's tiny — just give it its own story" | Cadre pays a substantial fixed floor per story (planning + assembly + your review) regardless of size. Well-below-typical work wastes it — **Consolidate**: coherent-combine, ride-along the next story touching that area, or batch into a bounded misc-upkeep story. Delete if not worth doing. |
+| "Bundle these unrelated chores to save cost" | Fine — that's a *misc-upkeep* story, but bounded: small + low-risk items only, each its own slice, capped near too-large, not a parking lot. A big or high-blast-radius change is never upkeep-batchable. |
 | "It's a chore/rename — park it at Low" | Rank it with its **carrying cost** (cheap-now-expensive-later sequences early); record any quiet-window as a scheduling *note*, not a low priority. |
 | "It's a ledger — leave it in Backlog" | A ledger isn't work — extract its items into ranked stories; set the index to **None** (never Low). |
 | "No third AC, so it's not ready" | Ready = enough testable AC that done is unambiguous; a small slice may need 1–2. Don't pad to hit a number. |
 | "Refine the whole backlog to be safe" | Refine deeply for the next 2-3 cycles; leave far-out items coarse. Over-refinement is waste. |
 | "I remember Linear's fields" | Read states/labels/tools live first; the board and MCP surface drift. |
 | "Just rank by value / impact" | Sequence by **cost of delay ÷ duration** — a high-value but long story can sit below a cheap, time-critical one. Show the CoD components. |
+| "Size it by how long the agent takes / person-days" | Agent code-gen is cheap and fast; size by human **review-load** — blast-radius (anchor), rough scope, rough slice count — that's what rate-limits the queue. Not velocity/Fibonacci points. See `references/sizing.md`. |
+| "It's risky, so bump the size" | Which risk? The *value of de-risking* is CoD (numerator); the *review a risky change consumes* is Duration (denominator). Don't count the same risk in both. |
 | "It's aging — bump it up" | Age is a *diagnostic*, not a priority term. Ask *why* it's aging (blocked? review backed up? mis-ranked?) and fix that; don't auto-rerank on age. |
 | "Fill the ready lane to agent throughput" | The binding constraint is **human review**, not generation. Gauge cycle fill against review capacity — but never hold a *ready* item out of the lane on it. |
 | "It has an open design question — keep it in Backlog" | Ask *what* vs *how*: a scope/outcome gap is yours (clarify it, or it isn't a coherent story yet); an **implementation** question is the planning member's — a *how* never holds a ready story. The board's job is readiness and order, not resolving implementation semantics. |
+| "Just write the story, it's clear enough" | Write it to the Cadre Story Standard — Summary / Why / AC / Constraints / (Non-Goals) / Context. A missing example — or a missing Non-Goal *when the agent could over-reach* — is cheap ambiguity to kill, and the agent won't stop to ask. |
+| "Spell out the implementation so the agent gets it right" | State the *what* (properties, testable AC); the *how* is the planning member's change-spec. Dictate a mechanism only when the driver called for it or context requires it (parity) — and say why. |
+| "Reference the related issue — 'see NEX-X'" | Never a bare cross-ref; name the artifact **and what it's for**. A bare link is as useless to the agent as none. |
+| "This story's mid-flight — rewrite its AC while I'm here" | If its tests are locked, the AC is an immutable contract — add context / non-goals *around* it, don't rewrite it. Wrong AC = fix-slice / driver call, not a story edit. |
+| "The board looks fine, just act on the request" | Every invocation, first check the board still matches reality — recent comments, merged PRs, status drift. A story the code already resolved, or a silent duplicate, is drift to flag before you prioritize around it. |
+| "The board says it's open, so it's open" | The board drifts from the code — verify against reality (a merged PR, a comment, the actual code) before trusting a status, especially on a Reconcile audit. Done-in-code, band-aided, and duplicates hide behind stale statuses. Read-only: pm flags and proposes Linear writes; it never fixes the code. |
 
 ## Composition
 
@@ -208,7 +275,7 @@ For the capacity/selection mechanics, compose **[[sprint-planning]]**.
 - **[[sprint-planning]]** — cycle capacity/selection method. `pm` owns the Linear cycle read/write and the cadence-bucket stance.
 - **engineering / slicing** — once a story is ready and prioritized, these carry it into the PR pipeline. `pm` stops at a ready, prioritized, written story.
 
-**Know your lane.** `pm` is one member in a crew; its concern is the **board** — readiness, order, hygiene. When an item's only gap is another member's job (planning resolves implementation ambiguity, test-planning writes tests, the engineer builds), hand it off by making it **ready**, not by holding it in Backlog. Over-holding is the recurring failure mode — default to *ready* whenever the outcome is clear and nothing genuinely blocks it.
+**Know your lane.** `pm` is one member in a crew; its concern is the **board** — readiness, order, hygiene. When an item's only gap is another member's job (planning resolves implementation ambiguity, test-planning writes tests, the engineer builds), hand it off by making it **ready**, not by holding it in Backlog. Over-holding is the recurring failure mode — default to *ready* whenever the outcome is clear and nothing genuinely blocks it. pm now *reads* code (read-only) to keep the board honest (see **Reconcile**), but it still stops at **board writes** — it flags drift and collisions and proposes Linear fixes; it never writes code or resolves conflicts (the engineer and the pipeline's reconcile stage own those).
 
 ## Output format
 

@@ -4,7 +4,11 @@ Read this before applying RICE or WSJF, or when asked to justify a scale. Formul
 adversarially verified (3-0 confirmation) against originator-traceable sources on 2026-08-02; the
 refuted variants are listed so they don't creep back in.
 
-## ICE (default)
+## ICE (quick-triage fallback)
+
+The ready-lane **default is CD3 / WSJF** (below) — Cost of Delay ÷ Duration, with **Duration =
+review-load** (`references/sizing.md`). ICE is the fast rough-cut when a full CoD estimate isn't worth
+it.
 
 ```
 ICE = Impact × Confidence × Ease
@@ -33,19 +37,22 @@ RICE = (Reach × Impact × Confidence) / Effort
 - Sources: intercom.com/blog/rice-simple-prioritization-for-product-managers, kayako.com,
   centercode.com, pmtoolkit.ai, fygurs.com, productlift.dev.
 
-## WSJF (escalate: initiative-level economic sequencing)
+## WSJF / CD3 (default — ready-lane sequencing)
 
 ```
-WSJF = Cost of Delay / Job Size
+WSJF = Cost of Delay / Job Size          (CD3 = the same arithmetic: CoD ÷ Duration)
 Cost of Delay = User/Business Value + Time Criticality + Risk Reduction / Opportunity Enablement
 ```
 
-- Each CoD input on a **modified Fibonacci** scale (1,2,3,5,8,13,20). Job Size is the denominator, NOT
-  part of CoD.
-- Use to sequence initiatives/projects for maximum economic benefit, not individual issues.
+- **CD3 is the WSJF arithmetic** (CoD ÷ Duration). Cadre uses it as the **ready-lane default for
+  individual stories**, with **Duration = review-load** (`references/sizing.md`) rather than effort. At
+  the initiative level the same formula sequences projects with coarser inputs.
+- SAFe scores each CoD input on a **modified Fibonacci** scale (1,2,3,5,8,13,20); **Cadre deliberately
+  uses a 1–10 relative scale** for the three CoD components (a house simplification — a design choice,
+  not the SAFe prescription). Job Size / Duration is the denominator, NOT part of CoD.
 - Originator: SAFe (framework.scaledagile.com/wsjf).
-- ⚠️ **Refuted variant (do not use):** CoD components on a 1–10 scale — refuted 0-3. SAFe uses
-  Fibonacci.
+- ⚠️ **What was refuted (0-3):** the *claim that SAFe prescribes a 1–10 scale* — SAFe uses Fibonacci.
+  (Cadre's 1–10 is a deliberate house simplification, not a claim about SAFe.)
 
 ## Framework routing — author-decided, NOT cited
 
