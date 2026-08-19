@@ -34,8 +34,16 @@ the codebase's function names; write so no memory of it is required.
 
 - **Claim → conflict → decision → anchors, in that order.** What's true in plain words,
   what it collides with, the question with a recommendation — and only then the
-  file/function references, parenthesized at the end as verification anchors. The
-  reference supports the sentence; it is never the sentence.
+  file/function references, at the end as verification anchors. The reference supports
+  the sentence; it is never the sentence.
+- **Anchors are self-contained and clickable.** The reader must be able to decide without
+  opening a second tab, so bring the evidence to them: quote the two or three lines that
+  actually matter (fenced, with the path above them), and link every reference as a
+  GitHub permalink — `[path/file.py:88](https://github.com/<owner>/<repo>/blob/<commit-sha>/path/file.py#L88)`,
+  pinned to a commit SHA (a branch link rots as the branch moves). A bare `file.py:88`
+  with no quoted content is the failure mode: it makes the reader do the lookup you
+  already did. If the evidence is too long to quote, quote the decisive fragment and say
+  what the rest contains.
 - **Intent and effect, not mechanism.** "An already-locked test says a config without a
   fallback model is valid — this contract says it isn't; both can't hold" beats
   "contradicts `test_load_config_returns_structured_object_for_valid_toml`, whose
@@ -57,5 +65,27 @@ Worked example — the same blocker, both ways:
 > the fallback when custom flows exist, since that's the only case that needs it; the
 > alternative is authorizing an edit to a locked test. (contract §error-cases; locked:
 > `test_config.py::test_load_config…`)
+
+## Report shape (BLUF)
+
+Every artifact is a report to a busy manager. Reports earn fast reading through
+ordering, not headings:
+
+- **Bottom line up front.** The first line states the outcome or the ask — what
+  happened, or what's needed from the reader — before any context. A reader who
+  stops after one line should leave with the verdict. ("All six slices merged; this
+  PR ships the story" / "Blocked: two contracts contradict — decision needed.")
+- **Pyramid order.** Governing conclusion first, then the few points that support
+  it, then evidence. Never narrative order ("first I looked at… then I found…") —
+  the reader gets your conclusions, not your journey.
+- **Status updates read done / issues / next.** What completed, what's wrong or
+  waiting, what happens next — in that order, nothing else.
+- **Titles follow the pipeline grammar** — `[planning] <STORY-ID>: <title>`,
+  `[<slug>][<stage>][<k>/<N>] <slice>`, `[story] <STORY-ID>: <title>`. The runner
+  lints these and blocks auto-merge on violations; a title is the one line most
+  readers ever see, so it carries story, stage, and review order on its own.
+
+These are ordering principles layered onto the rules above — BLUF does not add
+sections, and pyramid order composes with "let structure follow the material."
 
 This governs written artifacts, not conversational pacing, and it is not a template.

@@ -58,9 +58,11 @@ Classify the change and let the tier set the budget for everything downstream:
 
 | Tier | Signals | Critic rounds | Spec ceiling (read layer) |
 |---|---|---|---|
-| **Small** | One seam, obvious approach, ≤2 slices | 1 | ~1 screen |
+| **Small** | One seam, obvious approach | 1 | ~1 screen |
 | **Medium** | Multiple seams or one open design question | 2 | ~2 screens |
-| **Large** | Cross-cutting, prior-decision conflicts likely, ≥4 slices | 2 + deep refutation | ~3 screens; consider telling the driver to split the story |
+| **Large** | Cross-cutting, prior-decision conflicts likely | 2 + deep refutation | ~3 screens |
+
+Signals describe the *change's* difficulty. Slice count follows from where the flow's tests fall, so it says nothing about tier.
 
 The ceiling bounds the **read layer** (below), not the record layer. A scope that could be settled in a few prompts must not become a 300-line spec.
 
