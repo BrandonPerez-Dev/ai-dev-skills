@@ -55,7 +55,7 @@ TypeScript interfaces and API contracts before implementation. Contracts are the
 - **Test-planning promotes** these contracts into `spec/<name>.md`, where they live permanently. That's the handoff point: architecture drafts, test-planning lands them.
 - On greenfield, test-planning creates the initial `spec/` files using the architecture draft as seed content.
 - On subsequent features, architecture drafts deltas against existing `spec/<name>.md` contracts; test-planning applies those deltas.
-- **Never duplicate contracts** in `changes/NNN-<topic>/plan.md` — that folder holds rationale (the "why"), not contracts (the "what").
+- **Never duplicate contracts** outside `spec/` — the spec file is the single home; everywhere else points at it.
 
 **REST endpoints:**
 ```typescript
@@ -125,8 +125,8 @@ Every non-obvious architectural choice needs a decision record. **System-level d
 | SSE for real-time events | WebSocket | Unidirectional sufficient; simpler reconnection; HTTP/2 multiplexing |
 
 **Where decisions land:**
-- **System-level decisions** → `context/<topic>.md` (mutable architectural truth, always loaded by future agents). Create or update the relevant topic file.
-- **Feature-specific decisions** → `changes/NNN-<topic>/plan.md` under a "Decisions" section.
+- **System-level decisions** → `context/<topic>.md` (mutable architectural truth, always loaded by future agents), ADR-style: the decision, its rationale, and the rejected alternatives with the why-not. Create or update the relevant topic file.
+- **Slice-specific decisions** → the affected spec's `## Notes`.
 - **If the project maintains `docs/adr/`** → follow that convention instead.
 
 Capture the **why**, not just the **what**. Future developers need to understand context, not just the outcome.
@@ -167,9 +167,9 @@ SSE is the primary real-time pattern for AI agent UIs. Key decisions:
 
 Architecture produces a design artifact that feeds three destinations:
 
-1. **Immediate:** structured markdown rendered in the design conversation (the format below). This is conversational output, not a file written to disk. Downstream skills (plan, test-planning) read it from conversation context.
+1. **Immediate:** structured markdown rendered in the design conversation (the format below). This is conversational output, not a file written to disk. Downstream skills (slicing, test-planning) read it from conversation context.
 2. **Promoted by test-planning:** the Contracts section lands in `spec/<name>.md` (permanent living spec).
-3. **Promoted by plan or architecture:** system-level Decisions land in `context/<topic>.md` (mutable architectural truth); feature-specific decisions land in `changes/NNN-<topic>/plan.md` (per-change rationale).
+3. **Promoted by slicing or architecture:** system-level Decisions land in `context/<topic>.md` (with rejected alternatives); slice-specific decisions land in the affected spec's `## Notes`.
 
 ```markdown
 ## Architecture Overview

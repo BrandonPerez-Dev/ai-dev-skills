@@ -45,7 +45,7 @@ Run `git diff` (or `git diff HEAD` if there are staged changes) to see what chan
 Exclude from review:
 - Generated files, vendor code, lock files
 - Test files (locked contracts — do not touch)
-- Files in `changes/` (rationale docs, not code)
+- `context/` and `spec/` markdown (design layers, not code)
 
 ### Load Contracts and Architecture
 

@@ -37,7 +37,7 @@ Do NOT run a security audit without first understanding the application's attack
 | **Pre-deploy review** | Focused: OWASP Top 10 check + dependency audit | Phase 2 |
 | **Agent/MCP audit** | Agent-specific: tool poisoning, prompt injection, excessive permissions | Phase 3 |
 | **After a vulnerability report** | Targeted: reproduce, assess blast radius, patch, verify | Phase 4 |
-| **Code review with security lens** | Overlay: run alongside code-review skill, focus on trust boundaries | Phase 2 (scoped) |
+| **Code review with security lens** | Overlay: run alongside spec-review skill, focus on trust boundaries | Phase 2 (scoped) |
 
 ## Process
 

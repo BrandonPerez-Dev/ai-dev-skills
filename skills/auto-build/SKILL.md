@@ -30,13 +30,12 @@ Execute slice specs autonomously. One at a time, integration-test first, working
 
 ## The Model
 
-Three persistent layers at the project root:
+Two persistent layers at the project root:
 
 - **`context/`** — architectural truth. Always loaded before any code is written.
-- **`spec/`** — behavioral specs. Each file describes one slice with its integration test contract and done criteria.
-- **`changes/NNN-<topic>/plan.md`** — narrative for this change; declares which specs are in scope.
+- **`spec/`** — behavioral specs. Each file describes one slice with its integration test contract, done criteria, and `status` frontmatter. The in-scope specs are those marked `planned`/`in-progress`.
 
-Build reads the plan, implements each spec until its locked test is green, marks the spec `built`, invokes refactor, and moves to the next.
+Build finds the in-scope specs, implements each until its locked test is green, marks the spec `built`, invokes refactor, and moves to the next.
 
 <HARD-GATE>
 Never modify test files written by auto-test-writer. Tests are locked contracts
@@ -46,19 +45,27 @@ test authoring and implementation prevents the #1 AI testing failure mode:
 modifying tests to match buggy code.
 </HARD-GATE>
 
+## Workflow-backed building (when the runner provides it)
+
+If the stage prompt's bindings include a non-empty workflows path, build the slice by invoking the **Workflow** tool instead of the implement/simplify sections below (Reading State still applies; commit/push/PR mechanics remain yours):
+
+- `Workflow({scriptPath: "<workflows_dir>/build.js", args: {slice: {name, does, flow, files, depends_on}, contract: <the locked contract markdown>, repo: <this checkout's absolute path>, locked_files: [<the locked test file paths>], test_cmd: <the suite command if you know it>, artifact: <the planning artifact text>, context: <context//PRD constraints if present>}})`
+- The node classifies the slice, runs a design phase when the slice shapes new structure (emitting named constraints), TDD-builds with ONE solver agent, then a **check panel of fresh agents** (contract fidelity, spirit-of-spec, design conformance, wiring, quality, necessity — width set by the classifier) reviews the result. **Confidence is the panel's, never the builder's**: `high` = clean first pass (auto-merges under the gate policy); `medium`/`low` carry `uncertainty` naming what the driver must look at — put that verbatim in the Build PR body's `Confidence:` line.
+- Your job after the call: the lock-check re-verification, commit/push, the Build PR with the builder summary, design constraints, panel stats (lenses run, raised/confirmed/rejected, driver calls), and the suite + lock results.
+- If the Workflow call fails, fall back to the sections below and say so in the PR body.
+
 ## Input
 
 One of:
-- **Plan path** — `changes/NNN-<topic>/plan.md` with in-scope specs ready
+- **Scope** — the specs marked `status: planned`/`in-progress` (the default)
 - **Single spec path** — `spec/<name>.md` for one slice
 - **Slice PR context** — reads slice branch to find specs with committed red tests
 
 ### Reading State
 
-1. Read the plan (or find the most recent one in `changes/`)
-2. Read all files in `context/` — architectural constraints
-3. Read in-scope `spec/<name>.md` files
-4. Filter by readiness: needs `status: planned` or `in-progress` AND committed red tests
+1. Read all files in `context/` — architectural constraints
+2. Find the in-scope `spec/<name>.md` files (`status: planned`/`in-progress`) and read them; order by `depends_on`
+3. Filter by readiness: needs a validated contract AND committed red tests
 
 <HARD-GATE>
 Read `context/` and the in-scope `spec/` files in full before writing any feature code.

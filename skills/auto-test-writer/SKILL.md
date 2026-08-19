@@ -56,11 +56,20 @@ or the test is wrong — investigate before proceeding.
 ## Input
 
 One of:
-- **Plan path** — `changes/NNN-<topic>/plan.md` listing all in-scope specs
+- **Scope** — the specs marked `status: planned`/`in-progress` with completed contracts (the default)
 - **Single spec path** — `spec/<name>.md` with a completed integration test contract
 - **Slice PR context** — reads slice branch state to find specs ready for test writing
 
 ## Process
+
+### -1. Workflow-backed authoring (when the runner provides it)
+
+If the stage prompt's bindings include a non-empty workflows path, author and verify the tests by invoking the **Workflow** tool instead of sections 3–6 (sections 0–2 — prerequisites, slice pick, contract read — still apply, and section 7's commit/push mechanics remain yours):
+
+- `Workflow({scriptPath: "<workflows_dir>/test-writer.js", args: {slice: {name, does, flow}, contract: <the merged contract markdown, verbatim>, repo: <this checkout's absolute path>, test_cmd: <the suite command if you know it>, state_gate: <the stage's skip-gate instruction text>, artifact: <the planning artifact text>}}`
+- The node writes the test files into the checkout itself and returns `test_files` plus per-test verdicts. Its **independent verifier** re-ran every test blind (the writer's claims withheld) and its **coverage breaker** diffed the tests against the contract — confidence is earned from those, not self-assessed: `high` = clean first pass; `medium`/`low` come with `uncertainty` naming exactly what the driver must look at — put that verbatim in the Tests PR body's `Confidence:` line.
+- Your job after the call: the spec `## Tests` section, the commit/push, the Tests PR with each test's contract case + captured failure reason, and honest reporting of the verification and breaker stats (right-reason count, raised/confirmed/rejected, driver calls) in the PR body.
+- If the Workflow call fails, fall back to sections 3–6 and say so in the PR body.
 
 ### 0. Check Prerequisites
 

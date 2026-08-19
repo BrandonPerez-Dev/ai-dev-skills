@@ -22,3 +22,6 @@ token.json
 # Local overrides
 *.local.md
 *.local.json
+
+__pycache__/
+*.pyc

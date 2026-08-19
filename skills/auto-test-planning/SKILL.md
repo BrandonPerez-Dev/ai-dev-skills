@@ -7,7 +7,7 @@ description: >-
   comments on the slice PR. Proceeds on medium-confidence assumptions without
   waiting for human review.
 when_to_use: >-
-  Use after auto-plan-grill has produced a plan with spec stubs. Picks up
+  Use after auto-plan-interrogate has produced a plan with spec stubs. Picks up
   unblocked slices and writes integration test contracts into their spec files.
   Do NOT use for interactive test planning — use test-planning for that.
 allowed-tools:
@@ -26,11 +26,11 @@ effort: high
 
 # Auto Test Planning
 
-Write integration test contracts autonomously. Read the spec stubs from auto-plan-grill, fill in contracts, classify confidence, post questions to GitHub, and hand off to auto-test-writer.
+Write integration test contracts autonomously. Read the spec stubs from auto-plan-interrogate, fill in contracts, classify confidence, post questions to GitHub, and hand off to auto-test-writer.
 
 ## The Model
 
-Each `spec/<name>.md` file describes one testable slice. auto-plan-grill created stubs with `status: planned` and placeholder contracts. This skill fills in the real contracts: setup, action, input, expected output, side effects, and error cases.
+Each `spec/<name>.md` file describes one testable slice. auto-plan-interrogate created stubs with `status: planned` and placeholder contracts. This skill fills in the real contracts: setup, action, input, expected output, side effects, and error cases.
 
 <HARD-GATE>
 Contracts live in `spec/<name>.md`, never in the plan. The plan holds rationale only. Don't duplicate — the spec file is the single source of truth.
@@ -43,11 +43,21 @@ Do not write test code. Do not write implementation code. Output is contract tex
 ## Input
 
 One of:
-- **Plan path** — `changes/NNN-<topic>/plan.md` listing all in-scope specs
+- **Scope** — the specs marked `status: planned`/`in-progress` (the default)
 - **Single spec path** — `spec/<name>.md` to write contracts for one slice
 - **Slice PR** — the agent reads slice branch state and finds specs needing contracts
 
 ## Process
+
+### -1. Workflow-backed authoring (when the runner provides it)
+
+If the stage prompt's bindings include a non-empty spec-writer/contract-writer workflows path, author the contracts by invoking the **Workflow** tool instead of sections 1–3:
+
+- `Workflow({scriptPath: "<workflows_dir>/contract-writer.js", args: {slices: [<name/does/flow/depends_on from the plan>], artifact: <the planning artifact text>, repo: <this checkout's absolute path>}})`
+- Each returned contract carries a **breaker-earned confidence**: `high` = the adversarial breaker found nothing that survived adjudication (auto-merges under the gate policy); `medium`/`low` come with `uncertainty` naming exactly what the driver must look at — put that verbatim in the Contract PR body's `Confidence:` line.
+- Slices whose flow has no contract stage come back in `skipped` — honor that; don't author contracts the flow doesn't call for.
+- Your job after the call: file mechanics (contract into its per-slice home), the per-slice Contract PRs, and honest reporting of the breaker stats (raised/confirmed/rejected, driver calls) in each PR body.
+- If the Workflow call fails, fall back to sections 1–3 and say so in the PR bodies.
 
 ### 0. Load Context and Spec
 
@@ -59,7 +69,7 @@ One of:
 
 ### 1. Pick the Next Unblocked Slice
 
-Work slices in dependency order from the plan. Skip slices blocked by unanswered low-confidence questions from auto-plan-grill.
+Work slices in dependency order from the plan. Skip slices blocked by unanswered low-confidence questions from auto-plan-interrogate.
 
 ### 2. Define Mock Boundaries
 
@@ -129,7 +139,7 @@ On greenfield, the first slice spec's contract describes the walking skeleton pa
 
 ### 6. Update Open Questions
 
-If any contracts are low-confidence, update `changes/NNN-<topic>/open-questions.md` with the new blocking questions.
+If any contracts are low-confidence, record the blocking question in the affected spec's `## Notes` ("Open (blocking): …") and post the 🔴 PR comment on that line.
 
 ### 7. Next Slice
 
