@@ -227,7 +227,7 @@ Dispatch a reviewer subagent with:
 
 #### 3. Code Quality Review
 
-Dispatch with the **code-review** skill. Provide commit range, spec file path, and file list. Pass → refactor. Fail → resume implementer to fix.
+Dispatch with the **spec-review** skill. Provide commit range, spec file path, and file list. Pass → refactor. Fail → resume implementer to fix.
 
 #### 3b. Simplify
 

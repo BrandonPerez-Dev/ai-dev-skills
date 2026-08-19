@@ -1,6 +1,6 @@
 
 ---
-name: code-review
+name: spec-review
 description: >-
   Systematic code review — understand the change before judging it. Use after code changes,
   before committing, when reviewing PRs, or when asked to review specific files. Teaches

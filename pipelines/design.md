@@ -121,7 +121,7 @@ The local daemon overlaps heavily with the remote-terminal-orchestrator/OpenClaw
 | Interrogate | `interrogate` | PR-threaded mode note in interrogate SKILL.md (batched review threads) |
 | Contracts | `test-planning` / `auto-test-planning` | per-slice PR packaging |
 | Tests | `test-writer` / `auto-test-writer` | — |
-| Build | `auto-build`, `refactor`, `code-review` (scope lenses), `tdd` | — |
+| Build | `auto-build`, `refactor`, `spec-review` (scope lenses), `tdd` | — |
 | Assembly | — | `pr-walkthrough` (study guide + HTML quiz), `adversarial-review` (bounded critics → judge → one comment) |
 | Post (A) | — | `spec-audit` (post-merge drift check; scheduled pass deferred — no observed demand yet) |
 | Change spec (B) | — | `change-spec` (file-level plain-English details + repo map) |
@@ -162,9 +162,9 @@ Each stage below is a discrete unit — its own dispatcher entry + skill(s) + su
 
 ### S4 — Build (per slice)
 - **Trigger:** slice N's Tests PR merged.
-- **Work:** auto-build runs TDD against locked tests on `pipe/<story>/build-<slice>` → refactor → code-review (scope lenses) → opens **Build PR** with self-review posted. Lock check + scoped CI must be green.
+- **Work:** auto-build runs TDD against locked tests on `pipe/<story>/build-<slice>` → refactor → spec-review (scope lenses) → opens **Build PR** with self-review posted. Lock check + scoped CI must be green.
 - **Gate:** configurable — auto-merge when green + clean self-review, or driver skim.
-- **Skills/subagents:** `auto-build`, `refactor` agent, `code-review` agent, `test-runner`.
+- **Skills/subagents:** `auto-build`, `refactor` agent, `spec-review` agent, `test-runner`.
 - **Design points:** iteration-cap behavior mid-TDD; what "clean self-review" means mechanically; slice-split-during-build (updates `state.json` slice list — needs a rule).
 - **Exit:** when the last slice's Build PR merges (all slices `built`), dispatcher starts S5.
 

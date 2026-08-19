@@ -22,7 +22,7 @@ import os
 
 import mlflow
 
-DEV_SET = ["engineering", "slicing", "test-planning", "test-writer", "build", "tdd", "ship", "code-review"]
+DEV_SET = ["engineering", "slicing", "test-planning", "test-writer", "build", "tdd", "ship", "spec-review"]
 
 
 def skill_versions():

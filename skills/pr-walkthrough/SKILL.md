@@ -6,12 +6,12 @@ description: >-
   hunks, a quiz on the diff) plus a flashcard deck (deck.json) scoped to what
   the change teaches. ALWAYS invoke when asked to explain, study, or build
   review-prep material for a PR or diff. Teaching layer only — finding
-  defects belongs to `code-review`; whole-repo courses belong to
+  defects belongs to `spec-review`; whole-repo courses belong to
   `codebase-course`.
 when_to_use: >-
   Triggers: "walk me through PR 42", "study guide for this diff", "help me
   review this PR", "what should I understand before reviewing this", pipeline
-  assembly phase (review aids). NOT for judging the change (code-review) or
+  assembly phase (review aids). NOT for judging the change (spec-review) or
   learning the whole repo (codebase-course).
 allowed-tools:
   - Read
@@ -46,7 +46,7 @@ Read the touched files in full, not just hunks — a walkthrough written from hu
 1. **Why this change exists** — the problem, from the story/spec/commits. One paragraph. If the PR body and the code disagree about what this does, say so; that's the most valuable sentence in the walkthrough.
 2. **The map** — a `filemap` of touched areas with one-line whys, `.hot` on the files where the real change lives (most diffs are 80% mechanical ripple; say which 20% isn't).
 3. **The change as narrative** — 2–4 sections ordered by understanding: the core mechanism first, then what had to move to accommodate it. Annotated code↔English translations on the load-bearing hunks only (real diff content, verbatim, `file:line` at the head ref). Mechanical ripple gets one honest sentence and a collapsible, not annotation.
-4. **What deserves reviewer skepticism** — 2–4 attention points phrased as questions to hold while reading ("does the recompute still run when the insert comes through the batch path?"). These are *comprehension* pointers. If while writing you find an actual defect, flag it in ONE clearly-marked callout and stop — hunting is code-review's job, and a walkthrough that turns into a review loses the reader's trust in both.
+4. **What deserves reviewer skepticism** — 2–4 attention points phrased as questions to hold while reading ("does the recompute still run when the insert comes through the batch path?"). These are *comprehension* pointers. If while writing you find an actual defect, flag it in ONE clearly-marked callout and stop — hunting is spec-review's job, and a walkthrough that turns into a review loses the reader's trust in both.
 5. **Quiz** — 5–8 questions per [quiz-design.md](../codebase-course/references/quiz-design.md): at least one consequence question about an input the change handles differently, and at least one regression-shaped question (what previously-working behavior does this touch). Distractors come from the plausible misreadings of this diff.
 6. **deck.json** — 2–5 cards per [deck-schema.md](../codebase-course/references/deck-schema.md), scoped to what the change *teaches*, not what it edits. A dependency bump or pure refactor honestly emits `cards: []`.
 

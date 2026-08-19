@@ -158,7 +158,7 @@ python3 ~/dev-config/ai-workflow-config/skills/skill-creator/scripts/log_dev_cyc
   --project <repo-name> --slice <spec-name> \
   --spec spec/<name>.md \
   --iterations-to-green <N red→green build loops> \
-  --review-findings <count from code-review, if run> \
+  --review-findings <count from spec-review, if run> \
   --notes "<one line: anything that fought you this cycle>"
 ```
 
