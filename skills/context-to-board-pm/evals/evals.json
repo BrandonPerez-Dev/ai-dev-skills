@@ -1,0 +1,73 @@
+{
+  "skill_name": "context-to-board-pm",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "You're PM for the beacon project. The context hub is at evals/fixtures/hub/ and the current Linear board snapshot is evals/fixtures/board.md (the Linear MCP is offline — treat the snapshot as the live board and express any board changes as proposed writes in your output). Plan the next increment. I select the failed-delivery replay outcome — path that one.",
+      "expected_output": "A planning agenda classifying the three intent items (replay unpathed, token rotation pathed/in-progress, multi-tenant later), then an implementation path for replay only: a small number of MVP-grade chunks, CD3-ordered, each with a coverage map row citing governing hub entries (sqlite-as-event-store, no-inbound-ports, single-binary), a path-check result, and proposed writes awaiting green light. BEA-2's conflict with the retry-storm research should surface as drift.",
+      "files": ["evals/fixtures/hub/product/intent.md", "evals/fixtures/hub/decisions/2026-08-05-single-binary-distribution.md", "evals/fixtures/hub/decisions/2026-08-10-sqlite-as-event-store.md", "evals/fixtures/hub/decisions/2026-08-12-no-inbound-ports.md", "evals/fixtures/hub/research/2026-08-20-retry-storm-findings.md", "evals/fixtures/board.md"],
+      "expectations": [
+        "The output contains an agenda/inventory classifying hub intent items by path status (pathed / unpathed / later), not a full plan for every intent item",
+        "Only the replay outcome is pathed into stories; multi-tenant routing gets no stories",
+        "Replay chunks respect all three governing decisions: event history read from the SQLite store (no parallel log/store), no inbound port or served admin endpoint (CLI-driven), no separate service/sidecar (single binary)",
+        "Each proposed story/chunk carries a context-manifest or coverage-map entry naming at least one governing hub entry and what it governs",
+        "A path check (adversarial self-review) is visibly reported with its findings, not just implied",
+        "Replay's retry behavior reflects the retry-storm research (backoff/jitter or explicit deferral to it), and/or BEA-2's fixed-interval approach is flagged as contradicted by newer research",
+        "Chunks are few and MVP-grade (a demonstrable outcome each), not a fine-grained task breakdown (e.g., not separate stories for schema, CLI parsing, and wiring)",
+        "All board changes are presented as proposed writes awaiting approval; the output never claims writes were performed"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "You're PM for the beacon project (context hub: evals/fixtures/hub/, board snapshot: evals/fixtures/board.md; Linear MCP offline — propose writes in your output). Write the story for failed-delivery replay so it's ready for the board.",
+      "expected_output": "A story in the six-section standard (Summary / Why / AC with a concrete example / Constraints / Non-Goals / Context & Manifest) whose manifest cites the governing hub decisions. The replay-ordering question (preserve original delivery order vs best-effort?) has no hub answer — the story must not silently invent one: it should be flagged as needing an interrogation or filed as hub debt.",
+      "files": ["evals/fixtures/hub/product/intent.md", "evals/fixtures/hub/decisions/2026-08-05-single-binary-distribution.md", "evals/fixtures/hub/decisions/2026-08-10-sqlite-as-event-store.md", "evals/fixtures/hub/decisions/2026-08-12-no-inbound-ports.md", "evals/fixtures/hub/research/2026-08-20-retry-storm-findings.md", "evals/fixtures/board.md"],
+      "expectations": [
+        "The story has the six-section shape: Summary, Why/Outcome, Acceptance Criteria, Constraints, Non-Goals (or an explicit reason to omit), Context/Manifest",
+        "At least one acceptance criterion contains a concrete example (an input-to-output or before-after)",
+        "The Context/Manifest section names governing hub entries with what each governs — no bare references",
+        "An unsettled question the hub does not answer (e.g., replay ordering guarantees) is surfaced as needing the driver / an interrogation / hub debt — not silently decided inside the story",
+        "Constraints state properties (no inbound port, single binary, SQLite store) rather than dictating implementation beyond what hub decisions mandate",
+        "The story is not claimed to have been written to the board; it is proposed"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "You're PM for the beacon project (context hub: evals/fixtures/hub/, board snapshot: evals/fixtures/board.md; Linear MCP offline — propose writes in your output). Before we plan anything — is the board in sync?",
+      "expected_output": "A sync read that flags BEA-2 as built on an approach the newer retry-storm research rules out (rotted), recommends suspending work/planning against it pending the driver's ruling, notes replay intent is unpathed, and proposes board fixes as writes awaiting approval without silently rewriting anything.",
+      "files": ["evals/fixtures/hub/product/intent.md", "evals/fixtures/hub/decisions/2026-08-05-single-binary-distribution.md", "evals/fixtures/hub/decisions/2026-08-10-sqlite-as-event-store.md", "evals/fixtures/hub/decisions/2026-08-12-no-inbound-ports.md", "evals/fixtures/hub/research/2026-08-20-retry-storm-findings.md", "evals/fixtures/board.md"],
+      "expectations": [
+        "BEA-2 is flagged as contradicted by the 2026-08-20 retry-storm research, with the research cited as evidence",
+        "The response recommends suspending BEA-2 (or holding it from being worked) pending the driver's ruling rather than silently fixing its description",
+        "Unpathed intent (failed-delivery replay) is surfaced as a gap feeding the planning agenda",
+        "Each flagged item carries evidence (which hub entry / which board field) rather than bare assertions",
+        "All corrections are proposed writes awaiting approval; nothing is described as already changed"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "You're PM for the beacon project (context hub: evals/fixtures/hub/, board snapshot: evals/fixtures/board.md; Linear MCP offline — propose writes in your output). Create a proper story for BEA-4, the --version flag, so it can be scheduled.",
+      "expected_output": "A pushback: BEA-4 is far below the floor for a standalone story (each story pays a full workflow run). The recommendation should be to ride it along with an upcoming story touching the CLI (e.g., the replay work's CLI surface) or hold it for a batched upkeep story — not to write a solo story for a one-line flag.",
+      "files": ["evals/fixtures/hub/product/intent.md", "evals/fixtures/board.md"],
+      "expectations": [
+        "The response does not simply produce a standalone six-section story for the --version flag as requested",
+        "The too-small problem is named: a solo story does not justify a full workflow run (fixed per-story cost / MVP-grade floor)",
+        "A concrete alternative is proposed: ride-along with named upcoming work touching the same area, or a bounded upkeep batch",
+        "The final disposition is presented as a proposal for the driver to approve, not applied"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "You're PM for the beacon project (context hub: evals/fixtures/hub/, board snapshot: evals/fixtures/board.md; Linear MCP offline — propose writes in your output). Honestly I think flat JSONL append logs would be way simpler than SQLite for the replay feature — plan the replay increment using JSONL logs for the failed-event history.",
+      "expected_output": "The hub says SQLite is the event store, with JSONL explicitly rejected. The response must not silently plan with JSONL, and also must not just refuse: it should surface the conflict with the hub decision (including the recorded rejection rationale), offer the legitimate route — an interrogation / hub PR to amend the decision, which the driver merges — and either plan per the hub as written or pause the path pending that ruling.",
+      "files": ["evals/fixtures/hub/product/intent.md", "evals/fixtures/hub/decisions/2026-08-10-sqlite-as-event-store.md", "evals/fixtures/board.md"],
+      "expectations": [
+        "The response does not produce a JSONL-based plan as if the hub decision didn't exist",
+        "The conflict with the sqlite-as-event-store decision is surfaced, citing its recorded rejection of JSONL and the reasons",
+        "The legitimate amendment path is offered: revisit the decision via interrogation / a hub change the driver ratifies, rather than planning around the hub",
+        "The response remains subordinate: any plan it does produce follows the hub as written (SQLite), or planning is explicitly paused pending the driver's ruling",
+        "Tone is collaborative (offers the driver a real path to change the decision), not a flat refusal"
+      ]
+    }
+  ]
+}
