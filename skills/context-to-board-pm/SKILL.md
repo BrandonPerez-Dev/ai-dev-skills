@@ -138,8 +138,7 @@ Every chunk (story) in a path passes all three, and the path artifact says how:
 - **Bounded.** *Floor:* a demonstrable, MVP-grade outcome — something the driver can
   point at working — worth a full workflow run (spec interrogation + agent run + evidence
   review). **Too-small is the guarded failure mode**: granular stories waste the run's
-  fixed cost, which is why v1 grew a Consolidate flow — v2 bakes the lesson in as the
-  default instead. *Ceiling:* the spec still fits one coherent interrogation (the driver
+  fixed cost. *Ceiling:* the spec still fits one coherent interrogation (the driver
   can hold the intent and answer its questions), and the result is reviewable **by
   evidence** — acceptance demonstrated through a review-surface artifact — not by reading
   the diff. Diff-reading doesn't scale to MVP-sized changes; evidence review is what
@@ -263,12 +262,12 @@ immutable contract — refine context and non-goals around it, never rewrite it.
 
 ## Dormant — Consolidate
 
-The v1 moves (coherent-combine, ride-along, misc-upkeep batch) remain valid responses to
-too-small work, but the MVP-grade floor is now the primary guard, and the economics
-underneath ("too small relative to the per-story floor") must be re-measured against the
-v2 workflow before the thresholds mean anything. Prefer folding smalls into the path
-(ride-along on a chunk already touching that area); reach for a misc-upkeep batch only
-when real runs have re-established the floor.
+The consolidation moves (coherent-combine, ride-along, misc-upkeep batch) remain valid
+responses to too-small work, but the MVP-grade floor is the primary guard, and the
+economics underneath ("too small relative to the per-story floor") must be measured
+against the live workflow before the thresholds mean anything. Prefer folding smalls into
+the path (ride-along on a chunk already touching that area); reach for a misc-upkeep
+batch only once real runs have established the floor.
 
 ## Calibration
 
@@ -289,6 +288,7 @@ recalibrate the size anchors, the floor, and the check's lens list in
 | "The plan is small; skip the path check" | The delta check exists precisely so small has a cheap honest option. Never zero. |
 | "Path everything unpathed while I'm here" | Agenda → one increment. Full plans rot, overload review, and become maintained artifacts. |
 | "Chunk it smaller to be safe" | Too-small is the guarded failure: each chunk pays a full run. MVP-grade floor, evidence-reviewed ceiling. |
+| "This story is too small — consolidate it" (on a board whose executor isn't the workflow) | The floor is executor-relative: it exists to amortize a workflow run. Where stories are executed by a human or an ad-hoc agent (no per-story run cost), small well-cut stories are correct. The craft travels; the economics don't. |
 | "This chunk needs the next one to make sense" | Fails followable — reorder or recut until the path reads as the outcome assembling. |
 | "Slice it into build units so the workflow has less to do" | Stop at outcome level; fine slicing is the workflow's internal planning. |
 | "Everything ready is High" | Force-rank; bucket by CD3 tier. If everything is High, nothing is. |

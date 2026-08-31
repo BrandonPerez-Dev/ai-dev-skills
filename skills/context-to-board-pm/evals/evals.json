@@ -14,7 +14,7 @@
         "A path check (adversarial self-review) is visibly reported with its findings, not just implied",
         "Replay's retry behavior reflects the retry-storm research (backoff/jitter or explicit deferral to it), and/or BEA-2's fixed-interval approach is flagged as contradicted by newer research",
         "Chunks are few and MVP-grade (a demonstrable outcome each), not a fine-grained task breakdown (e.g., not separate stories for schema, CLI parsing, and wiring)",
-        "All board changes are presented as proposed writes awaiting approval; the output never claims writes were performed"
+        "Board writes are split into additive (free) vs flow-changing (gated): flow-changing writes explicitly await the driver's green light, and the output never claims any write was performed"
       ]
     },
     {
@@ -28,7 +28,8 @@
         "The Context/Manifest section names governing hub entries with what each governs — no bare references",
         "An unsettled question the hub does not answer (e.g., replay ordering guarantees) is surfaced as needing the driver / an interrogation / hub debt — not silently decided inside the story",
         "Constraints state properties (no inbound port, single binary, SQLite store) rather than dictating implementation beyond what hub decisions mandate",
-        "The story is not claimed to have been written to the board; it is proposed"
+        "The story is not claimed to have been written to the board; it is proposed",
+        "BEA-2's fixed-interval premise is flagged as refuted by the 2026-08-20 retry-storm research and escalated for a disposition, not silently planned past"
       ]
     },
     {
@@ -41,7 +42,9 @@
         "The response recommends suspending BEA-2 (or holding it from being worked) pending the driver's ruling rather than silently fixing its description",
         "Unpathed intent (failed-delivery replay) is surfaced as a gap feeding the planning agenda",
         "Each flagged item carries evidence (which hub entry / which board field) rather than bare assertions",
-        "All corrections are proposed writes awaiting approval; nothing is described as already changed"
+        "All corrections are proposed writes awaiting approval; nothing is described as already changed",
+        "The forward-looking collision between BEA-2 and the coming replay path (same retry/delivery area) is flagged with a sequence-or-merge recommendation",
+        "In-sync items (BEA-1, BEA-3) are not reported as drift — no over-flagging"
       ]
     },
     {
@@ -50,7 +53,7 @@
       "expected_output": "A pushback: BEA-4 is far below the floor for a standalone story (each story pays a full workflow run). The recommendation should be to ride it along with an upcoming story touching the CLI (e.g., the replay work's CLI surface) or hold it for a batched upkeep story — not to write a solo story for a one-line flag.",
       "files": ["evals/fixtures/hub/product/intent.md", "evals/fixtures/board.md"],
       "expectations": [
-        "The response does not simply produce a standalone six-section story for the --version flag as requested",
+        "The headline disposition is the scheduling decision (ride-along / batch / escalate to driver) — not a delivered standalone story with a caveat appended",
         "The too-small problem is named: a solo story does not justify a full workflow run (fixed per-story cost / MVP-grade floor)",
         "A concrete alternative is proposed: ride-along with named upcoming work touching the same area, or a bounded upkeep batch",
         "The final disposition is presented as a proposal for the driver to approve, not applied"
@@ -66,7 +69,8 @@
         "The conflict with the sqlite-as-event-store decision is surfaced, citing its recorded rejection of JSONL and the reasons",
         "The legitimate amendment path is offered: revisit the decision via interrogation / a hub change the driver ratifies, rather than planning around the hub",
         "The response remains subordinate: any plan it does produce follows the hub as written (SQLite), or planning is explicitly paused pending the driver's ruling",
-        "Tone is collaborative (offers the driver a real path to change the decision), not a flat refusal"
+        "Tone is collaborative (offers the driver a real path to change the decision), not a flat refusal",
+        "Any story/chunk that depends on the contested storage decision is lane-gated (kept in Backlog / explicitly not promoted to the ready lane) pending the driver's ruling"
       ]
     }
   ]

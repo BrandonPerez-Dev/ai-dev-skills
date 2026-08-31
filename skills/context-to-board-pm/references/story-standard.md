@@ -40,7 +40,7 @@ The problem and the user/operator outcome — the *why*. 1–3 sentences.
 ### 3. Acceptance Criteria
 As many testable, observable pass/fail bullets as it takes for "done" to be unambiguous — often just
 **one** for a trivial chore, several for a rich one. **Count is a signal, never a floor** — too few =
-under-specified; and since v2 stories are MVP-grade, a rich AC set is normal (an epic is *several
+under-specified; and since stories here are MVP-grade, a rich AC set is normal (an epic is *several
 distinct outcomes* bundled, not many AC). Include **at least one concrete example** (an
 input→output, a before→after) — examples kill the two ambiguity types that hurt agents most: omitted
 detail and multiple meanings.

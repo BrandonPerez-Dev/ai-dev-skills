@@ -47,10 +47,9 @@ inflate both for the same reason.
 
 ## Calibration — anchors are pending, and that's the honest state
 
-**The v1 anchors are retired** (they measured per-slice PR review in the retired pipeline shape)
-and **v2 has no realized runs yet** — so until the first real workflow runs land, sizing is pure
-relative judgment: rank the increment's chunks against each other and against the floor/ceiling,
-and say so plainly in the artifact.
+**No anchors exist yet** — there are no realized workflow runs to derive them from. Until the
+first real runs land, sizing is pure relative judgment: rank the increment's chunks against each
+other and against the floor/ceiling, and say so plainly in the artifact.
 
 The calibration loop replaces folklore with data: each workflow run feeds back a signal —
 
@@ -66,7 +65,7 @@ data volume (reference-class forecasting in its sparsest form: comparison, not s
 ## What this replaces
 
 Velocity story points / Fibonacci (effort-to-write isn't what costs when an agent implements),
-and v1's per-slice review-load read (slice count no longer reaches the driver — fine slicing is
+and per-slice PR-review sizing (slice count doesn't reach the driver — fine slicing is
 workflow-internal, and review happens on evidence at the story level).
 
 ## Evidence & caveats
@@ -75,5 +74,5 @@ workflow-internal, and review happens on evidence at the story level).
   AI-accelerated output; size-by-review-attention feeds CD3's `Duration`; blast-radius /
   reversibility tiering is an established governance signal.
 - **Thin / synthesis (hence judge, don't compute):** driver weighting is not empirically fixed;
-  the interrogation-weight and evidence-surface lenses are v2 constructs awaiting realized data;
+  the interrogation-weight and evidence-surface lenses are new constructs awaiting realized data;
   the whole thesis is recent — revisit if AI review-assist matures and relaxes the constraint.
