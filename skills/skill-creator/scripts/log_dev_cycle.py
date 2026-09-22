@@ -6,14 +6,14 @@ manually after a cycle completes.
 
 Usage:
     python3 log_dev_cycle.py --project remote-terminal --slice 004-blackboard-reads \
-        [--spec path/to/spec.md] [--grill path/to/grill.md] \
+        [--spec path/to/spec.md] [--interrogate path/to/interrogate.md] \
         [--iterations-to-green 3] [--locked-test-violations 0] \
         [--review-findings 2] [--tokens 1250000] [--notes "..."]
 
 Logs to experiment "dev-cycles/<project>": params capture the registry version
 of every core dev skill at cycle time (the correlation substrate for evolving
 skills later), metrics capture the outcome, artifacts capture the spec and
-grill transcript.
+interrogate transcript.
 
 Every metric is optional — log what you measured, skip what you didn't.
 """
@@ -22,7 +22,7 @@ import os
 
 import mlflow
 
-DEV_SET = ["engineering", "slicing", "test-planning", "test-writer", "build", "tdd", "ship", "code-review"]
+DEV_SET = ["engineering", "slicing", "test-planning", "test-writer", "build", "tdd", "ship", "spec-review"]
 
 
 def skill_versions():
@@ -42,7 +42,7 @@ def main():
     ap.add_argument("--project", required=True)
     ap.add_argument("--slice", required=True, dest="slice_name")
     ap.add_argument("--spec", default=None)
-    ap.add_argument("--grill", default=None, help="grill/interrogation transcript file")
+    ap.add_argument("--interrogate", default=None, help="interrogate/interrogation transcript file")
     ap.add_argument("--iterations-to-green", type=int, default=None)
     ap.add_argument("--locked-test-violations", type=int, default=None)
     ap.add_argument("--review-findings", type=int, default=None)
@@ -66,7 +66,7 @@ def main():
             mlflow.log_metrics(metrics)
         if args.notes:
             mlflow.set_tag("notes", args.notes)
-        for f in (args.spec, args.grill):
+        for f in (args.spec, args.interrogate):
             if f and os.path.exists(f):
                 mlflow.log_artifact(f)
         print(f"Logged cycle {args.project}/{args.slice_name} (run {run.info.run_id[:8]}) "

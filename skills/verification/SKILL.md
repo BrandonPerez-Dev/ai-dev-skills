@@ -214,7 +214,7 @@ Verification is invoked BY other skills at their gates:
 - **build** invokes verification after each vertical slice
 - **ship** invokes verification before user review
 - **systematic-debugging** invokes verification after a fix
-- **code-review** assumes verification has already run
+- **spec-review** assumes verification has already run
 
 Don't duplicate what these skills do. Verification provides the discipline; they provide the context.
 

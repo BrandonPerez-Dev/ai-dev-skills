@@ -84,7 +84,7 @@ grep -rn 'spec/' .claude/skills/ --include='*.md'
 
 | Referenced Path | In Skill | Exists? |
 |---|---|---|
-| `context/architecture.md` | plan-grill | ✅/❌ |
+| `context/architecture.md` | plan-interrogate | ✅/❌ |
 | `context/testing-strategy.md` | test-planning | ✅/❌ |
 
 ### 4. Pattern Verification

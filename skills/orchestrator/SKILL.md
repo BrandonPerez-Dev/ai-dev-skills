@@ -45,7 +45,7 @@ Orchestrated by process skills or invoked directly for focused work.
 | **tool-discovery** | Finding MCP servers, APIs worth wrapping, software worth adopting for its API |
 | **mcp-builder** | Creating MCP server integrations |
 | **boilerplate-cicd** | Project scaffolding, CI/CD setup |
-| **code-review** | Reviewing code for correctness, security, performance |
+| **spec-review** | Reviewing code for correctness, security, performance |
 | **receiving-code-review** | Handling code review feedback with technical rigor |
 | **prompt-engineering** | Writing effective system prompts, tool descriptions, skill descriptions, and structured context for AI models |
 | **skill-creator** | Creating new skills (always research first) |
@@ -125,7 +125,7 @@ If you catch yourself thinking any of these, stop and route to the right skill:
 | "I know how to fix this bug" | Knowing symptoms ≠ understanding root cause. | **systematic-debugging** |
 | "Let me just write the code" | Process skills prevent rework. Use them. | **design** or **research** |
 | "Quick fix, no need for investigation" | Quick fixes mask root causes and create tech debt. | **systematic-debugging** |
-| "I'll review it later" | Review is cheaper than debugging. Do it now. | **code-review** |
+| "I'll review it later" | Review is cheaper than debugging. Do it now. | **spec-review** |
 | "It should work now" | "Should" is not evidence. Run verification. | **verification** |
 | "I remember how this works" | Systems evolve. Verify your assumptions. | **research** |
 | "I'll just commit this" | Follow the ship process. Tests, review, clean history. | **ship** |

@@ -1,0 +1,62 @@
+[runner]
+poll_interval = 45
+data_dir = "~/.local/state/pipeline-runner"
+# A git worktree pinned to the skills/spec-as-source branch, NOT the main
+# dev-config checkout — switching branches there once left every checkout with
+# dangling skill symlinks (2026-07-20). Update with:
+#   git -C ~/.local/state/pipeline-runner/skills-src pull
+skills_source = "~/.local/state/pipeline-runner/skills-src/skills"
+
+[claude]
+bin = "claude"
+effort = "high"
+permission_mode = "bypass"
+timeout_seconds = 7200
+default_model = "opus"
+
+[claude.stage_models]
+intake = "opus"
+interrogate = "opus"
+contracts = "opus"
+tests = "sonnet"
+build = "sonnet"
+revise = "sonnet"
+
+[limits]
+max_rounds_per_stage = 5
+allowed_actors = ["BrandonPerez-Dev", "yuliaknut"]
+
+[[repos]]
+name = "BrandonPerez-Dev/pipeline-sandbox"
+variant = "change-spec"
+default_branch = "main"
+
+[[repos]]
+name = "BrandonPerez-Dev/pr-pipeline"
+variant = "change-spec"
+default_branch = "main"
+
+# Already spec-as-source shaped (populated spec/ + context/), so Variant A
+# costs nothing here. NOTE: spec-audit (drift checking) isn't built yet.
+[[repos]]
+name = "Synthrop/arboreus-content-tech"
+variant = "spec-as-source"
+default_branch = "main"
+
+# 28 specs + 8 context files — the richest durable layers here. Its existing
+# changes/ dir (001-core-app-ui, …) would also collide with Variant B's
+# changes/<story>/ convention, so A avoids a naming clash.
+[[repos]]
+name = "Synthrop/arboreus-ui"
+variant = "spec-as-source"
+default_branch = "main"
+
+# spec/ exists (5 files), context/ doesn't — engineering seeds context/ as
+# decisions emerge, so Variant A needs no bootstrap step.
+[[repos]]
+name = "Synthrop/arboreus-api"
+variant = "spec-as-source"
+default_branch = "main"
+
+# NOT wired: Synthrop/arboreus-app — dormant since 2026-03-16 (0 commits in
+# 90 days); Android appears to have moved to ui's sideload path.
