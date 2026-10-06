@@ -45,6 +45,8 @@ The outer loop tells you WHAT to build. The inner loop tells you HOW to build ea
 
 ### 0. Check Prerequisites
 
+**Language rules.** If the code is Rust, load the `rust-quality` skill and hold every line you write or review to it. Do the same with `<language>-quality` for any other language that has one (for example `python-quality`).
+
 Before writing any code:
 - Test contracts exist in the relevant `spec/<name>.md` (from the **test-planning** skill)
 - Integration test contracts are user-approved

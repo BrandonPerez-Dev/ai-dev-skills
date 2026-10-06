@@ -49,6 +49,8 @@ Exclude from review:
 
 ### Load Contracts and Architecture
 
+**Language rules.** If the code is Rust, load the `rust-quality` skill and hold every line you write or review to it. Do the same with `<language>-quality` for any other language that has one (for example `python-quality`).
+
 Before dispatching review agents, load the context they need:
 
 1. **If `spec/` exists:** read the capability files relevant to the changed code. These define behavioral contracts — any simplification must preserve them.

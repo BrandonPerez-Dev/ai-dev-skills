@@ -82,6 +82,8 @@ Different contracts produce different test types. Integration tests are always t
 
 ### 0. Check Prerequisites
 
+**Language rules.** If the code is Rust, load the `rust-quality` skill and hold every line you write or review to it. Do the same with `<language>-quality` for any other language that has one (for example `python-quality`).
+
 Before writing any test code:
 - [ ] At least one slice spec at `spec/<name>.md` contains a user-validated integration test contract (from **test-planning**)
 - [ ] The in-scope specs are identifiable: those marked `status: planned`/`in-progress`, or the specific spec(s) you were invoked with

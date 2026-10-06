@@ -73,6 +73,8 @@ Read `context/` and the in-scope `spec/` files in full before writing any featur
 
 ## Pre-Flight Check
 
+**Language rules.** If the code is Rust, load the `rust-quality` skill and hold every line you write or review to it. Do the same with `<language>-quality` for any other language that has one (for example `python-quality`).
+
 Before writing any code:
 - Dev environment works — build runs, existing tests pass
 - Each in-scope spec contains an integration test contract

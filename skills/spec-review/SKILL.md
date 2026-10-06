@@ -48,6 +48,8 @@ If the "why" is unclear, ask. Don't guess at intent — wrong assumptions about 
 
 ### 2. Read Strategically
 
+**Language rules.** If the code is Rust, load the `rust-quality` skill and hold every line you write or review to it. Do the same with `<language>-quality` for any other language that has one (for example `python-quality`).
+
 Don't read files top-to-bottom in alphabetical order. Start with the highest-leverage files:
 
 **Read in this order:**
