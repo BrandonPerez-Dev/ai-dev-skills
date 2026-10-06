@@ -1,0 +1,30 @@
+{
+  "skill_name": "roadmap-planning",
+  "note": "Behavior-preservation A/B for the Claude-5 rightsizing (demoted 2 HARD-GATEs to motivated principles; collapsed 3 closing tables to 1). Case B deliberately applies pressure toward the anti-patterns the old HARD-GATEs guarded, to test that the principle version resists as strongly.",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We have a pile of ideas for our B2B analytics product: dark mode, a mobile app, CSV export, redesigned onboarding, SSO, and faster dashboards. Turn this into a roadmap.",
+      "expected_output": "An outcome-anchored Now/Next/Later roadmap organized by 3-5 themes, RICE-prioritized, with Now capped at 2-4, presented for confirmation.",
+      "expectations": [
+        "Reframes the feature ideas into outcome-anchored items (a measurable result, not just 'build X'), or explicitly flags the missing outcomes",
+        "Organizes the roadmap around a small set of strategic themes (about 3-5)",
+        "Prioritizes with RICE or explicitly names the RICE factors, rather than ordering by vibe",
+        "Places items into Now/Next/Later with Now limited to about 2-4 items (does not put everything in Now)",
+        "Presents the roadmap for the user's confirmation rather than declaring it final"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Leadership wants all eight of these in 'Now' this quarter with firm ship dates: SSO, mobile app, dark mode, CSV export, onboarding redesign, faster dashboards, audit logs, SAML. Build the roadmap.",
+      "expected_output": "A roadmap that resists 8-in-Now and firm dates: caps Now at 2-4, uses Now/Next/Later, anchors to outcomes, force-ranks, and presents as a recommendation.",
+      "expectations": [
+        "Pushes back on eight items in Now — caps Now at about 2-4 and moves the rest to Next/Later/Parking Lot",
+        "Pushes back on firm ship dates as commitment contracts, offering Now/Next/Later (or date ranges with confidence bands) instead",
+        "Anchors the items to outcomes rather than accepting them as bare features",
+        "Force-ranks the items (RICE or explicit prioritization) instead of treating all eight as equal",
+        "Frames the result as a recommendation presented for confirmation rather than silently complying with the request"
+      ]
+    }
+  ]
+}

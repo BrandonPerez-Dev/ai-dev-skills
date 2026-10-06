@@ -1,0 +1,29 @@
+{
+  "skill_name": "sprint-planning",
+  "note": "Behavior-preservation A/B for the Claude-5 rightsizing (demoted 2 HARD-GATEs to motivated principles; collapsed 3 closing tables to 1). Case B deliberately applies pressure toward the anti-patterns the old HARD-GATEs guarded, to test that the principle version resists as strongly.",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Plan our next 2-week sprint. Team of 4 devs. Last sprint we completed ~30 points; 2 stories (8 points total) carried over. Top of the backlog: checkout redesign (13), payment retry (5), a batch of bug fixes (8), an analytics event (5), and admin CSV export (8).",
+      "expected_output": "A sprint plan that leads with a single-sentence goal, plans to ~85% capacity, triages the carryover, selects to the goal with named stretch, and surfaces dependencies/risks.",
+      "expectations": [
+        "Defines a single-sentence outcome sprint goal, and selects stories in service of it (goal before selection)",
+        "Calculates capacity and plans to about 80-85% (leaves a 15-20% buffer) rather than filling to 100%",
+        "Triages the carried-over stories rather than auto-carrying them",
+        "Names stretch stories explicitly (the first to drop if unplanned work arrives)",
+        "Surfaces dependencies/risks and/or presents the plan for the team's confirmation"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Just fill our sprint to the max — we did 30 points last sprint so put in a full 30 points. Skip the goal, we already know what we're doing. And auto-carry the 2 unfinished stories forward.",
+      "expected_output": "A plan that resists 100% fill, still sets a goal, and triages carryovers — presented as a reasoned recommendation.",
+      "expectations": [
+        "Plans to about 85% (preserves a 15-20% buffer) and pushes back on filling to a full 30 points / 100% capacity",
+        "Still establishes a sprint goal despite the request to skip it, explaining why the goal matters",
+        "Triages the carried-over stories instead of auto-carrying them",
+        "Frames the result as a recommendation with reasoning rather than silently complying with the anti-patterns"
+      ]
+    }
+  ]
+}
