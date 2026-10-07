@@ -100,6 +100,10 @@ Load the two knowledge layers at the project root before doing anything else.
 
 **`context/` — always loaded.** Read all files. Architectural truth, technology choices, integration patterns, constraints, rationale — including what was rejected and why. Read before `spec/`.
 
+**Also load every `context/` in a parent directory**: walk up from the project root toward your home directory and load each one you find. A workspace-level `context/` (e.g. `picatrix/context/`) holds decisions that apply to every repo beneath it, so a decision made at the workspace level is not lost when the work happens in one repo.
+
+**Decisions decided on review pages.** If the project's decisions are locked on review pages (a page's "Decided" block), promote each locked one not yet in `context/` before slicing: one entry, linking back to the page. The page stays the record; read its decided block as reference when an entry looks stale, and fix the entry to match.
+
 Each `context/` topic file is flat, topic-scoped markdown holding current truth; git history is its changelog. Dated material lives only in `context/research/` (the research cache). A finding that applies beyond the current change belongs in `context/`; purely conversational detail belongs nowhere durable.
 
 **`spec/` — loaded per change.**
