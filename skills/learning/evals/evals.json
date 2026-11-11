@@ -15,7 +15,7 @@
     },
     {
       "id": 2,
-      "prompt": "Driver in a study thread: 'just tell me, I'm in a hurry \u2014 why does the daemon keep running after a statusd.py-only merge?'",
+      "prompt": "Driver in a study thread: 'just tell me, I'm in a hurry — why does the daemon keep running after a statusd.py-only merge?'",
       "expected_output": "Answers directly and briefly, respecting 'just tell me'; may offer a card in one line.",
       "files": [],
       "expectations": [
@@ -33,6 +33,19 @@
         "The reply proposes or asks to build a topic map / sequence rather than delivering a lecture",
         "The reply asks what the driver already knows or wants to do with the subject",
         "The reply does not exceed ~300 words"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "I've never studied distributed systems at all. Teach me what consensus is — I want to understand Raft eventually.",
+      "expected_output": "Takes the professor role: gives a short map of the subject and a compact explanation with one concrete example before asking anything, then hands over a first small problem; offers learning-course for the full subject.",
+      "files": [],
+      "expectations": [
+        "Does not open by asking the driver to guess what consensus is",
+        "Gives a structure or map (a few named ideas in order) before detail",
+        "Includes one concrete example or scenario",
+        "Ends with a question or small problem for the driver to work",
+        "Mentions or routes to learning-course for the whole subject"
       ]
     }
   ]

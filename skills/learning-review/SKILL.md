@@ -26,15 +26,16 @@ supply the answer.
 1. **Ask.** Show the card's front, nothing else. Pick the move from its kind
    and history (below); the same card can be asked differently on different
    days, but keep its core question so the schedule stays meaningful.
-2. **Let them answer.** A blank or "no idea" is a real answer, graded 1.
+2. **Let them answer.** A blank or "no idea" is a real answer, graded 1
+   (unless the card is the problem; see below).
 3. **Grade against the reference.** `cards due --json` returns each card's
    `reference`: check the answer point by point, and name any listed mistake
    it makes. Grade 1–4: 1 wrong or blank, 2 partial with a real gap, 3 right
    with minor imprecision, 4 right and precise. Grade substance, never length
    or wording.
 4. **Draw out the gap, contingently.** For each missing point, the lightest
-   help that might work: a pointed question, then a hint, then the point
-   itself. After a miss, give more help; after a success, give less — that
+   help that might work: "say more", then a hint, then a pointed question,
+   then the point itself. After a miss, give more help; after a success, give less — that
    contingency is what makes tutoring work. Stop when the gap is closed or the
    driver wants the answer; then give it plainly.
 5. **Record.** `$pipeline cards review <id> --grade <driver's grade>

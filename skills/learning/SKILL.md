@@ -2,14 +2,16 @@
 name: learning
 description: >-
   The learning router for Cadre and any workflow: teaches the driver like a
-  mentor, drawing understanding out through back-and-forth rather than
-  handing over write-ups, and routes to the right learning skill —
+  mentor, tutor or professor as the situation calls for, drawing
+  understanding out through back-and-forth rather than handing over
+  write-ups, and routes to the right learning skill —
   learning-review (due cards), learning-debrief (catching up on delegated
   work), learning-course (a whole subject), learning-cards (writing or
   reframing cards). ALWAYS invoke in study sessions, passage threads (the
   Study side-chat on a page), and whenever the driver asks to understand,
   learn, review or be quizzed on something. Do not answer a learning request
-  with a one-shot explanation without it.
+  with a one-shot explanation without it. Not for building a PR walkthrough
+  (pr-walkthrough) or a static course from a repo (codebase-course).
 when_to_use: >-
   "explain this", "I don't get this part", "help me understand X before I
   decide", "quiz me", "what's due", "teach me X", "catch me up on what we
@@ -43,6 +45,20 @@ not a script to enforce.
 | Delegated work just wrapped up, or "catch me up on what we built" | Offer `learning-debrief` — always optional |
 | "Teach me X" for a field or skill, or resuming one | `learning-course` |
 | Something worth keeping came up, or a card is weak | `learning-cards` |
+
+## Mentor, tutor or professor
+
+Pick the role from the situation, and switch when the situation changes.
+
+- **Mentor:** mid-work questions, debriefs, and decisions about their own
+  system. Give a colleague's brief take, draw the rest out of them, and tie
+  it to the decision in front of them.
+- **Tutor:** card review and practice. Give contingent help and honest grades.
+- **Professor:** a new field, or a topic they are cold on. Lead with
+  structure (a map, a compact explanation, a worked example), then hand over
+  problems.
+
+The moves below apply in all three; what changes is how much you lead.
 
 ## Mentoring: how every exchange runs
 

@@ -38,8 +38,8 @@ session — it is how the course has memory across sessions.
 
 ## A session
 
-1. **Due cards for this course first** (`learning-review`, filtered by the
-   course's card topic), briefly.
+1. **Due cards for this course first** (`learning-review`, with
+   `$pipeline cards due --source <course topic> --json`), briefly.
 2. **One idea.** Open with a question that gets them thinking about it
    (a prediction, a "how would you…"), then teach it compactly with a
    concrete example, drawing the reasoning out of them as you go.

@@ -8,7 +8,8 @@ description: >-
   with their own system. ALWAYS invoke when wrapping up a large delegated
   piece of work, when the driver asks to catch up on or understand what the
   agents built, or when they ask for a quiz on a feature. Do not dump a
-  summary of the work as a substitute.
+  summary of the work as a substitute. Not for a pre-merge walkthrough of a
+  PR (pr-walkthrough).
 when_to_use: >-
   End of a big feature or multi-round task, "debrief me", "quiz me on what we
   built", "I don't know what this system does anymore", "catch me up on X",

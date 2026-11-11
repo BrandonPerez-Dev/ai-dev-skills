@@ -4,13 +4,13 @@
     {
       "id": 1,
       "prompt": "Grade this answer to due card c-aa11 (kind concept). Front: 'In cadre-runner, why does a side thread page never supersede its dialogue page?' Reference: {answer: 'Superseding retires the old page; a thread would hide the dialogue page the driver must still rule on.', points: ['supersede retires the page', 'the dialogue page must stay answerable']}. Driver's answer: 'because they are different pages'.",
-      "expected_output": "Grades 1 or 2, names the missing points, gives a hint before the answer, proposes the review command.",
+      "expected_output": "Grades 1 or 2, names the missing points, gives a hint before the answer; proposes the review command only once the answer is stated.",
       "files": [],
       "expectations": [
         "Proposes grade 1 or 2",
         "Names at least one specific missing reference point",
         "Gives a hint or pointed question before stating the full answer",
-        "Includes a `cards review c-aa11 --grade` command with --model-grade"
+        "Either gives a hint and waits for the driver, or, if it states the answer, includes a `cards review c-aa11 --grade` command with --model-grade"
       ]
     },
     {
