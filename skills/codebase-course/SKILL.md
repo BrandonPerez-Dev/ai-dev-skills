@@ -6,13 +6,14 @@ description: >-
   predictable to an engineer who knows the craft but not this repo. ALWAYS
   invoke when asked to create a course, study guide, or onboarding curriculum
   from a codebase. Course layer only — single-PR study belongs to
-  `pr-walkthrough`; Arboreus lesson prose belongs to `learning`.
+  `pr-walkthrough`; interactive study sessions, courses and cards belong to
+  `learning`.
 when_to_use: >-
   Triggers: "make a course from this repo", "study guide for this codebase",
   "help me learn this codebase", "onboarding material for the team",
   "turn this project into a course". NOT for explaining one PR/diff
-  (pr-walkthrough), reference docs/READMEs (readme), or graph-based lessons
-  (learning).
+  (pr-walkthrough), reference docs/READMEs (readme), or interactive study and
+  card review (learning).
 allowed-tools:
   - Read
   - Write
