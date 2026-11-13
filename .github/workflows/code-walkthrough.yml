@@ -1,0 +1,30 @@
+name: code-walkthrough
+
+on:
+  push:
+    branches: [main]
+    paths: ["skills/code-walkthrough/**", ".github/workflows/code-walkthrough.yml"]
+  pull_request:
+    paths: ["skills/code-walkthrough/**", ".github/workflows/code-walkthrough.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: skills/code-walkthrough
+    strategy:
+      matrix:
+        python: ["3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: python -m pip install --upgrade pip
+      # Pinned so a new ruff release cannot fail the format check on its own.
+      - run: python -m pip install "pygments>=2.17" "pytest>=8" "ruff==0.17.5"
+      - run: make check

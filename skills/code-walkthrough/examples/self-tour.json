@@ -1,0 +1,146 @@
+{
+ "mode": "tour",
+ "repo": "../../..",
+ "rev": "HEAD",
+ "title": "How this renderer keeps a walkthrough honest",
+ "subtitle": "code-walkthrough, touring its own code · example",
+ "why": "An agent writes a walkthrough as a spec: which code, what it does, why it matters. The renderer's job is to make sure what the reader sees is the real code and the real words. This tour follows three places where it does that: checking the spec, reading the diff, and marking the glossary.",
+ "reading": "A tour has no diff: every stop is the code as it stands at HEAD.",
+ "lenses": [
+  "Where the renderer refuses to guess",
+  "Cases that look harmless and are not"
+ ],
+ "primer": {
+  "goal": "By the end you can say how a spec that points at the wrong code is caught, and why a diff line starting with \"--- \" is not always a header.",
+  "model": [
+   "The agent never writes HTML or retypes code. It writes a spec; the renderer quotes the code from git and draws the page.",
+   "So the renderer is the last line of defence: whatever it lets through, the reader sees as fact."
+  ],
+  "prequestions": [
+   {
+    "q": "A spec says a stop covers lines 120-140 of a file that now has 100 lines. What should happen, and when?",
+    "stop": 1
+   },
+   {
+    "q": "In a unified diff, how can you tell a deleted line whose text begins with \"-- \" from the \"--- a/file\" header?",
+    "stop": 2
+   }
+  ],
+  "terms": [
+   {
+    "term": "spec",
+    "def": "The JSON file the agent writes: the stops, the primer, and where the code is (repo and rev)."
+   },
+   {
+    "term": "stop",
+    "def": "One place in the code the walkthrough shows, with what it does, why it is there, and a question."
+   },
+   {
+    "term": "hunk",
+    "def": "One block of a unified diff, starting with an @@ line that gives the line numbers it covers."
+   },
+   {
+    "term": "base",
+    "def": "The commit a change starts from; the diff is base..rev."
+   },
+   {
+    "term": "glossary",
+    "def": "The primer's list of terms, each marked where a stop first uses it."
+   }
+  ]
+ },
+ "stops": [
+  {
+   "file": "skills/code-walkthrough/scripts/core.py",
+   "lines": [
+    164,
+    214
+   ],
+   "anchor": "def load_spec(",
+   "kind": "concept",
+   "title": "The spec is checked before anything is drawn",
+   "does": [
+    "load_spec reads the spec, resolves the repository, and then checks every stop, step, question, file and flow node against the code at the revision.",
+    "It collects every problem and raises them together, so an agent fixing its spec sees the whole list at once."
+   ],
+   "why": "Rendering is only safe because of this function: once a spec loads, the renderers can index into files and lists without checking again.",
+   "question": "What would break if a renderer were called with a spec that never went through load_spec?"
+  },
+  {
+   "file": "skills/code-walkthrough/scripts/core.py",
+   "lines": [
+    79,
+    118
+   ],
+   "anchor": "def diff_lines(",
+   "kind": "decision",
+   "title": "A header is only a header before the first hunk",
+   "does": [
+    "diff_lines asks git for the whole file as one diff between the base and the revision, and turns it into rows of unchanged, deleted and added lines.",
+    "Lines are only read as diff content once the first @@ line has been seen."
+   ],
+   "why": "A deleted line whose text is \"-- a comment\" appears in the diff as \"--- a comment\", exactly like a header. Skipping such lines everywhere would silently drop them from the before view.",
+   "question": "Is a flag the simplest correct way to tell the two apart, or would reading the header block first be clearer?",
+   "steps": [
+    {
+     "lines": [
+      87,
+      89
+     ],
+     "text": "No base means the file is new: every line is an addition."
+    },
+    {
+     "lines": [
+      90,
+      90
+     ],
+     "text": "One git call returns the whole file as a single diff."
+    },
+    {
+     "lines": [
+      95,
+      100
+     ],
+     "text": "An @@ line starts a hunk and gives the starting line numbers on each side."
+    },
+    {
+     "lines": [
+      101,
+      104
+     ],
+     "text": "Before the first hunk everything is header; after it, a leading \"-\" always means a deleted line."
+    },
+    {
+     "lines": [
+      105,
+      114
+     ],
+     "text": "Each line becomes a row: deleted, added, or unchanged, with its line numbers."
+    },
+    {
+     "lines": [
+      115,
+      117
+     ],
+     "text": "An untouched file comes back as unchanged rows, so a stop can still show it."
+    }
+   ]
+  },
+  {
+   "file": "skills/code-walkthrough/scripts/primer.py",
+   "lines": [
+    57,
+    89
+   ],
+   "anchor": "def mark_terms(",
+   "kind": "decision",
+   "title": "Marking a term without breaking the page",
+   "does": [
+    "mark_terms wraps the first use of each glossary term in a stop with a definition the reader can hover.",
+    "It works on text that is already escaped, splitting out tags, existing marks and entities so it only ever searches plain words."
+   ],
+   "why": "Longest terms go first so a short term never splits a longer one, and a capitalised term matches its case so a type name does not mark an ordinary word.",
+   "question": "Which input would still produce a wrong mark?"
+  }
+ ]
+}

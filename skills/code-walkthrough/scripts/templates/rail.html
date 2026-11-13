@@ -1,0 +1,404 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="/surface-theme.css">
+<title>{{TITLE}}</title>
+<style>
+/* Whole-window review walkthrough (prototype). The theme centres everything
+   in an 880px column for prose; this page takes the full window instead. */
+:root { --hh: 64px; --rail: 318px; --notes: 400px; --yellow: #dbbc7f;
+  }
+body { padding: 0; font-size: 14.5px; }
+body > *, section { max-width: none; margin: 0; }
+button { margin-top: 0; }
+a { text-decoration: none; }
+
+/* ---- header ---- */
+.top { position: sticky; top: 0; z-index: 20; height: var(--hh);
+  display: flex; align-items: center; gap: 24px; padding: 0 22px;
+  background: color-mix(in srgb, var(--bg) 92%, black);
+  border-bottom: 1px solid var(--border); }
+.top .tt { min-width: 0; flex: 1; }
+.top h1 { font-size: 19px; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.top .meta { margin: 2px 0 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ctrl { display: flex; align-items: center; gap: 18px; flex: none; }
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.seg button { background: transparent; color: var(--muted); border-radius: 0;
+  padding: 7px 12px; font-weight: 600; font-size: 12.5px; }
+.seg button.on { background: var(--panel-2); color: var(--text); box-shadow: inset 0 -2px 0 var(--accent); }
+.tally { display: flex; align-items: center; gap: 8px; font: 600 12px var(--mono); color: var(--label); }
+.pips { display: flex; gap: 5px; }
+.pip { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center;
+  font: 700 12px var(--mono); color: var(--muted); border: 1.5px solid var(--border); }
+.pip.active { border-color: var(--accent); color: var(--text); }
+
+/* ruled state, shared by every place a stop is drawn */
+[data-ruled="fine"]  { --rc: var(--good); }
+[data-ruled="fix"]   { --rc: var(--bad); }
+[data-ruled="later"] { --rc: var(--yellow); }
+.pip[data-ruled] { background: var(--rc); border-color: var(--rc); color: var(--on-accent); }
+
+/* ---- shell ---- */
+.shell { display: grid; grid-template-columns: var(--rail) minmax(0, 1fr); }
+.rail { position: sticky; top: var(--hh); height: calc(100vh - var(--hh)); overflow: auto;
+  border-right: 1px solid var(--border); background: var(--panel); padding: 16px 16px 40px; }
+.rail > summary { display: none; }
+.rail { margin: 0; border-radius: 0; border-width: 0 1px 0 0; }
+.rail:not([open]) { padding-bottom: 12px; }
+.rail h2, main h2.lbl { margin: 4px 0 10px; }
+.rail h4 { margin: 18px 0 6px; font: 650 11px var(--sans); letter-spacing: .1em;
+  text-transform: uppercase; color: var(--label); }
+.file { margin-bottom: 14px; }
+.fhead { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 2px 8px; }
+.fhead .fp { background: none; padding: 0; color: var(--text); font-weight: 650; font-size: 12.5px;
+  overflow-wrap: anywhere; }
+.fhead .stat { font: 11.5px var(--mono); color: var(--label); }
+.bar { grid-column: 1 / -1; display: flex; height: 4px; border-radius: 2px; overflow: hidden;
+  background: color-mix(in srgb, var(--border) 50%, transparent); }
+.bar i { display: block; height: 100%; }
+.bar .a { background: var(--good); } .bar .d { background: var(--bad); }
+.fnote { font-size: 12px; color: var(--muted); margin: 4px 0 8px; line-height: 1.4; }
+
+.mini { position: relative; margin: 6px 0 4px; }
+.strip { position: absolute; left: 0; top: 0; width: 34px; border-radius: 4px;
+  background: var(--code-bg); border: 1px solid var(--border); }
+.strip .tick { position: absolute; left: 3px; width: 6px; background: var(--good); opacity: .75; border-radius: 1px; }
+.strip .box { position: absolute; left: 12px; right: 3px; border-radius: 2px;
+  background: color-mix(in srgb, var(--accent) 40%, transparent); outline: 1px solid var(--accent); }
+.strip .box[data-ruled] { background: var(--rc); outline-color: var(--rc); }
+.strip .box.active { outline: 2px solid var(--text); }
+.mlabels { position: absolute; left: 44px; right: 0; top: 0; }
+.mlabel { position: absolute; left: 0; right: 0; font-size: 12px; line-height: 1.35; color: var(--muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 1px 4px; border-radius: 4px; }
+.mlabel b { display: inline-grid; place-items: center; width: 17px; height: 17px; border-radius: 50%;
+  font: 700 10.5px var(--mono); background: var(--panel-2); color: var(--text); margin-right: 3px; }
+.mlabel[data-ruled] b { background: var(--rc); color: var(--on-accent); }
+.mlabel.active { background: var(--panel-2); color: var(--text); }
+.mlabel::before { content: ""; position: absolute; left: -10px; top: 9px; width: 8px; border-top: 1px dashed var(--border); }
+
+.tests { list-style: none; padding: 0; margin: 4px 0 0; font-size: 12px; }
+.tests li { display: flex; gap: 6px; padding: 2px 0; max-width: none; }
+.tests .no { font: 11px var(--mono); color: var(--label); width: 26px; text-align: right; flex: none; }
+.tests code { background: none; padding: 0; color: var(--muted); font-size: 11px; overflow-wrap: anywhere; }
+.tests .missing a { color: var(--bad); font-size: 12px; padding-left: 32px; }
+.tests .missing a::before { content: "∅ "; }
+.ripple { list-style: none; padding: 0; margin: 0; }
+.ripple li { margin-bottom: 9px; max-width: none; }
+.ripple .fp { font-weight: 500; color: var(--muted); }
+.ripple .fnote { display: block; margin: 2px 0 0; font-size: 11.5px; }
+.ripple .decision .fp { color: var(--accent); }
+.rail ul.lenses { padding-left: 18px; margin: 0; font-size: 12.5px; color: var(--muted); }
+.rail ul.lenses li { color: var(--muted); margin-bottom: 4px; }
+
+/* ---- main ---- */
+main { min-width: 0; padding: 22px 28px 120px; }
+.intro { display: grid; grid-template-columns: minmax(260px, 0.75fr) minmax(0, 2.6fr); gap: 26px;
+  align-items: start; margin-bottom: 26px; }
+.lede { font-family: var(--serif); font-size: 16px; line-height: 1.55; margin: 0; max-width: 56ch; }
+.flowwrap { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px 8px; }
+.flow { width: 100%; height: auto; display: block; }
+.flow .lane { fill: color-mix(in srgb, var(--bg) 60%, transparent); }
+.flow .lanelab { fill: var(--label); font: 650 10.5px var(--sans); letter-spacing: .06em; text-transform: uppercase; }
+.flow .edge { stroke: var(--muted); stroke-width: 1.3; fill: none; }
+.flow marker path { fill: var(--muted); }
+.flow .elab { fill: var(--muted); font: 11px var(--sans); }
+.flow .elab.mid { text-anchor: middle; }
+.flow .fnode rect { fill: var(--panel-2); stroke: var(--border); }
+.flow .fnode.way rect { fill: var(--bg); stroke-dasharray: 4 3; }
+.flow .fnode.stop { cursor: pointer; }
+.flow .fnode.stop rect { stroke: var(--accent); }
+.flow .fnode.stop:hover rect, .flow .fnode.active rect { fill: color-mix(in srgb, var(--accent) 18%, var(--panel-2)); stroke-width: 2; }
+.flow .fnode circle { fill: var(--accent); }
+.flow .fnode[data-ruled] circle { fill: var(--rc); }
+.flow .fnode[data-ruled] rect { stroke: var(--rc); }
+.flow .nnum { fill: var(--on-accent); font: 700 12.5px var(--mono); text-anchor: middle; }
+.flow .ntitle { fill: var(--text); font: 600 12.5px var(--sans); }
+.flow .way .ntitle { fill: var(--muted); font-weight: 500; }
+.flow .nref { fill: var(--label); font: 11px var(--mono); }
+.flowlist { display: none; }
+
+/* ---- a stop ---- */
+.stop { display: grid; grid-template-columns: minmax(0, 1fr) var(--notes); grid-template-areas: "code notes";
+  gap: 0; margin: 0 0 34px; border: 1px solid var(--border); border-radius: 12px; background: var(--panel);
+  scroll-margin-top: calc(var(--hh) + 14px); }
+.stop.active { border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); }
+.stop[data-ruled] { border-left: 4px solid var(--rc); }
+.codecol { grid-area: code; min-width: 0; padding: 12px 0 14px; border-right: 1px solid var(--border); }
+.notes { grid-area: notes; padding: 16px 20px 18px; position: sticky; top: calc(var(--hh) + 10px);
+  align-self: start; max-height: calc(100vh - var(--hh) - 20px); overflow: auto; }
+.stophead { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.stophead .num { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--accent); color: var(--on-accent); font: 700 14px var(--mono); }
+.stop[data-ruled] .stophead .num { background: var(--rc); }
+.kind { font: 600 10.5px/1.6 var(--mono); letter-spacing: .06em; text-transform: uppercase;
+  border: 1px solid currentColor; border-radius: 5px; padding: 0 7px; }
+.k-finding { color: #e69875; } .k-decision { color: var(--accent); } .k-context { color: var(--muted); }
+.loc { font: 11.5px var(--mono); color: var(--label); }
+.stop h2 { font: 650 20px/1.25 var(--sans); letter-spacing: 0; text-transform: none; color: var(--text); margin: 10px 0 4px; }
+.blk h3 { font: 650 11px var(--sans); letter-spacing: .1em; text-transform: uppercase; color: var(--label); margin: 14px 0 2px; }
+.blk p { margin: 5px 0; font-size: 14px; }
+.question { font-weight: 650; font-size: 15px !important; }
+.ask { margin-top: 6px; }
+.ruling { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0 6px; }
+.rule { background: transparent; color: var(--text); border: 1.5px solid var(--border); padding: 9px 13px; }
+.rule:hover { border-color: var(--muted); filter: none; }
+.rule.r-fine.on  { background: var(--good);   border-color: var(--good);   color: var(--on-accent); }
+.rule.r-fix.on   { background: var(--bad);    border-color: var(--bad);    color: var(--on-accent); }
+.rule.r-later.on { background: var(--yellow); border-color: var(--yellow); color: var(--on-accent); }
+.hint { font-size: 12px; color: var(--label); margin: 6px 0 0; }
+.lref { color: var(--accent); border-bottom: 1px dotted var(--accent); }
+
+/* the question and its buttons stay in view while the notes scroll */
+@media (min-width: 1001px) {
+  body:not(.split) .notes { padding-bottom: 0; }
+  body:not(.split) .ask { position: sticky; bottom: 0; background: var(--panel);
+    border-top: 1px solid var(--border); margin: 12px -20px 0; padding: 0 20px 14px; }
+}
+
+/* ---- code ---- */
+.codehead { display: flex; gap: 10px; align-items: baseline; padding: 0 16px 8px; font: 12px var(--mono); flex-wrap: wrap; }
+.codehead .path { color: var(--text); font-weight: 650; }
+.codehead .range { color: var(--accent); }
+.codehead .tag { color: var(--label); }
+.codehead .sides { display: none; }
+.lines { display: flex; flex-direction: column; overflow-x: auto; background: var(--code-bg);
+  font: 12.5px/1.6 var(--mono); padding: 6px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.ln { display: flex; flex: none; min-width: 100%; width: max-content; padding-right: 16px; }
+.ln:hover { background: color-mix(in srgb, var(--text) 7%, transparent); }
+.ln .no { flex: none; width: 52px; text-align: right; padding-right: 12px; color: var(--label);
+  user-select: none; border-left: 3px solid transparent; }
+.ln code { background: none; padding: 0; color: var(--text); font-size: inherit; white-space: pre; border-radius: 0; }
+.ln.add { background: color-mix(in srgb, var(--good) 9%, transparent); }
+.ln.add .no { border-left-color: var(--good); color: var(--good); }
+.ln.del { background: color-mix(in srgb, var(--bad) 11%, transparent); }
+.ln.del .no { border-left-color: var(--bad); color: var(--bad); }
+.ln.del code { opacity: .8; }
+.ln.twin, .ln.gap { display: none; }
+.ln.flash { background: color-mix(in srgb, var(--accent) 30%, transparent) !important; transition: background .3s; }
+.peek { margin-top: 14px; }
+.peek .lines { background: color-mix(in srgb, var(--code-bg) 70%, var(--panel)); }
+/* pygments classes, Everforest */
+.k { color: #e67e80; } .f { color: #a7c080; } .s { color: #dbbc7f; } .c { color: #859289; font-style: italic; }
+.n { color: #d699b6; } .t { color: #83c092; } .m { color: #e69875; } .ns { color: #7fbbb3; }
+.o { color: #e69875; } .p { color: #9da9a0; }
+
+/* ---- side-by-side mode ---- */
+body.split .stop { grid-template-columns: 1fr; grid-template-areas: "notes" "code"; }
+body.split .notes { position: static; max-height: none; display: grid; gap: 0 26px;
+  grid-template-columns: repeat(3, minmax(0, 1fr)); border-bottom: 1px solid var(--border); }
+body.split .notes .stophead, body.split .notes h2 { grid-column: 1 / -1; }
+body.split .codecol { border-right: 0; }
+body.split .lines { display: grid; grid-template-columns: 1fr 1fr; }
+body.split .ln { order: 0 !important; width: auto; min-width: 0; }
+body.split .ln code { white-space: pre-wrap; overflow-wrap: anywhere; }
+body.split .ln.twin, body.split .ln.gap { display: flex; }
+body.split .ln.gap { background: repeating-linear-gradient(135deg, transparent 0 6px,
+  color-mix(in srgb, var(--border) 35%, transparent) 6px 7px); }
+body.split .ln.old { border-right: 1px solid var(--border); }
+body.split .codehead .sides { display: grid; grid-template-columns: 1fr 1fr; width: 100%; color: var(--label); }
+body.split .newonly .lines, body.split .peek .lines { grid-template-columns: 1fr; }
+body.split .newonly .ln.gap, body.split .newonly .codehead .sides { display: none; }
+
+/* ---- narrower windows ---- */
+@media (max-width: 1250px) {
+  :root { --notes: 360px; --rail: 280px; }
+  .intro { grid-template-columns: 1fr; }
+}
+@media (max-width: 1000px) {
+  .shell { grid-template-columns: 1fr; }
+  .rail { position: static; height: auto; border-right: 0; border-bottom: 1px solid var(--border); }
+  .rail > summary { display: block; font: 650 13px var(--sans); color: var(--text); padding: 2px 0; }
+  .rail[open] > summary { margin-bottom: 12px; }
+  .stop, body.split .stop { grid-template-columns: 1fr; grid-template-areas: "notes" "code"; }
+  .notes { position: static; max-height: none; border-bottom: 1px solid var(--border); }
+  .codecol { border-right: 0; }
+  body.split .notes { grid-template-columns: 1fr; }
+}
+@media (max-width: 760px) {
+  :root { --hh: 56px; }
+  .top { padding: 0 12px; gap: 10px; }
+  .top h1 { font-size: 15px; }
+  .top .meta { font-size: 10.5px; }
+  .seg { display: none; }
+  .tally #tally { display: none; }
+  .pip { width: 22px; height: 22px; font-size: 11px; }
+  .pips { gap: 3px; }
+  main { padding: 16px 10px 80px; }
+  .lede { font-size: 15.5px; }
+  .flow { display: none; }
+  .flowlist { display: block; list-style: none; padding: 0; margin: 4px 0; }
+  .flowlist li { display: flex; gap: 10px; align-items: flex-start; padding: 5px 0; font-size: 13.5px; }
+  .flowlist code { font-size: 11px; white-space: nowrap; }
+  .fnum { flex: none; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center;
+    background: var(--accent); color: var(--on-accent); font: 700 12px var(--mono); }
+  .fnum[data-ruled] { background: var(--rc); }
+  .fnum.way { background: transparent; color: var(--label); border: 1px dashed var(--border); }
+  .notes { padding: 14px 14px 16px; }
+  .stop h2 { font-size: 18px; }
+  .rule { flex: 1 1 auto; }
+  /* phones get the unified diff whatever the toggle said */
+  body.split .lines { display: flex; }
+  body.split .ln { order: unset !important; width: max-content; min-width: 100%; }
+  body.split .ln code { white-space: pre; }
+  body.split .ln.twin, body.split .ln.gap, body.split .codehead .sides { display: none; }
+  .ln .no { width: 40px; padding-right: 8px; }
+  .lines { font-size: 12px; }
+}
+/* Before you read: goal across the top, then picture, questions and words side by side. */
+.intro > .primer { grid-column: 1 / -1; display: grid; gap: 6px 28px;
+  grid-template-columns: 1fr 1fr 1.2fr; padding-bottom: 18px; border-bottom: 1px solid var(--border); }
+.primer .phead { grid-column: 1 / -1; }
+.primer .where { font-size: 12px; color: var(--muted); margin: 0; text-transform: uppercase; letter-spacing: .06em; }
+.primer h2 { font-size: 20px; margin: 4px 0 6px; text-transform: none; letter-spacing: 0; }
+.primer h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 8px 0 4px; }
+.primer p, .primer li { margin: 4px 0; }
+.terms { display: grid; grid-template-columns: max-content 1fr; gap: 3px 14px; margin: 0; }
+.terms dt { font-weight: 600; } .terms dd { margin: 0; color: var(--muted); }
+dfn { font-style: normal; border-bottom: 1px dotted var(--accent); cursor: help; }
+.answers { border-left: 3px solid var(--accent); padding: 2px 12px; margin: 10px 0; }
+.answers .where { font-size: 12px; color: var(--muted); margin: 0; }
+.answers ul { margin: 4px 0; padding-left: 18px; }
+@media (max-width: 1000px) { .intro > .primer { grid-template-columns: 1fr; } .terms { grid-template-columns: 1fr; } .terms dd { margin-bottom: 6px; } }
+.steps ol { padding-left: 0; list-style: none; margin: 6px 0; counter-reset: step; }
+.steps li { counter-increment: step; padding: 6px 10px; margin: 4px 0; border-left: 3px solid var(--border);
+  color: var(--muted); cursor: pointer; }
+.stepbtn { min-width: 26px; height: 24px; padding: 0 6px; margin-right: 8px; border-radius: 12px; font-size: 12px; }
+.steps li.on { border-left-color: var(--accent); color: var(--text); background: var(--panel-2); }
+.stepcount { font-weight: 400; text-transform: none; letter-spacing: 0; }
+.stop.stepping .codebox .ln { opacity: .38; }
+.stop.stepping .codebox .ln.focus { opacity: 1; box-shadow: inset 3px 0 0 var(--accent); }
+</style></head><body>
+<header class="top">
+  <div class="tt"><h1>{{TITLE}}</h1><div class="meta">{{SUBTITLE}}</div></div>
+  <div class="ctrl">
+{{DIFFTOGGLE}}
+    <div class="tally"><span id="tally">0 of {{N}} ruled</span><span class="pips">{{PIPS}}</span></div>
+  </div>
+</header>
+<div class="shell">
+<details class="rail" id="rail" open>
+  <summary>{{MAPLABEL}} · {{MAPCOUNT}}, where each stop sits</summary>
+  <h2>{{MAPLABEL}}</h2>
+  {{HOT}}
+  {{RIPPLEBLOCK}}
+  <h4>Looked for</h4>
+  <ul class="lenses">{{LENSES}}</ul>
+</details>
+<main>
+  <div class="intro">
+    {{PRIMER}}
+    <p class="lede">{{WHY}}</p>
+    {{FLOWBLOCK}}
+  </div>
+{{STOPS}}
+</main>
+</div>
+<script>
+const stops = [...document.querySelectorAll('article.stop')];
+const ruled = {};
+const labels = { fine: 'Fine', fix: 'Needs a fix', later: 'Discuss later' };
+
+function refsTo(n) { return document.querySelectorAll(`[data-ref-stop="${n}"], #stop-${n}`); }
+function goTo(n) {
+  const el = document.getElementById('stop-' + n);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+document.addEventListener('click', e => {
+  const g = e.target.closest('[data-goto]');
+  if (g) { e.preventDefault(); goTo(g.dataset.goto); return; }
+  const r = e.target.closest('.lref');
+  if (r) { e.preventDefault(); flash(r.dataset.ref, r); }
+});
+
+// A line reference in prose ("lines 295–296") lights those lines up. The
+// same file:line can appear in several stops, so look in the stop the
+// reference sits in first, and only then anywhere on the page.
+function linesFor(ref, from) {
+  const m = ref.match(/^(.*):(\d+)-(\d+)$/), out = [];
+  const scopes = [from?.closest('.stop'), document].filter(Boolean);
+  for (let n = +m[2]; n <= +m[3]; n++) {
+    const sel = `[data-line="${CSS.escape(m[1])}:${n}"]`;
+    const el = scopes.map(s => s.querySelector(sel)).find(Boolean);
+    if (el) out.push(el);
+  }
+  return out;
+}
+function flash(ref, from) {
+  const els = linesFor(ref, from);
+  if (!els.length) return;
+  els[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+  els.forEach(el => el.classList.add('flash'));
+  setTimeout(() => els.forEach(el => el.classList.remove('flash')), 1800);
+}
+document.querySelectorAll('.lref').forEach(a => {
+  a.addEventListener('mouseenter', () => linesFor(a.dataset.ref, a).forEach(el => el.classList.add('flash')));
+  a.addEventListener('mouseleave', () => linesFor(a.dataset.ref, a).forEach(el => el.classList.remove('flash')));
+});
+
+// Steps inside a stop: clicking a step keeps its lines in focus and dims
+// the rest of that stop's code; clicking it again clears the focus.
+document.querySelectorAll('.steps .stepbtn').forEach(btn => btn.addEventListener('click', () => {
+  const li = btn.closest('li');
+  const stop = li.closest('.stop'), was = li.classList.contains('on');
+  stop.querySelectorAll('.steps li').forEach(x => x.classList.remove('on'));
+  stop.querySelectorAll('.codebox .ln.focus').forEach(x => x.classList.remove('focus'));
+  stop.classList.toggle('stepping', !was);
+  if (was) return;
+  li.classList.add('on');
+  const file = li.closest('.steps').dataset.file;
+  const els = linesFor(`${file}:${li.dataset.from}-${li.dataset.to}`, li);
+  els.forEach(el => el.classList.add('focus'));
+  els[0]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}));
+
+// Rulings: one per stop, reflected everywhere the stop is drawn.
+document.querySelectorAll('.ruling').forEach(box => box.addEventListener('click', e => {
+  const b = e.target.closest('button[data-ruling]');
+  if (!b) return;
+  const n = box.dataset.stop, r = b.dataset.ruling;
+  const stop = document.getElementById('stop-' + n);
+  const title = stop.querySelector('h2').textContent;
+  ruled[n] = r;
+  box.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+  refsTo(n).forEach(el => el.dataset.ruled = r);
+  document.getElementById('tally').textContent = `${Object.keys(ruled).length} of ${stops.length} ruled`;
+  const loc = stop.querySelector('.loc').textContent;
+  window.reviewSurface?.queuePrompt(`Walkthrough ruling: stop ${n} (${title}, ${loc}) = ${labels[r]}`,
+    { tag: 'choice', text: `Stop ${n}: ${labels[r]}`, element: box,
+      data: { stop: +n, ruling: r, title, where: loc } });
+}));
+
+// Where the reader is: the stop nearest the top of the window.
+let active = null;
+function setActive(n) {
+  if (n === active) return;
+  if (active) refsTo(active).forEach(el => el.classList.remove('active'));
+  active = n;
+  if (n) refsTo(n).forEach(el => el.classList.add('active'));
+}
+function onScroll() {
+  const line = window.innerHeight * 0.35;
+  let cur = null;
+  for (const s of stops) if (s.getBoundingClientRect().top < line) cur = s.dataset.stop;
+  setActive(cur);
+}
+addEventListener('scroll', onScroll, { passive: true });
+onScroll();
+
+// j / k step through stops.
+document.addEventListener('keydown', e => {
+  if (e.target.closest('input, textarea, [contenteditable]') || e.metaKey || e.ctrlKey || e.altKey) return;
+  const i = active ? +active : 0;
+  if (e.key === 'j') goTo(Math.min(stops.length, i + 1));
+  if (e.key === 'k') goTo(Math.max(1, i - 1));
+});
+
+// Inline diff or before | after.
+document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => {
+  document.body.classList.toggle('split', b.dataset.view === 'split');
+  document.querySelectorAll('.seg button').forEach(x => x.classList.toggle('on', x === b));
+}));
+
+// Phones open with the change map folded away.
+if (matchMedia('(max-width: 760px)').matches) document.getElementById('rail').open = false;
+</script>
+</body></html>

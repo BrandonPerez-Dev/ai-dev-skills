@@ -1,0 +1,39 @@
+{
+  "skill_name": "code-walkthrough",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "walk me through commit 1ad4c55 in ~/Projects/picatrix/blackboard with me, I need to understand the live follow change before I merge it and explain it to the team",
+      "expected_output": "A change-mode spec and rendered page: primer, every touched file mapped, a few verified hotspot stops with questions.",
+      "expectations": [
+        "A spec JSON file was written and scripts/walkthrough.py rendered it without a SpecError",
+        "The spec has mode change and a files list naming all 11 touched files",
+        "Every finding stop carries a verdict of CONFIRMED or PLAUSIBLE and a concrete failure scenario",
+        "The primer defines cursor and seq in terms",
+        "No source file in the repository was modified"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I'm new to the blackboard repo (~/Projects/picatrix/blackboard). how does an event get written and read back? show me around",
+      "expected_output": "A tour-mode spec of a few concept stops in understanding order, with a primer and glossary.",
+      "expectations": [
+        "The spec has mode tour and no files list",
+        "Stops include the Store trait and the SQLite emit and read_since",
+        "At least one prequestion is tied to the stop that answers it",
+        "The newcomer-reader eval was run and its score reported"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "review my last commit with me before I push, mostly worried about error handling. repo is the current directory",
+      "expected_output": "A change-mode walkthrough whose lenses include the person's error-handling focus, without editing code.",
+      "expectations": [
+        "The spec's lenses include error handling",
+        "Stops are ordered for understanding, not by file path",
+        "Any defect is presented as a stop with a question, not fixed",
+        "No source file in the repository was modified"
+      ]
+    }
+  ]
+}
