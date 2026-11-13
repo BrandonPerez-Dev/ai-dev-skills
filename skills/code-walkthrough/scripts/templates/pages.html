@@ -1,0 +1,192 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="/surface-theme.css">
+<title>{{TITLE}}</title>
+<style>
+/* Prototype layout for a code walkthrough. body.wide is the theme's opt-in
+   full-width layout; the next rule repeats it for servers still running the
+   old theme. Everything else here would move into the theme (or a live page
+   part) if adopted. */
+body > *, section { max-width: none; margin: 0; }
+html, body { height: 100%; margin: 0; }
+body { display: flex; flex-direction: column; overflow: hidden; padding: 0; }
+.bar { display: flex; align-items: center; gap: 16px; padding: 8px 20px; flex-wrap: wrap;
+  border-bottom: 1px solid var(--border, #333); flex: none; }
+.bar h1 { font-size: 15px; margin: 0; }
+.bar .muted { font-size: 12px; }
+.bar .nav { margin-left: auto; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.dots { display: flex; gap: 6px; flex-wrap: wrap; }
+.dots button { min-width: 28px; height: 28px; padding: 0 6px; border-radius: 14px; }
+.dots button.on { outline: 2px solid var(--accent, #6af); }
+.pages { flex: 1; display: flex; overflow-x: auto; overflow-y: hidden; min-height: 0;
+  scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: none; }
+.stop { flex: 0 0 100%; scroll-snap-align: start; display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 30%); min-height: 0; }
+.code, .mapmain { overflow: auto; min-height: 0; padding: 12px 0 24px; }
+.mapmain { padding: 16px 28px; }
+.codehead { display: flex; gap: 12px; align-items: center; justify-content: space-between;
+  padding: 0 20px 8px; font-family: var(--mono, monospace); font-size: 13px; }
+.views { display: flex; gap: 6px; }
+.views button { padding: 2px 10px; font-size: 12px; }
+.views button.on { outline: 2px solid var(--accent, #6af); }
+.lines { font-family: var(--mono, monospace); font-size: 13px; line-height: 1.55; }
+.code .split { display: none; grid-template-columns: 1fr 1fr; }
+.code.show-split .after { display: none; }
+.code.show-split .split { display: grid; }
+.split .side { overflow-x: auto; min-width: 0; }
+.split .side + .side { border-left: 1px solid var(--border, #333); }
+.ln { display: flex; padding: 0 20px 0 0; white-space: pre; }
+.ln:hover { background: var(--panel-2, #222); }
+/* A click lands on the line (which carries file:line), not on a highlighted
+   token inside it, so an annotation anchors to the whole line. */
+.ln code, .ln .num { pointer-events: none; }
+.ln .num { flex: none; width: 56px; text-align: right; padding-right: 14px;
+  color: var(--muted, #888); user-select: none; }
+.ln code { background: none; padding: 0; white-space: pre; color: var(--text); }
+.ln.add, .ln.chg:not(.side .ln) { background: rgba(167, 192, 128, .10); }
+.ln.add .num { color: var(--good, #a7c080); }
+.side:first-child .ln.del, .side:first-child .ln.chg { background: rgba(230, 126, 128, .12); }
+.side:last-child .ln.add, .side:last-child .ln.chg { background: rgba(167, 192, 128, .12); }
+.ln.gap { background: repeating-linear-gradient(135deg, transparent 0 6px, rgba(255,255,255,.03) 6px 12px); }
+.notes { border-left: 1px solid var(--border, #333); padding: 16px 22px; overflow: auto; min-height: 0; }
+.notes h2 { margin: 4px 0 10px; font-size: 18px; }
+.notes h3 { margin: 16px 0 4px; font-size: 13px; text-transform: uppercase;
+  letter-spacing: .04em; color: var(--muted, #888); }
+.where { font-size: 12px; color: var(--muted, #888); margin: 0; }
+.kind { padding: 1px 8px; border-radius: 10px; border: 1px solid currentColor; font-size: 12px; }
+.kind.finding { color: #e69875; } .kind.decision { color: #7fbbb3; }
+.kind.context, .kind.concept { color: var(--muted, #888); }
+.question { font-weight: 600; }
+.ruling { display: flex; gap: 8px; margin: 12px 0; flex-wrap: wrap; }
+.ruling button.on { outline: 2px solid var(--accent, #6af); }
+.hint { font-size: 12px; }
+.map table { width: 100%; }
+.map tr.ripple td { color: var(--muted, #888); }
+.map tr.hot td:first-child code { font-weight: 700; }
+.primer { border-bottom: 1px solid var(--border, #333); padding-bottom: 14px; margin-bottom: 18px; }
+.primer h2 { font-size: 20px; margin: 4px 0 8px; text-transform: none; letter-spacing: 0; }
+.primer .where { margin: 0; }
+.terms { display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; margin: 6px 0; }
+.terms dt { font-weight: 600; } .terms dd { margin: 0; color: var(--muted, #aaa); }
+dfn { font-style: normal; border-bottom: 1px dotted var(--accent, #6af); cursor: help; }
+.answers { border-left: 3px solid var(--accent, #6af); padding: 2px 12px; margin: 12px 0; }
+.answers ul { margin: 4px 0; }
+.steps ol { padding-left: 0; list-style: none; margin: 6px 0; counter-reset: step; }
+.steps li { counter-increment: step; padding: 6px 10px; margin: 4px 0; border-left: 3px solid var(--border, #333);
+  color: var(--muted, #999); cursor: pointer; }
+.stepbtn { min-width: 26px; height: 24px; padding: 0 6px; margin-right: 8px; border-radius: 12px; font-size: 12px; }
+.steps li.on { border-left-color: var(--accent, #6af); color: var(--text); background: var(--panel-2, #222); }
+.steplines { font-family: var(--mono, monospace); font-size: 12px; color: var(--accent, #6af); }
+.stepcount { font-weight: 400; text-transform: none; letter-spacing: 0; }
+.code.stepping .ln { opacity: .38; }
+.code.stepping .ln.focus { opacity: 1; box-shadow: inset 3px 0 0 var(--accent, #6af); }
+/* Syntax colours: pygments short classes, Everforest palette. */
+.k, .kd, .kn, .kr, .kt { color: #e67e80; }   .kc, .no { color: #d699b6; }
+.s, .s1, .s2, .sb, .sc, .se, .sh, .sr, .ss { color: #a7c080; }
+.c, .c1, .cm, .cs, .sd { color: #859289; font-style: italic; }
+.nf, .fm { color: #a7c080; } .nc, .nn, .nt { color: #dbbc7f; }
+.mi, .mf, .mh, .il, .m { color: #d699b6; } .o, .ow { color: #e69875; }
+.nb, .bp { color: #83c092; } .nd, .nm { color: #7fbbb3; } .p { color: #9da9a0; }
+
+/* Phones and narrow windows: code above notes, each stop scrolls on its own. */
+@media (max-width: 900px) {
+  .stop { display: block; overflow-y: auto; }
+  .code, .mapmain, .notes { overflow: visible; }
+  .notes { border-left: 0; border-top: 1px solid var(--border, #333); }
+  .lines { font-size: 12px; }
+  .ln .num { width: 40px; padding-right: 8px; }
+  .lines { overflow-x: auto; }
+  .code .split { grid-template-columns: 1fr; }
+  .split .side + .side { border-left: 0; border-top: 1px solid var(--border, #333); }
+  .bar { padding: 8px 12px; }
+  .mapmain { padding: 12px 14px; }
+}
+@media (max-width: 900px) { .terms { grid-template-columns: 1fr; } .terms dd { margin-bottom: 6px; } }
+</style></head><body class="wide">
+<header class="bar">
+<div><h1>{{TITLE}}</h1><span class="muted">{{SUBTITLE}}</span></div>
+<div class="nav"><button type="button" id="prev">←</button>
+<div class="dots" id="dots"></div>
+<button type="button" id="next">→</button></div>
+</header>
+<main class="pages" id="pages">
+{{PAGES}}
+</main>
+<script>
+const pages = document.getElementById('pages');
+const stops = [...pages.querySelectorAll('.stop')];
+const dots = document.getElementById('dots');
+stops.forEach((s, i) => {
+  const b = document.createElement('button');
+  b.type = 'button'; b.textContent = i === 0 ? 'Start' : i;
+  b.title = i === 0 ? 'Before you read, and the map' : s.querySelector('h2').textContent;
+  b.onclick = () => go(i);
+  dots.append(b);
+});
+let at = 0;
+const mark = () => [...dots.children].forEach((d, j) => d.classList.toggle('on', j === at));
+function go(i) {
+  at = Math.max(0, Math.min(stops.length - 1, i));
+  pages.scrollTo({ left: at * pages.clientWidth });
+  mark();
+}
+// Steps inside a stop: focus a few lines at a time. Forward walks the
+// current stop's steps first and only then moves to the next stop.
+const stepAt = new Map();  // stop element -> index of the focused step, -1 = none
+function focusStep(stop, k) {
+  const items = [...stop.querySelectorAll('.steps li')];
+  const code = stop.querySelector('.code');
+  stepAt.set(stop, k);
+  items.forEach((li, j) => li.classList.toggle('on', j === k));
+  if (k >= 0) items[k].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  code.classList.toggle('stepping', k >= 0);
+  if (k < 0) { code.querySelectorAll('.ln.focus').forEach(l => l.classList.remove('focus')); return; }
+  const file = stop.querySelector('.steps').dataset.file;
+  const a = +items[k].dataset.from, b = +items[k].dataset.to;
+  let first = null;
+  code.querySelectorAll('.ln[data-line]').forEach(l => {
+    const [path, n] = [l.dataset.line.slice(0, l.dataset.line.lastIndexOf(':')), +l.dataset.line.split(':').pop()];
+    const on = path === file && n >= a && n <= b;
+    l.classList.toggle('focus', on);
+    if (on && !first && l.offsetParent) first = l;
+  });
+  first?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+}
+function step(dir) {
+  const stop = stops[at], n = stop.querySelectorAll('.steps li').length;
+  const k = stepAt.get(stop) ?? -1;
+  if (n && dir > 0 && k < n - 1) return focusStep(stop, k + 1);
+  if (n && dir < 0 && k > 0) return focusStep(stop, k - 1);
+  if (n && dir < 0 && k === 0) return focusStep(stop, -1);
+  go(at + dir);
+}
+document.querySelectorAll('.steps .stepbtn').forEach(btn => btn.addEventListener('click', () => {
+  const li = btn.closest('li'), stop = li.closest('.stop');
+  focusStep(stop, [...stop.querySelectorAll('.steps li')].indexOf(li));
+}));
+document.getElementById('prev').onclick = () => step(-1);
+document.getElementById('next').onclick = () => step(1);
+document.addEventListener('keydown', e => {
+  if (e.target.closest('input, textarea, [contenteditable]')) return;
+  if (e.key === 'ArrowRight') step(1);
+  if (e.key === 'ArrowLeft') step(-1);
+});
+pages.addEventListener('scroll', () => {
+  const i = Math.round(pages.scrollLeft / pages.clientWidth);
+  if (i !== at) { at = i; mark(); }
+});
+document.querySelectorAll('.views button').forEach(b => b.onclick = () => {
+  const code = b.closest('.code');
+  code.classList.toggle('show-split', b.dataset.view === 'split');
+  b.parentElement.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+});
+document.querySelectorAll('.ruling button').forEach(b => b.onclick = () => {
+  const box = b.parentElement, stop = box.dataset.stop, r = b.dataset.ruling;
+  box.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+  const title = stops[stop].querySelector('h2').textContent;
+  window.reviewSurface?.queuePrompt(`Walkthrough ruling: stop ${stop} (${title}) = ${r}`,
+    { tag: 'choice', text: `Stop ${stop}: ${r}`, element: box, data: { stop, ruling: r } });
+});
+go(0);
+</script>
+</body></html>

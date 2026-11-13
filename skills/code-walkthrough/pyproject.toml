@@ -1,0 +1,24 @@
+[project]
+name = "code-walkthrough"
+version = "0.1.0"
+description = "Render an agent's walkthrough of a code change or a codebase as an annotatable page."
+requires-python = ">=3.11"
+dependencies = ["pygments>=2.17"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff==0.17.5"]
+
+[tool.ruff]
+line-length = 100
+src = ["scripts", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
+# Page text uses real en dashes and minus signs on purpose.
+allowed-confusables = ["–", "−"]
+# The formatter owns line length; what it leaves long is HTML inside strings.
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["scripts", "tests"]
