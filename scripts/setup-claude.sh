@@ -14,6 +14,14 @@ mkdir -p "$CLAUDE_DIR/skills"
 mkdir -p "$CLAUDE_DIR/agents"
 mkdir -p "$CLAUDE_DIR/hooks"
 
+# A skill whose SKILL.md frontmatter says `scope: cadre` belongs to the cadres
+# that list it: a cadre runner links it into its own runs' folders, so it is
+# not linked here, where every session on the machine would load it.
+cadre_only() {
+  [ -f "$1/SKILL.md" ] &&
+    awk '/^---$/ { n++; next } n == 1' "$1/SKILL.md" | grep -qE '^[[:space:]]+scope:[[:space:]]*cadre[[:space:]]*$'
+}
+
 # Symlink skills
 echo ""
 echo "Linking skills..."
@@ -21,6 +29,12 @@ for skill_dir in "$CONFIG_DIR/skills"/*; do
   if [ -d "$skill_dir" ]; then
     skill_name=$(basename "$skill_dir")
     target="$CLAUDE_DIR/skills/$skill_name"
+
+    if cadre_only "$skill_dir"; then
+      [ -L "$target" ] && rm "$target"
+      echo "  Cadre only: $skill_name (a cadre runner links it into its own runs)"
+      continue
+    fi
 
     if [ -L "$target" ]; then
       rm "$target"

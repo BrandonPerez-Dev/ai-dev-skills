@@ -3,9 +3,9 @@ name: code-walkthrough
 on:
   push:
     branches: [main]
-    paths: ["skills/code-walkthrough/**", ".github/workflows/code-walkthrough.yml"]
+    paths: ["skills/code-walkthrough/**", "scripts/setup-claude.sh", ".github/workflows/code-walkthrough.yml"]
   pull_request:
-    paths: ["skills/code-walkthrough/**", ".github/workflows/code-walkthrough.yml"]
+    paths: ["skills/code-walkthrough/**", "scripts/setup-claude.sh", ".github/workflows/code-walkthrough.yml"]
 
 permissions:
   contents: read

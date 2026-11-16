@@ -11,7 +11,10 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from pygments.token import Token
+try:
+    from pygments.token import Token
+except ImportError:  # optional: tok_class only runs when core.highlight has a lexer
+    Token = None
 
 from core import RULINGS, count_lines, diff_lines, highlight, read_file
 from primer import answered_here, mark_terms, primer_html

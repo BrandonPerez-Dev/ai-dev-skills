@@ -14,6 +14,10 @@ when_to_use: >-
   this change", "I'm new to this repo, show me how X works", "tour the
   storage layer". NOT: "fix these bugs", "write a course", "summarize the PR".
 argument-hint: "[commit | branch | PR | path] [question for a tour]"
+metadata:
+  # Linked only into the runs of a cadre that lists it (Cadre's Dev), never
+  # into ~/.claude for every session: scripts/setup-claude.sh skips it.
+  scope: cadre
 ---
 
 # Code walkthrough
@@ -67,6 +71,8 @@ visible artifact, and the renderer refuses one that points at missing code.
 7. **Render.**
    `python3 scripts/walkthrough.py SPEC.json [--layout pages|rail] [--repo PATH]`.
    The layout is the reader's setting (`CODE_WALKTHROUGH_LAYOUT`), not yours.
+   Needs Python 3.11+ and git. Pygments colours the code when it is
+   installed (`pip install pygments`); without it the code is shown plain.
 8. **Serve and converse.** Open the page with review-surface and keep
    polling. An annotation is a question: answer it in its thread, from the
    code. Collect the rulings; hand "needs a fix" and "discuss later" stops

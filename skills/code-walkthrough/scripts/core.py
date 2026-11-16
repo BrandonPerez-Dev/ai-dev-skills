@@ -12,9 +12,12 @@ import subprocess
 from functools import lru_cache
 from pathlib import Path
 
-from pygments.lexers import get_lexer_for_filename
-from pygments.token import STANDARD_TYPES
-from pygments.util import ClassNotFound
+try:
+    from pygments.lexers import get_lexer_for_filename
+    from pygments.token import STANDARD_TYPES
+    from pygments.util import ClassNotFound
+except ImportError:  # optional: without Pygments, code is shown uncoloured
+    get_lexer_for_filename = None
 
 KINDS = ("context", "concept", "decision", "finding")
 ROLES = ("hot", "decision", "ripple")
@@ -56,6 +59,8 @@ def highlight(path: str, text: str, classify=standard_class) -> list[str]:
     coloured correctly on every line it spans. Stripping the tags and
     unescaping gives back the file exactly (a test holds this).
     """
+    if get_lexer_for_filename is None:
+        return [html.escape(line) for line in text.split("\n")]
     try:
         lexer = get_lexer_for_filename(path, stripnl=False, ensurenl=False)
     except ClassNotFound:
