@@ -3,9 +3,11 @@ name = "code-walkthrough"
 version = "0.1.0"
 description = "Render an agent's walkthrough of a code change or a codebase as an annotatable page."
 requires-python = ">=3.11"
-dependencies = ["pygments>=2.17"]
+dependencies = []
 
 [project.optional-dependencies]
+# Colours the code; without it the code is shown plain.
+highlight = ["pygments>=2.17"]
 dev = ["pytest>=8", "ruff==0.17.5"]
 
 [tool.ruff]

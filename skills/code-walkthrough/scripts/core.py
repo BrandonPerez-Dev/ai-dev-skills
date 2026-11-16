@@ -47,9 +47,21 @@ def read_file(repo: str, rev: str, path: str) -> str | None:
 
 def standard_class(ttype) -> str:
     """Pygments' own short class name for a token type ("k", "s2", ...)."""
+    if get_lexer_for_filename is None:
+        return ""
     while ttype not in STANDARD_TYPES:
         ttype = ttype.parent
     return STANDARD_TYPES[ttype]
+
+
+def lexer_for(path: str):
+    """Pygments' lexer for the file, or None: no Pygments, or a language it lacks."""
+    if get_lexer_for_filename is None:
+        return None
+    try:
+        return get_lexer_for_filename(path, stripnl=False, ensurenl=False)
+    except ClassNotFound:
+        return None
 
 
 def highlight(path: str, text: str, classify=standard_class) -> list[str]:
@@ -59,11 +71,8 @@ def highlight(path: str, text: str, classify=standard_class) -> list[str]:
     coloured correctly on every line it spans. Stripping the tags and
     unescaping gives back the file exactly (a test holds this).
     """
-    if get_lexer_for_filename is None:
-        return [html.escape(line) for line in text.split("\n")]
-    try:
-        lexer = get_lexer_for_filename(path, stripnl=False, ensurenl=False)
-    except ClassNotFound:
+    lexer = lexer_for(path)
+    if lexer is None:
         return [html.escape(line) for line in text.split("\n")]
     lines: list[str] = []
     current: list[str] = []

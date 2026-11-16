@@ -51,6 +51,8 @@ def file_at(r, rev, path):
 
 
 def tok_class(tt):
+    if Token is None:
+        return ""
     for base, cls in [
         (Token.Comment, "c"),
         (Token.Literal.String, "s"),
