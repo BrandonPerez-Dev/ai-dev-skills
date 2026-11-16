@@ -18,6 +18,11 @@ git clone https://github.com/BrandonPerez-Dev/ai-dev-skills.git ~/ai-workflow-co
 ./scripts/sync-to-project.sh /path/to/your/project react-agent
 ```
 
+`setup-claude.sh` links every skill into `~/.claude/skills` except those whose
+`SKILL.md` frontmatter sets `metadata.scope: cadre`.
+Those belong to the [Cadre](https://github.com/Hololoop-AI/cadre-runner) cadres
+that list them, which link them into their own runs.
+
 ## Skill Router (RAG-based)
 
 The skill router uses local Ollama embeddings to match user prompts to the right skill via a graph-based routing system. It runs as a Claude Code `UserPromptSubmit` hook.

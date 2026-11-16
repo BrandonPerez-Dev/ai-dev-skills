@@ -14,6 +14,24 @@ mkdir -p "$CLAUDE_DIR/skills"
 mkdir -p "$CLAUDE_DIR/agents"
 mkdir -p "$CLAUDE_DIR/hooks"
 
+# A skill whose SKILL.md frontmatter sets `metadata.scope: cadre` belongs to
+# the cadres that list it: a cadre runner links it into its own runs' folders,
+# so it is not linked here, where every session on the machine would load it.
+cadre_only() {
+  [ -f "$1/SKILL.md" ] && awk '
+    { sub(/\r$/, "") }
+    NR == 1 { if ($0 != "---") exit 1; next }
+    $0 == "---" { exit 1 }
+    /^[^[:space:]#]/ { in_meta = ($0 ~ /^metadata:[[:space:]]*$/); next }
+    in_meta && /^[[:space:]]+scope:/ {
+      v = $0; sub(/^[[:space:]]+scope:[[:space:]]*/, "", v); sub(/[[:space:]]+#.*$/, "", v)
+      gsub(/["\047]/, "", v); sub(/[[:space:]]+$/, "", v)
+      if (v == "cadre") { found = 1; exit 0 }
+    }
+    END { exit found ? 0 : 1 }
+  ' "$1/SKILL.md"
+}
+
 # Symlink skills
 echo ""
 echo "Linking skills..."
@@ -21,6 +39,17 @@ for skill_dir in "$CONFIG_DIR/skills"/*; do
   if [ -d "$skill_dir" ]; then
     skill_name=$(basename "$skill_dir")
     target="$CLAUDE_DIR/skills/$skill_name"
+
+    if cadre_only "$skill_dir"; then
+      if [ -L "$target" ]; then
+        rm "$target"
+      elif [ -e "$target" ]; then
+        echo "  Cadre only: $skill_name, but a real directory is installed at $target; remove it by hand"
+        continue
+      fi
+      echo "  Cadre only: $skill_name (a cadre runner links it into its own runs)"
+      continue
+    fi
 
     if [ -L "$target" ]; then
       rm "$target"

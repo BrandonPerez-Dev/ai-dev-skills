@@ -174,3 +174,30 @@ def test_the_bundled_examples_still_match_the_code():
         spec = load_spec(path)
         for layout in LAYOUTS.values():
             assert "data-line=" in layout(spec)
+
+
+@pytest.mark.parametrize("layout", sorted(LAYOUTS))
+def test_without_pygments_the_page_renders_with_plain_code(write_spec, tmp_path, layout):
+    """Pygments is optional: a machine without it gets the same page with the code
+    uncoloured, not an ImportError at the render step."""
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    scripts = Path(walkthrough.__file__).resolve().parent
+    out = tmp_path / f"plain-{layout}.html"
+    no_pygments = (
+        "import sys; sys.modules['pygments'] = None; "
+        f"sys.path.insert(0, {str(scripts)!r}); import walkthrough; "
+        "sys.exit(walkthrough.main(sys.argv[1:]))"
+    )
+    done = subprocess.run(
+        [sys.executable, "-c", no_pygments, str(write_spec()), "--layout", layout, "-o", str(out)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert done.returncode == 0, done.stderr
+    page = out.read_text()
+    assert "pub fn bump(n: u64, limit: u64) -&gt; u64 {" in page, "the code is there, uncoloured"
+    assert '<span class="k">pub</span>' not in page

@@ -12,9 +12,14 @@ import subprocess
 from functools import lru_cache
 from pathlib import Path
 
-from pygments.lexers import get_lexer_for_filename
-from pygments.token import STANDARD_TYPES
-from pygments.util import ClassNotFound
+try:
+    from pygments.lexers import get_lexer_for_filename
+    from pygments.token import STANDARD_TYPES
+    from pygments.util import ClassNotFound
+
+    HAVE_PYGMENTS = True
+except ImportError:  # optional: without Pygments, code is shown uncoloured
+    HAVE_PYGMENTS = False
 
 KINDS = ("context", "concept", "decision", "finding")
 ROLES = ("hot", "decision", "ripple")
@@ -44,9 +49,21 @@ def read_file(repo: str, rev: str, path: str) -> str | None:
 
 def standard_class(ttype) -> str:
     """Pygments' own short class name for a token type ("k", "s2", ...)."""
+    if not HAVE_PYGMENTS:
+        return ""
     while ttype not in STANDARD_TYPES:
         ttype = ttype.parent
     return STANDARD_TYPES[ttype]
+
+
+def lexer_for(path: str):
+    """Pygments' lexer for the file, or None: no Pygments, or a language it lacks."""
+    if not HAVE_PYGMENTS:
+        return None
+    try:
+        return get_lexer_for_filename(path, stripnl=False, ensurenl=False)
+    except ClassNotFound:
+        return None
 
 
 def highlight(path: str, text: str, classify=standard_class) -> list[str]:
@@ -56,9 +73,8 @@ def highlight(path: str, text: str, classify=standard_class) -> list[str]:
     coloured correctly on every line it spans. Stripping the tags and
     unescaping gives back the file exactly (a test holds this).
     """
-    try:
-        lexer = get_lexer_for_filename(path, stripnl=False, ensurenl=False)
-    except ClassNotFound:
+    lexer = lexer_for(path)
+    if lexer is None:
         return [html.escape(line) for line in text.split("\n")]
     lines: list[str] = []
     current: list[str] = []
