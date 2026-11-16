@@ -53,8 +53,8 @@
   {
    "file": "skills/code-walkthrough/scripts/core.py",
    "lines": [
-    178,
-    228
+    180,
+    230
    ],
    "anchor": "def load_spec(",
    "kind": "concept",
@@ -69,8 +69,8 @@
   {
    "file": "skills/code-walkthrough/scripts/core.py",
    "lines": [
-    93,
-    132
+    95,
+    134
    ],
    "anchor": "def diff_lines(",
    "kind": "decision",
@@ -84,43 +84,43 @@
    "steps": [
     {
      "lines": [
-      101,
-      103
+      103,
+      105
      ],
      "text": "No base means the file is new: every line is an addition."
     },
     {
      "lines": [
-      104,
-      104
+      106,
+      106
      ],
      "text": "One git call returns the whole file as a single diff."
     },
     {
      "lines": [
-      109,
-      114
+      111,
+      116
      ],
      "text": "An @@ line starts a hunk and gives the starting line numbers on each side."
     },
     {
      "lines": [
-      115,
-      118
+      117,
+      120
      ],
      "text": "Before the first hunk everything is header; after it, a leading \"-\" always means a deleted line."
     },
     {
      "lines": [
-      119,
-      128
+      121,
+      130
      ],
      "text": "Each line becomes a row: deleted, added, or unchanged, with its line numbers."
     },
     {
      "lines": [
-      129,
-      131
+      131,
+      133
      ],
      "text": "An untouched file comes back as unchanged rows, so a stop can still show it."
     }

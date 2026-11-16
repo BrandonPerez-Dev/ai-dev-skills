@@ -6,17 +6,16 @@ opens with the primer and the flow between stops, then every stop in turn.
 
 from __future__ import annotations
 
+import contextlib
 import html
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
-try:
+with contextlib.suppress(ImportError):  # optional: see core.HAVE_PYGMENTS
     from pygments.token import Token
-except ImportError:  # optional: tok_class only runs when core.highlight has a lexer
-    Token = None
 
-from core import RULINGS, count_lines, diff_lines, highlight, read_file
+from core import HAVE_PYGMENTS, RULINGS, count_lines, diff_lines, highlight, read_file
 from primer import answered_here, mark_terms, primer_html
 from steps import steps_html
 
@@ -51,7 +50,7 @@ def file_at(r, rev, path):
 
 
 def tok_class(tt):
-    if Token is None:
+    if not HAVE_PYGMENTS:
         return ""
     for base, cls in [
         (Token.Comment, "c"),

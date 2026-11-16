@@ -16,8 +16,10 @@ try:
     from pygments.lexers import get_lexer_for_filename
     from pygments.token import STANDARD_TYPES
     from pygments.util import ClassNotFound
+
+    HAVE_PYGMENTS = True
 except ImportError:  # optional: without Pygments, code is shown uncoloured
-    get_lexer_for_filename = None
+    HAVE_PYGMENTS = False
 
 KINDS = ("context", "concept", "decision", "finding")
 ROLES = ("hot", "decision", "ripple")
@@ -47,7 +49,7 @@ def read_file(repo: str, rev: str, path: str) -> str | None:
 
 def standard_class(ttype) -> str:
     """Pygments' own short class name for a token type ("k", "s2", ...)."""
-    if get_lexer_for_filename is None:
+    if not HAVE_PYGMENTS:
         return ""
     while ttype not in STANDARD_TYPES:
         ttype = ttype.parent
@@ -56,7 +58,7 @@ def standard_class(ttype) -> str:
 
 def lexer_for(path: str):
     """Pygments' lexer for the file, or None: no Pygments, or a language it lacks."""
-    if get_lexer_for_filename is None:
+    if not HAVE_PYGMENTS:
         return None
     try:
         return get_lexer_for_filename(path, stripnl=False, ensurenl=False)

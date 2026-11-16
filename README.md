@@ -19,7 +19,7 @@ git clone https://github.com/BrandonPerez-Dev/ai-dev-skills.git ~/ai-workflow-co
 ```
 
 `setup-claude.sh` links every skill into `~/.claude/skills` except those whose
-`SKILL.md` frontmatter sets `metadata.scope: cadre` (today `code-walkthrough`).
+`SKILL.md` frontmatter sets `metadata.scope: cadre`.
 Those belong to the [Cadre](https://github.com/Hololoop-AI/cadre-runner) cadres
 that list them, which link them into their own runs.
 
